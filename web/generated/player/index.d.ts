@@ -222,6 +222,9 @@ export declare class DemuxePlayerElement extends Base {
     private readiness;
     private seekPreviewTimer?;
     private hideTimer?;
+    private timelinePointer?;
+    private showScrubPosition;
+    private finishTimelineDrag;
     private controlFacts;
     private renderVisibility;
     private revealControls;
@@ -294,6 +297,9 @@ export declare class DemuxePlayerElement extends Base {
     private timelineProgress;
     private skip;
     private trackOptions;
+    private settingsMedia?;
+    private syncSettingsFeedback;
+    private reconcileSettings;
     private settings;
     private fullscreen;
     private iconButton;

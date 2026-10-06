@@ -16,6 +16,7 @@ import {initialElementQueue,transitionElementQueue,queueSelectionAllowed,queueCl
 import {formatTime, outputDimensions, shortcut} from './interaction.js';
 import {ScrubberPreview} from './preview.js';
 import {styles} from './styles.js';
+import {mobileStyles, mobileControlsQuery} from './mobile.js';
 import {themeStyles} from './themes.js';
 import {icons} from './icons.js';
 import {playerShell} from './components.js';
@@ -205,10 +206,11 @@ export class DemuxePlayerElement extends Base {
   private updateUtilities(){
     if(this.terminal)return;
     const focused=this.shadowRoot?.activeElement;
-    const sourceFocused=!!focused&&(this.$('source-options').contains(focused)||this.$('open-menu')===focused||this.$('open')===focused||(this.controlState.menuOpen&&this.menuTrigger==='open-menu'&&this.$('settings').contains(focused)));
-    const diagnosticsFocused=focused===this.$('diagnostics-toggle')||focused===this.$('diagnostics-overlay');
+    const sourceFocused=!!focused&&(this.$('source-options').contains(focused)||this.$('open-menu')===focused||this.$('settings-source')===focused||this.$('open')===focused||(this.controlState.menuOpen&&this.menuTrigger==='open-menu'&&this.$('settings').contains(focused)));
+    const diagnosticsFocused=focused===this.$('diagnostics-toggle')||focused===this.$('settings-diagnostics')||focused===this.$('diagnostics-overlay');
     if(!this.showSourceControls&&this.menuTrigger==='open-menu')this.settings(false,false);
     this.$('open-menu').hidden=!this.showSourceControls;
+    this.$('settings-source').hidden=!this.showSourceControls;
     this.$('empty').hidden=!this.showSourceControls||!!this.core?.state.sourceId;
     for(const id of ['open-menu','open','choose-file','file','subtitleFile','url','format','live','url-submit'])
       (this.$(id) as HTMLInputElement).disabled=!this.showSourceControls;
@@ -217,10 +219,11 @@ export class DemuxePlayerElement extends Base {
     this.$('source-options').inert=!this.showSourceControls;
     if(!this.showSourceControls)this.$('source-options').hidden=true;
     this.$('diagnostics-toggle').hidden=!this.showDiagnostics;
+    this.$('settings-diagnostics').hidden=!this.showDiagnostics;
     (this.$('diagnostics-toggle') as HTMLButtonElement).disabled=!this.showDiagnostics;
     if(!this.showDiagnostics)this.setDiagnostics(false);
     this.renderQueue();
-    if((!this.showSourceControls&&sourceFocused)||(!this.showDiagnostics&&diagnosticsFocused))this.$('stage').focus({preventScroll:true});
+    if((!this.showSourceControls&&sourceFocused)||(!this.showDiagnostics&&diagnosticsFocused))(this.controlState.menuOpen?this.$('settings-close'):this.$('stage')).focus({preventScroll:true});
   }
   private lifecycle=initialElementLifecycle();
   private get terminal(){return this.lifecycle.terminal;}
@@ -242,6 +245,25 @@ export class DemuxePlayerElement extends Base {
   private readiness!:Promise<Player>;
   private seekPreviewTimer?:ReturnType<typeof setTimeout>;
   private hideTimer?:ReturnType<typeof setTimeout>;
+  private timelinePointer?:number;
+  private showScrubPosition(){
+    if(this.timelinePointer===undefined)return;
+    const input=this.input('timeline'),badge=this.$('scrub-position');
+    const rect=input.getBoundingClientRect(),parent=this.$('controls').getBoundingClientRect();
+    const min=Number(input.min),span=Number(input.max)-min;
+    const fraction=span>0?Math.max(0,Math.min(1,(Number(input.value)-min)/span)):0;
+    badge.textContent=formatTime(Number(input.value));
+    badge.style.left=`${Math.max(44,Math.min(parent.width-44,rect.left-parent.left+rect.width*fraction))}px`;
+    badge.style.top=`${rect.top-parent.top-12}px`;
+    badge.hidden=false;
+  }
+  private finishTimelineDrag(){
+    const pointer=this.timelinePointer;this.timelinePointer=undefined;
+    this.control({type:'drag',active:false});this.$('scrub-position').hidden=true;
+    const input=this.input('timeline');
+    if(pointer!==undefined&&input.hasPointerCapture(pointer))input.releasePointerCapture(pointer);
+    this.revealControls();
+  }
   private controlFacts(){return {playing:this.core?.state.status==='playing',pending:!!this.core?.state.pendingOperation,connected:this.isConnected,focusVisible:!!this.shadowRoot?.activeElement?.matches(':focus-visible')};}
   private renderVisibility(){this.$('shell').classList.toggle('idle',this.controlState.idle);this.$('shell').classList.toggle('seek-preview',this.controlState.seekPreview);}
   private revealControls=()=>{const result=this.control({type:'reveal',playing:this.core?.state.status==='playing',delay:this.controlsAutoHideDelay});this.renderVisibility();clearTimeout(this.seekPreviewTimer);clearTimeout(this.hideTimer);if(result.hideAfter!==undefined)this.hideTimer=setTimeout(()=>{if(this.control({type:'hide-elapsed',...this.controlFacts()}).accepted)this.hideControls();},result.hideAfter);};
@@ -380,7 +402,7 @@ export class DemuxePlayerElement extends Base {
     this.lastSource=undefined;this.lastOptions=undefined;
     attempt(()=>this.rejectReady(new PlayerError('ABORTED',terminal?'Player element is destroyed':'Player element disconnected')));
     if(!terminal)attempt(()=>this.newReady());
-    for(const action of [()=>terminal?this.hoverPreview.destroy():this.hoverPreview.hide(),()=>clearTimeout(this.hideTimer),()=>clearTimeout(this.seekPreviewTimer),()=>sourceAbort?.abort(),()=>this.resetQueue(),()=>this.view({type:'source',name:'',sourceId:null}),()=>this.updateTitle(),()=>unsubscribe?.(),()=>observer?.disconnect(),()=>document.removeEventListener('fullscreenchange',this.fullscreenChanged),()=>document.removeEventListener('pointerdown',this.dismissMenu,true),()=>this.advanced?.reconcile()])attempt(action);
+    for(const action of [()=>terminal?this.hoverPreview.destroy():this.hoverPreview.hide(),()=>{this.timelinePointer=undefined;this.$('scrub-position').hidden=true;this.settings(false,false);},()=>clearTimeout(this.hideTimer),()=>clearTimeout(this.seekPreviewTimer),()=>sourceAbort?.abort(),()=>this.resetQueue(),()=>this.view({type:'source',name:'',sourceId:null}),()=>this.updateTitle(),()=>unsubscribe?.(),()=>observer?.disconnect(),()=>document.removeEventListener('fullscreenchange',this.fullscreenChanged),()=>document.removeEventListener('pointerdown',this.dismissMenu,true),()=>this.advanced?.reconcile()])attempt(action);
     let destruction:Promise<void>|undefined;attempt(()=>{destruction=old?.destroy();});
     void Promise.allSettled([previous,connecting,destruction]).then(results=>{
       for(const result of results)if(result.status==='rejected')errors.push(result.reason);
@@ -409,7 +431,7 @@ export class DemuxePlayerElement extends Base {
     if(this.controlState.menuOpen)this.advanced?.update(state);
     this.syncPreviewStrategy();
     applyLayout(this.shadowRoot!,this.layout,!!state.sourceId);
-    const identity=`${state.sourceId}:${state.activeMode}`;if(this.control({type:'preview',identity,pending:!!state.pendingOperation,controls:this.controls,seekable:!!state.seekable?.length}).resetPreview)this.hoverPreview.hide();
+    const identity=`${state.sourceId}:${state.activeMode}`;if(this.control({type:'preview',identity,pending:!!state.pendingOperation,controls:this.controls,seekable:!!state.seekable?.length}).resetPreview){this.hoverPreview.hide();if(this.timelinePointer!==undefined)this.finishTimelineDrag();}
     // A host using the core directly owns its source list; release ours on replacement.
     const observedQueue=transitionElementQueue(this.queueState,{type:'observe-source',sourceId:state.sourceId});this.queueState=observedQueue.state;if(observedQueue.reset){this.queueResources.clear();this.renderQueue();}
     this.renderQueue();
@@ -445,7 +467,7 @@ export class DemuxePlayerElement extends Base {
     if(!this.lastFailure)this.announce(activityView.announcement,!pill);
     this.geometry(state);this.updateDiagnostics();
   }
-  private setDiagnostics(show:boolean){this.control({type:'diagnostics',show,enabled:this.showDiagnostics,controls:this.controls});show=this.controlState.diagnostics;this.$('diagnostics-overlay').hidden=!show;this.$('diagnostics-toggle').setAttribute('aria-pressed',String(show));this.iconButton('diagnostics-toggle',show?'eyeOff':'eye',this.labels.diagnostics);if(show)this.updateDiagnostics(true);}
+  private setDiagnostics(show:boolean){this.control({type:'diagnostics',show,enabled:this.showDiagnostics,controls:this.controls});show=this.controlState.diagnostics;this.$('diagnostics-overlay').hidden=!show;this.$('diagnostics-toggle').setAttribute('aria-pressed',String(show));this.$('settings-diagnostics').setAttribute('aria-pressed',String(show));this.iconButton('diagnostics-toggle',show?'eyeOff':'eye',this.labels.diagnostics);if(show)this.updateDiagnostics(true);}
   private updateDiagnostics(force=false){if(!this.control({type:'diagnostics-sample',now:performance.now(),force,hasOwner:!!this.core}).accepted||!this.core)return;const s=this.core.state,d=this.core.diagnostics,m=s.mediaInfo;
     const lines=[this.labels.diagnostics,`Engine  ${s.activeMode??'—'} · ${s.automaticSelection?'automatic':'manual'}`,`State   ${s.status}${s.pendingOperation?' · '+s.pendingOperation.kind:''}`,`Time    ${formatTime(s.currentTime)} / ${s.streamType==='live'?this.labels.live:s.duration===null?'—':formatTime(s.duration)} · ${s.playbackRate}×`,`Video   ${m.video?.codec??'—'} · ${m.displayWidth??'—'} × ${m.displayHeight??'—'}`,`Audio   ${m.audio?.codec??'—'} · ${s.muted?'muted':Math.round(s.volume*100)+'%'}`];
     if(s.activeMode&&!['opening','switching','closing'].includes(s.pendingOperation?.kind??'')){
@@ -477,11 +499,51 @@ export class DemuxePlayerElement extends Base {
     for(const option of projection.options)select.add(new Option(option.label,option.id));
     select.value=projection.value;select.disabled=projection.disabled;select.title=select.selectedOptions[0]?.textContent??'';
   }
-  private settings(open:boolean,restoreFocus=true,trigger:'open-menu'|'settings-toggle'='settings-toggle'){if(!this.control({type:'menu',open,trigger,sourceControls:this.showSourceControls}).accepted)return;this.revealControls();this.$('settings').hidden=!open;this.$('shell').classList.toggle('menu-open',open);if(open){const source=this.menuTrigger==='open-menu';this.$('source-options').hidden=!source;this.$('playback-options').hidden=source;this.$('settings-title').textContent=source?this.labels.open:this.labels.settings;this.$('settings').classList.toggle('source-menu',source);this.$('settings').scrollTop=0;}this.$('open-menu').setAttribute('aria-expanded',String(open&&this.menuTrigger==='open-menu'));this.iconButton('open-menu',open&&this.menuTrigger==='open-menu'?'folderOpen':'folder',this.labels.open);this.$('settings-toggle').setAttribute('aria-expanded',String(open&&this.menuTrigger==='settings-toggle'));if(open){this.syncPreviewStrategy();if(this.core)this.advanced?.update(this.core.state);this.$('settings-close').focus();}else if(restoreFocus)this.$(this.menuTrigger).focus();}
+  private settingsMedia?:MediaQueryList;
+  private syncSettingsFeedback(){
+    const panel=this.$('settings'),modal=panel.matches(':modal');
+    const parent=modal?panel:this.$('shell'),before=modal?this.$('playback-options'):this.$('shortcuts-help');
+    for(const id of ['error','status'])if(this.$(id).parentElement!==parent)parent.insertBefore(this.$(id),before);
+  }
+  private reconcileSettings=()=>{
+    if(!this.controlState.menuOpen||!this.isConnected)return;
+    const panel=this.$('settings') as HTMLDialogElement,modal=!!this.settingsMedia?.matches;
+    if(panel.open&&panel.matches(':modal')===modal)return;
+    const focused=this.shadowRoot!.activeElement as HTMLElement|null,scroll=panel.scrollTop;
+    if(panel.open)panel.close();
+    if(modal)panel.showModal();else panel.show();
+    this.syncSettingsFeedback();
+    if(focused&&panel.contains(focused)&&focused.getClientRects().length)focused.focus({preventScroll:true});
+    else this.$('settings-close').focus({preventScroll:true});
+    panel.scrollTop=scroll;
+  };
+  private settings(open:boolean,restoreFocus=true,trigger:'open-menu'|'settings-toggle'='settings-toggle'){
+    if(!this.control({type:'menu',open,trigger,sourceControls:this.showSourceControls}).accepted)return;
+    const panel=this.$('settings') as HTMLDialogElement;
+    this.revealControls();this.$('shell').classList.toggle('menu-open',open);
+    if(open){
+      const source=this.menuTrigger==='open-menu';
+      this.$('source-options').hidden=!source;this.$('playback-options').hidden=source;
+      this.$('settings-title').textContent=source?this.labels.open:this.labels.settings;
+      panel.classList.toggle('source-menu',source);panel.hidden=false;
+      if(!this.settingsMedia){this.settingsMedia=matchMedia(mobileControlsQuery);this.settingsMedia.addEventListener('change',this.reconcileSettings);}
+      this.reconcileSettings();
+      panel.scrollTop=0;
+    }else{
+      this.settingsMedia?.removeEventListener('change',this.reconcileSettings);this.settingsMedia=undefined;
+      panel.close();panel.hidden=true;this.syncSettingsFeedback();
+    }
+    this.$('open-menu').setAttribute('aria-expanded',String(open&&this.menuTrigger==='open-menu'));
+    this.iconButton('open-menu',open&&this.menuTrigger==='open-menu'?'folderOpen':'folder',this.labels.open);
+    this.$('settings-toggle').setAttribute('aria-expanded',String(open&&this.menuTrigger==='settings-toggle'));
+    if(open){this.syncPreviewStrategy();if(this.core)this.advanced?.update(this.core.state);this.$('settings-close').focus();}
+    else if(restoreFocus){const trigger=this.$(this.menuTrigger);(trigger.getClientRects().length?trigger:this.$('settings-toggle')).focus();}
+  }
   private fullscreen(){const active=document.fullscreenElement===this;const request=active?this.core?.presentation.exitFullscreen():this.core?.presentation.requestFullscreen();if(!request){this.announce(this.labels.noFullscreen);return;}void request.then(()=>{this.fullscreenChanged();},()=>this.announce(this.labels.noFullscreen));}
   private iconButton(id:string,icon:keyof typeof icons,label:string){const button=this.$(id);if(button.dataset.icon!==icon){button.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;button.dataset.icon=icon;}if(icon==='back'||icon==='forward')button.querySelector('text')!.textContent=String(this.seekStep);button.classList.add('icon-button');button.setAttribute('aria-label',label);button.setAttribute('title',label);}
   private labelControls(){
     this.advanced?.label(this.labels);
+    this.$('settings-source').textContent=this.labels.open;this.$('settings-diagnostics').textContent=this.labels.diagnostics;
     this.$('preview-help').textContent=this.labels.previewHelp;
     this.$('preview-strategy-label').textContent=this.labels.previewStrategy;
     for(const [value,key] of [['demuxe','previewDemuxe'],['adaptive','previewAdaptive'],['gaussian','previewGaussian'],['directional','previewDirectional'],['uniform','previewUniform'],['interval','previewInterval'],['on-demand','previewOnDemand'],['custom','previewCustom']] as const)this.$('preview-strategy').querySelector<HTMLOptionElement>(`option[value="${value}"]`)!.textContent=this.labels[key];
@@ -489,7 +551,7 @@ export class DemuxePlayerElement extends Base {
     for(const [id,keys] of [['layout-select',playerLayouts],['theme-select',['demuxeTheme','lightTheme']]] as const)
       Array.from((this.$(id) as HTMLSelectElement).options).forEach((option,index)=>option.textContent=this.labels[keys[index]]);
     this.$('shortcuts-help').textContent=this.labels.shortcuts;this.renderQueue();this.$('choose-file').textContent=this.queueItems.length?this.labels.addFiles:this.labels.open;this.updateSourceLabel();this.$('diagnostics-overlay').setAttribute('aria-label',this.labels.diagnostics);for(const [id,key]of Object.entries({mute:'mute','settings-toggle':'settings','settings-close':'closeSettings',fullscreen:'fullscreen','open':'open','open-menu':'open','url-submit':'openURL','retry':'retry'}))this.$(id).textContent=this.labels[key as keyof typeof defaultLabels];for(const [id,icon,key]of [['back','back','back'],['forward','forward','forward'],['play','play','play'],['mute','volume','mute'],['settings-toggle','settings','settings'],['settings-close','close','closeSettings'],['open-menu','folder','open'],['diagnostics-toggle','eye','diagnostics']] as const){delete this.$(id).dataset.icon;this.iconButton(id,id==='diagnostics-toggle'&&this.$(id).getAttribute('aria-pressed')==='true'?'eyeOff':id==='open-menu'&&this.$(id).getAttribute('aria-expanded')==='true'?'folderOpen':icon,this.labels[key]);}delete this.$('fullscreen').dataset.icon;this.fullscreenChanged();for(const [id,key]of Object.entries({timeline:'seek',volume:'volume',file:'open',subtitleFile:'addSubtitle'}))this.$(id).setAttribute('aria-label',this.labels[key as keyof typeof defaultLabels]);const opener=this.$('open');opener.innerHTML=`<svg class="open-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons.folder}</svg><span></span><svg class="open-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>`;opener.querySelector('span')!.textContent=this.labels.open;for(const id of ['speed','audio','subtitles','previews'])this.$(id+'-label').textContent=this.labels[id as 'speed'|'audio'|'subtitles'|'previews'];this.$('settings-title').textContent=this.menuTrigger==='open-menu'?this.labels.open:this.labels.settings;this.$('media-file-label').textContent=this.labels.mediaFile;this.$('subtitle-file-label').textContent=this.labels.subtitleFile;for(const id of ['url','format','live'])this.$(id+'-label').textContent=this.labels[id==='live'?'streamLive':id as 'url'|'format'];}
-  private renderShell(){this.shadowRoot!.innerHTML=`<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}</style>${playerShell()}`;
+  private renderShell(){this.shadowRoot!.innerHTML=`<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}</style>${playerShell()}`;
     this.advanced=new AdvancedSettings(this.shadowRoot!,()=>this.core,work=>this.runSettings(work));
     this.updatePresentation();this.labelControls();this.updateTitle();this.updateUtilities();this.$('controls').hidden=!this.controls;this.$('topbar').hidden=!this.controls;
     this.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')this.revealControls();});this.addEventListener('pointerdown',event=>{if(this.isScreenPress(event))this.control({type:'screen-press'});else this.revealControls();});this.addEventListener('focusin',this.revealControls);this.addEventListener('focusout',()=>{if(!this.controlState.idle)this.revealControls();});
@@ -512,9 +574,26 @@ export class DemuxePlayerElement extends Base {
     this.$('mute').onclick=()=>{if(this.core)this.run(this.setMuted(!this.core.state.muted));};
     this.input('volume').oninput=()=>this.$('volume').style.setProperty('--volume-progress',`${Number(this.input('volume').value)*100}%`);
     this.input('volume').onchange=()=>this.run(this.setVolume(Number(this.input('volume').value)));
-    this.input('timeline').oninput=()=>{this.control({type:'drag',active:true});const text=formatTime(Number(this.input('timeline').value));this.$('time').textContent=text;this.timelineProgress();this.input('timeline').setAttribute('aria-valuetext',text);};
-    this.input('timeline').onchange=()=>{const value=Number(this.input('timeline').value);this.control({type:'drag',active:false});this.run(this.seek(value));};
-    this.input('timeline').onpointercancel=()=>{this.control({type:'drag',active:false});if(this.core)this.update(this.core.state);};
+    this.input('timeline').onpointerdown=event=>{
+      if(!event.isPrimary||event.button!==0||this.input('timeline').disabled)return;
+      this.timelinePointer=event.pointerId;this.control({type:'drag',active:true});this.revealControls();
+      this.input('timeline').setPointerCapture(event.pointerId);
+      this.showScrubPosition();
+    };
+    this.input('timeline').onpointerup=event=>{if(event.pointerId===this.timelinePointer)this.finishTimelineDrag();};
+    this.input('timeline').onlostpointercapture=()=>{if(this.timelinePointer!==undefined){this.finishTimelineDrag();if(this.core)this.update(this.core.state);}};
+    this.input('timeline').oninput=()=>{this.control({type:'drag',active:true});const text=formatTime(Number(this.input('timeline').value));this.$('time').textContent=text;this.timelineProgress();this.input('timeline').setAttribute('aria-valuetext',text);this.showScrubPosition();};
+    this.input('timeline').onchange=()=>{const value=Number(this.input('timeline').value);this.finishTimelineDrag();this.run(this.seek(value));};
+    this.input('timeline').onpointercancel=()=>{this.finishTimelineDrag();if(this.core)this.update(this.core.state);};
+    this.$('settings-source').onclick=()=>this.settings(true,true,'open-menu');
+    this.$('settings-diagnostics').onclick=()=>{this.settings(false);this.setDiagnostics(!this.controlState.diagnostics);};
+    this.$('settings').addEventListener('cancel',event=>{event.preventDefault();this.settings(false);});
+    this.$('settings').addEventListener('close',()=>{if(!(this.$('settings') as HTMLDialogElement).open&&this.controlState.menuOpen)this.settings(false);});
+    this.$('settings').addEventListener('click',event=>{
+      if(event.target!==this.$('settings'))return;
+      const panel=this.$('settings'),rect=panel.getBoundingClientRect();
+      if(panel.matches(':modal')&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom))this.settings(false);
+    });
     this.$('settings-toggle').onclick=()=>this.settings(!this.controlState.menuOpen||this.menuTrigger!=='settings-toggle',true,'settings-toggle');this.$('settings-close').onclick=()=>this.settings(false);
     this.$('layout-select').onchange=()=>{this.layout=(this.$('layout-select') as HTMLSelectElement).value as PlayerLayout;};
     this.$('theme-select').onchange=()=>{this.theme=(this.$('theme-select') as HTMLSelectElement).value as PlayerTheme;};

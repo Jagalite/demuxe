@@ -77,3 +77,24 @@ main{width:100%;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;
 .layout-example span{margin-left:6px;color:#6f7580}.layout-example:hover{color:#fff}
 @media(max-width:650px){.layout-toolbar{gap:6px}.layout-caption{display:none}.layout-options button{padding-inline:10px}.layout-example{font-size:11px}}
 @media(max-width:450px){.layout-toolbar{flex-wrap:wrap;gap:0}.layout-options{width:100%}.layout-options button{flex:1;padding-inline:7px;font-size:11px}.layout-example{margin-left:auto;min-height:26px}}
+
+/* Let portrait pages scroll, and reserve landscape height for the picture. */
+@media(max-width:600px){
+ html,body{height:auto;min-height:100%;overflow:auto}
+ body{min-height:100dvh}
+ main{flex:none;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+ #viewer{flex:none;height:clamp(300px,58svh,520px)}
+ .layout-options button,.layout-example{min-height:44px}
+ .layout-toolbar{gap:4px}
+ .playback-summary{margin-top:4px}
+}
+@media(max-width:600px) and (orientation:portrait){
+ #viewer:not([layout]):not(:fullscreen),#viewer[layout=classic]:not(:fullscreen){height:auto}
+ #viewer:not([layout]):not(:fullscreen)::part(stage),#viewer[layout=classic]:not(:fullscreen)::part(stage){height:auto;min-height:240px;aspect-ratio:var(--media-aspect,16/9)}
+}
+@media(max-height:500px) and (orientation:landscape){
+ .masthead,.layout-toolbar,.playback-summary,.footer{display:none}
+ main{padding:0;gap:0;max-width:none}
+ #viewer{height:100dvh;margin:0;--demuxe-radius:0}
+ #viewer::part(container){border:0}
+}

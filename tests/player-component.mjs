@@ -404,7 +404,12 @@ await check('overlay controls, URL opening, idle reveal and close stay in the co
  await page.screenshot({path:out+'/overlay-desktop.png',fullPage:true});
  await page.evaluate(()=>player.pause());await viewer.locator('#play').click();await page.evaluate(()=>{document.querySelector('demuxe-player').shadowRoot.activeElement?.blur();});await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));
  await viewer.dispatchEvent('pointermove');assert.equal(await viewer.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);await page.evaluate(()=>player.pause());
- await page.setViewportSize({width:390,height:844});await viewer.locator('#stage').hover({position:{x:15,y:90}});await viewer.locator('#settings-toggle').click();const menu=await viewer.locator('#settings').boundingBox(),stage=await viewer.locator('#stage').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.x+menu.width<=stage.x+stage.width+1&&menu.y+menu.height<=stage.y+stage.height+1);await page.screenshot({path:out+'/overlay-mobile-menu.png',fullPage:true});await page.keyboard.press('Escape');
+ await page.setViewportSize({width:390,height:844});await viewer.locator('#stage').hover({position:{x:15,y:90}});await viewer.locator('#settings-toggle').click();
+ const menu=await viewer.locator('#settings').boundingBox(),viewport=page.viewportSize();
+ assert.equal(await viewer.locator('#settings').evaluate(el=>el.matches(':modal')),true);
+ assert.ok(menu.x>=0&&menu.y>=0&&menu.x+menu.width<=viewport.width+1&&menu.y+menu.height<=viewport.height+1);
+ assert.ok(menu.width>=viewport.width-1,'mobile settings use the viewport rather than the embedded stage');
+ await page.screenshot({path:out+'/overlay-mobile-menu.png',fullPage:true});await page.keyboard.press('Escape');
  assert.equal(await viewer.locator('#close-media').count(),0);await viewer.evaluate(el=>el.close());await page.waitForFunction(()=>!player.state.sourceId);assert.ok(await viewer.locator('#empty').isVisible());assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 });
 await check('outside clicks dismiss menus and screen taps toggle controls',async()=>{
