@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Shaka release archive diagnostic
+on:
+  push:
+    branches: [release-1.1.0-shaka-diagnostic]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg pulseaudio
+      - run: npx playwright install --with-deps chrome firefox
+      - run: pulseaudio --start --exit-idle-time=-1
+      - name: Download retained unqualified archive for diagnosis
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 37649920658 --repo Jagalite/demuxe --name unqualified-runtime-debug --dir build/diagnostic-archive
+      - name: Diagnose exact archive native-file phases in Chrome and Firefox
+        env:
+          BETA_ARCHIVE: build/diagnostic-archive/demuxe-1.1.0.tgz
+          HEADLESS: '1'
+        run: |
+          BROWSER=chrome node tests/shaka-package.mjs
+          BROWSER=firefox node tests/shaka-package.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shaka-phase-diagnostic
+          path: results/shaka-package
