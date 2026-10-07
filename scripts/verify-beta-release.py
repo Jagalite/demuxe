@@ -95,6 +95,8 @@ if manifest.get('adaptiveStreaming'):
   if data['archiveSHA256']!=runtime_hash or data.get('sourceCommit')!=manifest['sourceCommit']:raise SystemExit('Shaka consumer used a different archive or source revision: '+str(file))
   if not data.get('passed') or not data.get('typecheck') or {c['name']for c in data['cases']}!={'native-direct','hls-ts','hls-fmp4','dash'} or not all(c.get('passed')for c in data['cases']):raise SystemExit('Incomplete/failed Shaka consumer suite: '+str(file))
   if data['testHarnessSHA256']!=source['files'].get('demuxe/tests/shaka-package.mjs'):raise SystemExit('Shaka consumer harness differs from tagged source: '+str(file))
+  classifier_hash=source['files'].get('demuxe/tests/shaka-package-evidence.mjs')
+  if not classifier_hash or data.get('testEvidenceSHA256')!=classifier_hash:raise SystemExit('Shaka phase classifier differs from tagged source: '+str(file))
   evidence.append({'file':str(file.resolve()),'sha256':archive_sha(file),'browser':data['family'],'suite':'shaka-exact-archive','cases':len(data['cases'])})
  if families!={'chrome','firefox'}:raise SystemExit('Shaka consumers require both Chrome and Firefox evidence')
 if optional_present:

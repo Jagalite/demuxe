@@ -9,6 +9,7 @@ import {mkdtemp, mkdir, readFile, writeFile, readdir, realpath} from 'node:fs/pr
 import {writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {assertNativeFilePlayback} from './shaka-package-evidence.mjs';
 
 const archive=path.resolve(process.env.BETA_ARCHIVE||'build/beta/demuxe-0.3.0-beta.4.tgz');
 const family=process.env.BROWSER||'chrome';
@@ -18,7 +19,7 @@ const output=path.resolve(process.env.SHAKA_PACKAGE_OUTPUT||`results/shaka-packa
 await mkdir(output,{recursive:true});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const result={scope:'Exact-archive synthetic streaming consumer smoke; not performance or release qualification',
-  family,archiveSHA256:hash(await readFile(archive)),testHarnessSHA256:hash(await readFile(import.meta.filename)),
+  family,archiveSHA256:hash(await readFile(archive)),testHarnessSHA256:hash(await readFile(import.meta.filename)),testEvidenceSHA256:hash(await readFile(new URL('./shaka-package-evidence.mjs',import.meta.url))),
   fixtures:{},commands:[],cases:[],passed:false};
 const save=()=>writeFile(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');
 process.on('uncaughtExceptionMonitor',error=>{result.error=String(error.stack);writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');});
@@ -71,10 +72,26 @@ try{
     const entry={name,passed:false};result.cases.push(entry);const page=await browser.newPage();const errors=[];page.on('pageerror',error=>errors.push(String(error)));page.setDefaultTimeout(30000);const before=requests.length;
     try{
       await page.goto(origin);await page.waitForFunction(()=>window.Player);
-      await page.evaluate(async name=>{window.errors=[];window.player=new Player(document.querySelector('#host'),{assetBase:'/runtime/'});player.addEventListener('error',event=>errors.push(String(event.detail?.message||event.detail)));await player.openRemote({url:location.origin+'/media/'+(name==='native-direct'?'direct.mp4':name+'/index.'+(name==='dash'?'mpd':'m3u8')),...(name==='native-direct'?{}:{format:name==='dash'?'dash':'hls',streaming:{maxBandwidth:4000000}})});await player.play();},name);
+      await page.evaluate(async name=>{window.errors=[];window.player=new Player(document.querySelector('#host'),{assetBase:'/runtime/'});player.addEventListener('error',event=>errors.push(String(event.detail?.message||event.detail)));
+        window.phase='open';window.verifications=[];
+        if(name==='native-direct'){
+          const original=player.playNativeVerified;
+          if(typeof original!=='function')throw Error('Missing native verification observation point');
+          player.playNativeVerified=function(...args){
+            const record={phase,started:performance.timeOrigin+performance.now(),budget:args[2]??2000,plan:this.diagnostics.plan?.id,automatic:this.automatic,sourceKind:this.source?.kind,nativeRemux:this.nativeRemux};verifications.push(record);
+            const finish=error=>{record.finished=performance.timeOrigin+performance.now();record.error=error?{name:error.name,message:error.message,stage:error.stage,evidenceTimeout:error.evidenceTimeout}:null;};
+            let work;try{work=Reflect.apply(original,this,args);}catch(error){finish(error);throw error;}
+            return Promise.resolve(work).then(value=>{finish();return value;},error=>{finish(error);throw error;});
+          };
+        }
+        await player.openRemote({url:location.origin+'/media/'+(name==='native-direct'?'direct.mp4':name+'/index.'+(name==='dash'?'mpd':'m3u8')),...(name==='native-direct'?{}:{format:name==='dash'?'dash':'hls',streaming:{maxBandwidth:4000000}})});
+        window.openPhase={at:performance.timeOrigin+performance.now(),planId:player.diagnostics.plan?.id,sourceId:player.state.sourceId};phase='first-play';await player.play();},name);
       await page.waitForFunction(()=>Number(player.properties.get('time-pos'))>.3);
       entry.diagnostics=await page.evaluate(()=>player.diagnostics);
-      assert.equal(entry.diagnostics.plan.id,name==='native-direct'?'native-direct':'shaka-mse');
+      if(name==='native-direct'){
+        entry.nativeFile=await page.evaluate(()=>{const d=player.diagnostics,s=player.state;return {open:openPhase,played:{at:performance.timeOrigin+performance.now(),planId:d.plan?.id,mode:player.mode,sourceId:s.sourceId,pendingOperation:s.pendingOperation,status:s.status,output:d.backend?.capability,backendPath:d.backend?.path,backendPlan:d.backend?.plan,attempts:d.selection.attempts,runtime:d.remuxRuntime.runtime,remuxTransport:d.backend?.remux?.remux?.transport,verifications}};});
+        entry.nativeFile.outcome=assertNativeFilePlayback(entry.nativeFile.open,entry.nativeFile.played);
+      }else assert.equal(entry.diagnostics.plan.id,'shaka-mse');
       await page.evaluate(()=>player.pause());const paused=await page.evaluate(()=>Number(player.properties.get('time-pos')));await page.waitForTimeout(300);assert.ok(Math.abs(await page.evaluate(()=>Number(player.properties.get('time-pos')))-paused)<.1);
       await page.evaluate(async()=>{await player.seek(3);await player.play();});await page.waitForFunction(()=>Number(player.properties.get('time-pos'))>3.2);
       await page.evaluate(()=>player.destroy());await page.waitForTimeout(250);
