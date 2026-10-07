@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
 import { ViewportExpansion, viewportStyles } from './viewport.js';
+import { transitionStageTaps } from '../internal/machine/stage-taps.js';
 import { PLAYER_EVENTS } from '../types.js';
 import { normalizeTrackPolicy } from '../internal/track-policy.js';
 import { watchdogPolicy } from '../internal/watchdogs.js';
@@ -370,6 +371,9 @@ export class DemuxePlayerElement extends Base {
         this.settings(false, false); };
     isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay')); }
     resizeObserver;
+    stageTaps = {};
+    lastStageTouch = -Infinity;
+    suppressStageClick = -Infinity;
     viewportExpansion;
     fullscreenRequest;
     fullscreenChanged = () => {
@@ -692,6 +696,9 @@ export class DemuxePlayerElement extends Base {
         const previous = this.cleanup, connecting = this.connecting, old = this.core, unsubscribe = this.unsubscribe, observer = this.resizeObserver, sourceAbort = this.sourceAbort;
         if (terminal)
             this.customPreviewStrategy = undefined;
+        this.stageTaps = {};
+        this.lastStageTouch = -Infinity;
+        this.suppressStageClick = -Infinity;
         this.core = undefined;
         this.fullscreenRequest = undefined;
         this.unsubscribe = undefined;
@@ -1090,7 +1097,8 @@ export class DemuxePlayerElement extends Base {
         this.$('topbar').hidden = !this.controls;
         this.addEventListener('pointermove', event => { if (event.pointerType !== 'touch')
             this.revealControls(); });
-        this.addEventListener('pointerdown', event => { if (this.isScreenPress(event))
+        this.addEventListener('pointerdown', event => { this.suppressStageClick = -Infinity; if (!event.composedPath().includes(this.$('stage')) || !this.isScreenPress(event))
+            this.stageTaps = {}; if (this.isScreenPress(event))
             this.control({ type: 'screen-press' });
         else
             this.revealControls(); });
@@ -1104,7 +1112,10 @@ export class DemuxePlayerElement extends Base {
             this.$('stage').focus({ preventScroll: true });
         } });
         this.$('open-menu').onclick = () => this.settings(!this.controlState.menuOpen || this.menuTrigger !== 'open-menu', true, 'open-menu');
-        this.$('shell').onclick = event => { if (!this.isScreenPress(event) || !this.core?.state.sourceId || !this.controls)
+        this.$('shell').onclick = event => { if (event.timeStamp - this.suppressStageClick < 700 && event.composedPath().includes(this.$('stage')) && this.isScreenPress(event)) {
+            this.suppressStageClick = -Infinity;
+            return;
+        } if (!this.isScreenPress(event) || !this.core?.state.sourceId || !this.controls)
             return; if (this.controlState.stageWasIdle) {
             this.$('stage').focus({ preventScroll: true });
             this.revealControls();
@@ -1181,7 +1192,29 @@ export class DemuxePlayerElement extends Base {
         this.$('subtitles').onchange = () => this.run(this.selectSubtitleTrack(this.$('subtitles').value || null));
         this.$('diagnostics-toggle').onclick = () => this.setDiagnostics(this.$('diagnostics-overlay').hidden);
         this.$('fullscreen').onclick = () => this.fullscreen();
-        this.$('stage').ondblclick = () => this.fullscreen();
+        const stage = this.$('stage');
+        for (const type of ['pointerdown', 'pointermove', 'pointerup'])
+            stage.addEventListener(type, event => {
+                if (event.pointerType !== 'touch')
+                    return;
+                this.lastStageTouch = event.timeStamp;
+                const state = this.core?.state, rect = stage.getBoundingClientRect(), fraction = (event.clientX - rect.left) / rect.width;
+                const eligible = event.isPrimary && this.controls && !this.terminal && !this.controlState.menuOpen && this.isScreenPress(event) && !!state?.sourceId && !!state.seekable?.length && !state.pendingOperation;
+                const result = transitionStageTaps(this.stageTaps, { type: type === 'pointerdown' ? 'down' : type === 'pointermove' ? 'move' : 'up', eligible, tap: { id: event.pointerId, x: event.clientX, y: event.clientY, at: event.timeStamp, side: fraction < 1 / 3 ? -1 : fraction > 2 / 3 ? 1 : 0, source: state?.sourceId ?? 0 } });
+                this.stageTaps = result.state;
+                if (result.seek) {
+                    this.suppressStageClick = event.timeStamp;
+                    this.skip(result.seek * this.seekStep);
+                    this.revealControls();
+                    this.announce(`${result.seek < 0 ? '−' : '+'}${formatTime(this.seekStep)}`, false);
+                }
+            });
+        stage.addEventListener('pointercancel', () => { this.stageTaps = {}; });
+        // Touch pointers leave after every release; retain the completed first tap.
+        stage.addEventListener('pointerleave', () => { if (this.stageTaps.press)
+            this.stageTaps = {}; });
+        stage.ondblclick = event => { if (this.isScreenPress(event) && event.timeStamp - this.lastStageTouch >= 700)
+            this.fullscreen(); };
         this.$('choose-file').onclick = () => { if (this.showSourceControls)
             this.input('file').click(); };
         this.$('open').onclick = () => { if (this.showSourceControls)

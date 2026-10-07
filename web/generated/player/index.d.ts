@@ -244,6 +244,9 @@ export declare class DemuxePlayerElement extends Base {
     private dismissMenu;
     private isScreenPress;
     private resizeObserver?;
+    private stageTaps;
+    private lastStageTouch;
+    private suppressStageClick;
     private viewportExpansion?;
     private fullscreenRequest?;
     private fullscreenChanged;

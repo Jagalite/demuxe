@@ -244,20 +244,77 @@ try{
   await page.evaluate(()=>document.exitFullscreen());
   console.log('PASS phone fullscreen fills the viewport and retains modal settings');
  }
+ // Double-tap seeking is touch-only and uses the configured seek step.
+ await page.evaluate(async()=>{
+  viewer.seekStep=2;await viewer.seek(6);viewer.revealControls();
+  window.gestureSeeks=[];window.gestureSeek=viewer.seek.bind(viewer);
+  viewer.seek=time=>{gestureSeeks.push(time);return gestureSeek(time);};
+  window.stagePointer=(type,fraction,extra={})=>{const r=$('stage').getBoundingClientRect();$('stage').dispatchEvent(new PointerEvent(type,{bubbles:true,composed:true,pointerType:'touch',pointerId:91,isPrimary:true,button:0,clientX:r.left+r.width*fraction,clientY:r.top+r.height*.25,...extra}));};
+  window.stageTap=fraction=>{stagePointer('pointerdown',fraction);stagePointer('pointerup',fraction);stagePointer('pointerleave',fraction);};
+  stageTap(.9);stageTap(.9);
+  $('stage').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  window.compatibilityClickKeptControls=!$('shell').classList.contains('idle');
+  stageTap(.5);$('stage').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  window.freshCenterTapHidControls=$('shell').classList.contains('idle');
+ });
+ assert.deepEqual(await page.evaluate(()=>[compatibilityClickKeptControls,freshCenterTapHidControls]),[true,true]);
+ await page.waitForFunction(()=>!viewer.player.state.pendingOperation&&Math.abs(viewer.player.state.currentTime-8)<.15);
+ assert.deepEqual(await page.evaluate(()=>gestureSeeks),[8]);
+ await page.evaluate(()=>{
+  stageTap(.1);stageTap(.1);
+  // A fresh press must also clear suppression if no compatibility click arrived.
+  stageTap(.5);$('stage').dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  window.freshTapWithoutCompatibilityClick=$('shell').classList.contains('idle');
+ });
+ assert.equal(await page.evaluate(()=>freshTapWithoutCompatibilityClick),true);
+ await page.waitForFunction(()=>!viewer.player.state.pendingOperation&&Math.abs(viewer.player.state.currentTime-6)<.15);
+ assert.deepEqual(await page.evaluate(()=>gestureSeeks),[8,6]);
+ await page.evaluate(()=>{
+  stageTap(.5);stageTap(.5);
+  stageTap(.1);stagePointer('pointerdown',.1);stagePointer('pointermove',.3);stagePointer('pointerup',.1);
+  stageTap(.9);stagePointer('pointerdown',.9);stagePointer('pointercancel',.9);stagePointer('pointerup',.9);
+  $('stage').dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
+ });
+ assert.equal(await page.evaluate(()=>gestureSeeks.length===2&&!document.fullscreenElement&&!$('shell').hasAttribute('popover')&&viewer.player.state.playbackIntent==='pause'),true);
+ if(family==='chrome'){
+  await page.locator('#viewer #stage').scrollIntoViewIfNeeded();
+  const cdp=await page.context().newCDPSession(page),box=await page.locator('#viewer #stage').boundingBox();
+  for(let i=0;i<2;i++){
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width*.1,y:box.y+box.height*.25,id:1}]});
+   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }
+  await page.waitForFunction(()=>!viewer.player.state.pendingOperation&&Math.abs(viewer.player.state.currentTime-4)<.15);
+  assert.deepEqual(await page.evaluate(()=>gestureSeeks),[8,6,4]);
+  assert.equal(await page.evaluate(()=>!document.fullscreenElement&&!$('shell').hasAttribute('popover')),true);
+  await cdp.detach();
+ }
+ await page.waitForTimeout(750); // The touch compatibility-event suppression window has ended.
+ const stageBox=await page.locator('#viewer #stage').boundingBox();
+ await page.locator('#viewer #stage').dblclick({position:{x:stageBox.width*.1,y:stageBox.height*.25}});
+ await page.waitForFunction(()=>document.fullscreenElement===viewer||$('shell').matches(':popover-open'));
+ await page.locator('#viewer #fullscreen').click();
+ await page.waitForFunction(()=>!document.fullscreenElement&&!$('shell').hasAttribute('popover'));
+ await page.evaluate(()=>{viewer.seek=gestureSeek;viewer.seekStep=10;viewer.revealControls();});
+ console.log('PASS touch double-tap seeking: directions, custom step, center/swipe/cancel rejection, no touch fullscreen');
  // Browser expansion uses the same composed shell when container fullscreen is absent.
  await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>{
-  viewer.revealControls();window.expansionCore=viewer.player;window.expansionSurface=viewer.player.surface;window.expansionSource=viewer.player.state.sourceId;
+  window.expansionAutoHideDelay=viewer.controlsAutoHideDelay;viewer.controlsAutoHideDelay=0;viewer.revealControls();window.expansionCore=viewer.player;window.expansionSurface=viewer.player.surface;window.expansionSource=viewer.player.state.sourceId;
   window.originalFullscreen=Object.getOwnPropertyDescriptor(viewer,'requestFullscreen');Object.defineProperty(viewer,'requestFullscreen',{value:undefined,configurable:true});
   window.outside=document.createElement('button');outside.textContent='Outside player';document.body.append(outside);
   window.beforeExpansionOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='clip';window.originalOverflow=document.documentElement.style.overflow;
   window.subtitleLayer=document.createElement('canvas');subtitleLayer.dataset.testSubtitle='';subtitleLayer.style.position='absolute';$('surface').append(subtitleLayer);
  });
- await page.evaluate(async()=>{await viewer.seek(0);await viewer.play();window.expansionTime=viewer.player.state.currentTime;});
- await page.locator('#viewer #fullscreen').click();
- await page.waitForFunction(()=>viewer.player.state.currentTime>expansionTime+.2);
- assert.equal(await page.evaluate(()=>viewer.player===expansionCore&&viewer.player.state.playbackIntent==='play'),true);
- await page.evaluate(()=>viewer.pause());
+ // Observe continuity in the page, before slow automation round trips can outlast the fixture.
+ const expansionPlayback=await page.evaluate(async()=>{
+  await viewer.seek(0);await viewer.play();viewer.revealControls();
+  const start=viewer.player.state.currentTime,deadline=performance.now()+5000;
+  $('fullscreen').click();
+  while(viewer.player.state.currentTime<=start+.2&&performance.now()<deadline)await new Promise(resolve=>setTimeout(resolve,25));
+  return {sameCore:viewer.player===expansionCore,intent:viewer.player.state.playbackIntent,expanded:$('shell').matches(':popover-open'),advanced:viewer.player.state.currentTime>start+.2};
+ });
+ assert.deepEqual(expansionPlayback,{sameCore:true,intent:'play',expanded:true,advanced:true});
+ await page.evaluate(async()=>{await viewer.pause();viewer.controlsAutoHideDelay=expansionAutoHideDelay;});
  for(let i=0;i<12;i++){await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>$('shell').contains(viewer.shadowRoot.activeElement)),true);}
  // An inert custom control subtree must not trap Tab on an unfocusable child.
  await page.evaluate(()=>{

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {Player} from '../unified-player.js';
 import {ViewportExpansion,viewportStyles} from './viewport.js';
+import {transitionStageTaps,type StageTaps} from '../internal/machine/stage-taps.js';
 import type {PlayerAPI} from '../contracts.js';
 import {PLAYER_EVENTS} from '../types.js';
 import {normalizeTrackPolicy} from '../internal/track-policy.js';
@@ -281,6 +282,9 @@ export class DemuxePlayerElement extends Base {
   private dismissMenu=(event:PointerEvent)=>{const path=event.composedPath();if(this.controlState.menuOpen&&!['settings','settings-toggle','open-menu'].some(id=>path.includes(this.$(id))))this.settings(false,false);};
   private isScreenPress(event:Event){return !event.composedPath().some(node=>node instanceof Element&&node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay'));}
   private resizeObserver?:ResizeObserver;
+  private stageTaps:StageTaps={};
+  private lastStageTouch=-Infinity;
+  private suppressStageClick=-Infinity;
   private viewportExpansion?:ViewportExpansion;
   private fullscreenRequest?:Promise<void>;
   private fullscreenChanged=()=>{
@@ -417,6 +421,7 @@ export class DemuxePlayerElement extends Base {
   private releaseOwnedResources(terminal:boolean):Promise<void>{
     const previous=this.cleanup,connecting=this.connecting,old=this.core,unsubscribe=this.unsubscribe,observer=this.resizeObserver,sourceAbort=this.sourceAbort;
     if(terminal)this.customPreviewStrategy=undefined;
+    this.stageTaps={};this.lastStageTouch=-Infinity;this.suppressStageClick=-Infinity;
     this.core=undefined;this.fullscreenRequest=undefined;this.unsubscribe=undefined;this.resizeObserver=undefined;this.sourceAbort=undefined;
     let resolve!:()=>void,reject!:(error:unknown)=>void;
     const done=this.cleanup=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
@@ -601,11 +606,11 @@ export class DemuxePlayerElement extends Base {
   private renderShell(){this.shadowRoot!.innerHTML=`<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}${viewportStyles}</style>${playerShell()}`;
     this.advanced=new AdvancedSettings(this.shadowRoot!,()=>this.core,work=>this.runSettings(work));
     this.updatePresentation();this.labelControls();this.updateTitle();this.updateUtilities();this.$('controls').hidden=!this.controls;this.$('topbar').hidden=!this.controls;
-    this.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')this.revealControls();});this.addEventListener('pointerdown',event=>{if(this.isScreenPress(event))this.control({type:'screen-press'});else this.revealControls();});this.addEventListener('focusin',this.revealControls);this.addEventListener('focusout',()=>{if(!this.controlState.idle)this.revealControls();});
+    this.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')this.revealControls();});this.addEventListener('pointerdown',event=>{this.suppressStageClick=-Infinity;if(!event.composedPath().includes(this.$('stage'))||!this.isScreenPress(event))this.stageTaps={};if(this.isScreenPress(event))this.control({type:'screen-press'});else this.revealControls();});this.addEventListener('focusin',this.revealControls);this.addEventListener('focusout',()=>{if(!this.controlState.idle)this.revealControls();});
     this.addEventListener('pointerleave',event=>{if(!this.control({type:'pointer-leave',mouse:event.pointerType==='mouse',terminal:this.terminal,controls:this.controls,hasSource:!!this.core?.state.sourceId,...this.controlFacts()}).accepted)return;this.hideControls();});
     this.$('source-actions').addEventListener('click',event=>{if(this.showSourceControls&&event.composedPath().some(node=>node instanceof HTMLButtonElement)){this.settings(false,false);this.$('stage').focus({preventScroll:true});}});
     this.$('open-menu').onclick=()=>this.settings(!this.controlState.menuOpen||this.menuTrigger!=='open-menu',true,'open-menu');
-    this.$('shell').onclick=event=>{if(!this.isScreenPress(event)||!this.core?.state.sourceId||!this.controls)return;if(this.controlState.stageWasIdle){this.$('stage').focus({preventScroll:true});this.revealControls();}else this.hideControls(true);};
+    this.$('shell').onclick=event=>{if(event.timeStamp-this.suppressStageClick<700&&event.composedPath().includes(this.$('stage'))&&this.isScreenPress(event)){this.suppressStageClick=-Infinity;return;}if(!this.isScreenPress(event)||!this.core?.state.sourceId||!this.controls)return;if(this.controlState.stageWasIdle){this.$('stage').focus({preventScroll:true});this.revealControls();}else this.hideControls(true);};
     this.$('format').onchange=()=>this.updateUtilities();
     this.$('remote').onsubmit=event=>{event.preventDefault();if(!this.showSourceControls)return;const format=(this.$('format') as HTMLSelectElement).value as 'file'|'hls'|'dash';this.openFromControls({url:this.input('url').value,format,...(format!=='file'?{streaming:{live:this.input('live').checked}}:{})});};
     this.addEventListener('dragover',event=>{if(this.allowFileDrop&&event.dataTransfer?.types.includes('Files'))event.preventDefault();});this.addEventListener('drop',event=>{if(!this.allowFileDrop||!event.dataTransfer?.files.length)return;event.preventDefault();this.addFiles(Array.from(event.dataTransfer.files));});
@@ -651,7 +656,21 @@ export class DemuxePlayerElement extends Base {
     this.$('audio').onchange=()=>this.run(this.selectAudioTrack((this.$('audio') as HTMLSelectElement).value||null));
     this.$('subtitles').onchange=()=>this.run(this.selectSubtitleTrack((this.$('subtitles') as HTMLSelectElement).value||null));
     this.$('diagnostics-toggle').onclick=()=>this.setDiagnostics(this.$('diagnostics-overlay').hidden);
-    this.$('fullscreen').onclick=()=>this.fullscreen();this.$('stage').ondblclick=()=>this.fullscreen();
+    this.$('fullscreen').onclick=()=>this.fullscreen();
+    const stage=this.$('stage');
+    for(const type of ['pointerdown','pointermove','pointerup'] as const)stage.addEventListener(type,event=>{
+      if(event.pointerType!=='touch')return;
+      this.lastStageTouch=event.timeStamp;
+      const state=this.core?.state,rect=stage.getBoundingClientRect(),fraction=(event.clientX-rect.left)/rect.width;
+      const eligible=event.isPrimary&&this.controls&&!this.terminal&&!this.controlState.menuOpen&&this.isScreenPress(event)&&!!state?.sourceId&&!!state.seekable?.length&&!state.pendingOperation;
+      const result=transitionStageTaps(this.stageTaps,{type:type==='pointerdown'?'down':type==='pointermove'?'move':'up',eligible,tap:{id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp,side:fraction<1/3?-1:fraction>2/3?1:0,source:state?.sourceId??0}});
+      this.stageTaps=result.state;
+      if(result.seek){this.suppressStageClick=event.timeStamp;this.skip(result.seek*this.seekStep);this.revealControls();this.announce(`${result.seek<0?'−':'+'}${formatTime(this.seekStep)}`,false);}
+    });
+    stage.addEventListener('pointercancel',()=>{this.stageTaps={};});
+    // Touch pointers leave after every release; retain the completed first tap.
+    stage.addEventListener('pointerleave',()=>{if(this.stageTaps.press)this.stageTaps={};});
+    stage.ondblclick=event=>{if(this.isScreenPress(event)&&event.timeStamp-this.lastStageTouch>=700)this.fullscreen();};
     this.$('choose-file').onclick=()=>{if(this.showSourceControls)this.input('file').click();};
     this.$('open').onclick=()=>{if(this.showSourceControls)this.input('file').click();};this.input('file').onchange=()=>{const files=Array.from(this.input('file').files??[]);this.input('file').value='';if(this.showSourceControls)this.addFiles(files);};
     this.input('subtitleFile').onchange=()=>{const file=this.input('subtitleFile').files?.[0];this.input('subtitleFile').value='';if(file&&this.canPickSubtitle())this.run(this.addSubtitle(file));};

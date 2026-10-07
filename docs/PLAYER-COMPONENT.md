@@ -309,3 +309,8 @@ viewer.controlsMode = 'auto';    // Resume viewport and pointer detection.
 Switching updates an open settings panel without replacing form nodes or changing playback. If it hides the focused Open, Diagnostics or Volume control, focus moves to Settings or Mute. Missing or unknown attributes fall back to `auto`; invalid property values throw `INVALID_ARGUMENT`. TypeScript consumers can import `PlayerControlsMode` from `demuxe/player`.
 
 The default `layout="classic" theme="demuxe"` preserves the existing player. Choose `cinema` for centered bottom controls, `rail` for side transport, `studio` for a framed console, `focus` for a floating transport capsule, or `deck` for a playback pad beside the timeline. Modern and Playground have been replaced by these five options. Set `viewer.theme = "light"` for an independent light palette. Switching preserves the playback core and component nodes. See [presentation architecture and behavior inventory](PLAYER-PRESENTATION.md) and [interactive example](../examples/player-presentation.html).
+
+Touch double-taps on the left or right third of the playback area seek backward
+or forward by `seekStep` (10 seconds by default). The center keeps single-tap
+control visibility behavior. Swipes, cancelled touches, controls, and unavailable
+seek windows do not trigger this gesture. Mouse double-click still toggles fullscreen.
