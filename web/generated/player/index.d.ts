@@ -10,6 +10,10 @@ export type { PlayerLayout, PlayerTheme } from './presentation.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
     appearance: "Appearance";
+    controlsMode: "Controls";
+    controlsAuto: "Auto";
+    controlsMobile: "Mobile";
+    controlsDesktop: "Desktop";
     layout: "Layout";
     theme: "Theme";
     classic: "Classic";

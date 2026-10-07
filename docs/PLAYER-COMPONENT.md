@@ -283,7 +283,7 @@ See [integration contracts and compatibility profiles](API-INTEGRATION.md) for p
 
 ## Layouts and themes
 
-Control presentation is independent of layout and theme. Use `controls-mode="auto"` (the default), `"mobile"`, or `"desktop"`, or set `viewer.controlsMode` to the same values. Automatic mode enables mobile controls at viewport widths up to 600px, or up to 960px with a coarse pointer. Mobile mode forces larger controls, a simplified toolbar and modal settings sheet; desktop mode keeps the toolbar actions and nonmodal settings panel. Container-responsive layout rules still apply in desktop mode.
+Control presentation is independent of layout and theme. In Playback settings → Appearance, the Controls selector offers Auto, Mobile and Desktop. Use `controls-mode="auto"` (the default), `"mobile"`, or `"desktop"`, or set `viewer.controlsMode` to the same values. Automatic mode enables mobile controls at viewport widths up to 600px, or up to 960px with a coarse pointer. Mobile mode forces larger controls, a simplified toolbar and modal settings sheet; desktop mode keeps the toolbar actions and nonmodal settings panel. Container-responsive layout rules still apply in desktop mode.
 
 ```html
 <demuxe-player controls theme="light" controls-mode="mobile"></demuxe-player>

@@ -139,3 +139,31 @@ test('ASS load defers only bitmap output; first-play still requires actual rende
 test('native audio evidence retains Firefox presence limits and requires decoder counters when exposed',()=>{const f=phaseFacts();f.current.audioCounterAvailable=false;f.current.diagnostics.runtimeCapabilities[0].evidence.audioDecoded=false;phaseClean(f);f.current.audioCounterAvailable=true;phaseRejected(f);});
 
 test('fixture preparation normalizes explicit case names exactly like live selection',()=>{const text=source.getFullText();assert.match(text,/process\.env\.CASES\.split\(','\)\.map\(name=>name\.trim\(\)\)\.includes\('native-remux'\)/);assert.match(text,/process\.env\.CASES\.split\(','\)\.map\(name=>name\.trim\(\)\)\.some\(name=>/);assert.equal(JSON.stringify(selectCases(['native-remux'],['native-remux'],' native-remux ')),JSON.stringify(['native-remux']));});
+
+test('disabled open policy permits only independently proven first-play recovery',()=>{
+  for(const make of [()=>phaseFacts(),()=>phaseFacts(true),firefoxRecovery]){
+   const f=make();f.name='automatic-local-escalation-disabled';f.previous.observation.policy=f.current.observation.policy=null;phaseClean(f);
+   f.current.observation.policy={prefetchAfterMs:400,switchAfterMs:500};phaseRejected(f);
+  }
+  for(const change of [f=>f.current.workerEvents[0].at=1499,f=>f.current.verifications=[],f=>f.phase='controls',f=>f.current.requests[0].status=404]){
+   const f=firefoxRecovery();f.name='automatic-local-escalation-disabled';f.previous.observation.policy=f.current.observation.policy=null;change(f);phaseRejected(f);
+  }
+ });
+
+test('disabled consumer freezes open before playback and restores its HTTP collector on failure',async()=>{
+ const node=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='runDisabledStartupCheck');assert.ok(node);
+ for(const failOpen of [false,true]){
+  const parent=[],steps=[],row={};
+  const page={on(){},addInitScript:async()=>{},goto:async()=>{},waitForFunction:async()=>{},close:async()=>{},workers:()=>[],locator:()=>({setInputFiles:async()=>{},count:async()=>0}),evaluate:async fn=>{
+   const text=String(fn);if(text.includes('directStartup.openStarted'))steps.push('open');
+   if(text.includes("startupPhase='first-play'"))steps.push('play');
+   if(text.includes("startupPhase='controls'"))steps.push('controls');return [];
+  }};
+  const context={assert:{equal:assert.equal,deepEqual:(actual,expected,message)=>assert.deepEqual(structuredClone(actual),structuredClone(expected),message)},Date,activeAssRequests:parent,observeDirectStartup(){},observeStartupVerification(){},captureStartupPhase:async(_page,actual,name)=>{assert.equal(context.activeAssRequests,actual.serverRequests);steps.push('capture:'+name);return {observation:{policy:null},mode:'native',diagnostics:{plan:{id:'native-direct'},remuxRuntime:{runtime:'pthread'}},requests:[],browserRequests:[],workers:[],workerEvents:[]};},classifyDirectStartupTraffic:()=>{steps.push('classify:open');return {violations:failOpen?['unexpected engine']:[]};},classifyPlaybackPhase:({phase})=>{steps.push('classify:'+phase);return {violations:[]};}};
+  vm.createContext(context);const run=vm.runInContext('('+node.getText(source)+')',context);
+  if(failOpen)await assert.rejects(run({newPage:async()=>page},'https://example.test','fixture',{files:{}},row),/during open/);
+  else await run({newPage:async()=>page},'https://example.test','fixture',{files:{}},row);
+  assert.equal(context.activeAssRequests,parent);
+  assert.deepEqual(steps,failOpen?['open','capture:open','classify:open']:['open','capture:open','classify:open','play','capture:first-play','classify:first-play','controls','capture:controls','classify:controls']);
+ }
+});

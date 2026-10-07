@@ -111,7 +111,7 @@ jobs:
       - name: Generate fixtures and qualify the exact release archives
         if: github.event_name == 'push'
         run: xvfb-run -a python3 scripts/tag-release.py qualify --tag "$PAGES_TAG"
-      - name: Qualify the maintained API matrix on the installed archive
+      - name: Qualify the API and mobile player matrix on the installed archive
         if: github.event_name == 'push'
         run: |
           export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"

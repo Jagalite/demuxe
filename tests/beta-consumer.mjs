@@ -243,19 +243,30 @@ function observeDirectStartup(){
 }
 
 async function runDisabledStartupCheck(browser,origin,fixture,manifest,row){
- const page=await browser.newPage();Object.assign(row,{requests:[],workers:[],pageErrors:[]});
- page.on('request',request=>row.requests.push({url:request.url(),method:request.method()}));page.on('worker',worker=>row.workers.push(worker.url()));page.on('pageerror',error=>row.pageErrors.push(String(error)));
+ const page=await browser.newPage(),previousRequests=activeAssRequests;
+ Object.assign(row,{requestDetails:[],workerURLs:[],workerEvents:[],serverRequests:[],pageErrors:[]});activeAssRequests=row.serverRequests;
+ page.on('request',request=>row.requestDetails.push({url:request.url(),method:request.method(),at:Date.now()}));
+ page.on('worker',worker=>{row.workerURLs.push(worker.url());row.workerEvents.push({url:worker.url(),at:Date.now()});});page.on('pageerror',error=>row.pageErrors.push(String(error)));
+ const name='automatic-local-escalation-disabled',common={name,assetBase:origin+'/vendor/demuxe/',manifestFiles:manifest.files};
  try{
   await page.addInitScript(observeDirectStartup);await page.goto(origin+'/');await page.waitForFunction(()=>window.API);
   await page.evaluate(()=>{window.player=new API.Player(document.querySelector('#host'),{startupEscalation:false,width:640,height:360});player.addEventListener('error',event=>errors.push(event.detail));});
-  await page.locator('#file').setInputFiles(fixture);
-  await page.evaluate(async()=>{directStartup.openStarted=performance.now();await player.open(document.querySelector('#file').files[0]);await player.play();});
-  await page.waitForFunction(()=>player.state.currentTime>.3);await page.evaluate(async()=>{await player.pause();await player.seek(1);await player.play();});await page.waitForFunction(()=>player.state.currentTime>1.15);
-  const facts=await page.evaluate(()=>({observation:{...directStartup,policy:player.startupEscalation??null},mode:player.mode,diagnostics:player.diagnostics,errors}));
-  row.observation=facts.observation;row.diagnostics=facts.diagnostics;row.classification=classifyDirectStartupTraffic({name:'automatic-local-escalation-disabled',...facts,openPlan:facts.diagnostics.plan.id,plan:facts.diagnostics.plan.id,runtime:facts.diagnostics.remuxRuntime.runtime,requests:row.requests,workers:row.workers,assetBase:origin+'/vendor/demuxe/',manifestFiles:manifest.files});
-  assert.deepEqual(row.classification.violations,[],'Disabled startup escalation fetched or executed an engine');assert.deepEqual(facts.errors,[]);assert.deepEqual(row.pageErrors,[]);
+  await page.evaluate(observeStartupVerification);await page.locator('#file').setInputFiles(fixture);
+  await page.evaluate(async()=>{directStartup.openStarted=performance.now();await player.open(document.querySelector('#file').files[0]);});
+  const phase=row.openPhase=await captureStartupPhase(page,row,'open');
+  row.classification=classifyDirectStartupTraffic({...common,observation:phase.observation,mode:phase.mode,openPlan:phase.diagnostics.plan.id,plan:phase.diagnostics.plan.id,runtime:phase.diagnostics.remuxRuntime.runtime,requests:[...phase.requests,...phase.browserRequests],workers:phase.workers,workerEvents:phase.workerEvents});
+  assert.deepEqual(row.classification.violations,[],'Disabled startup escalation fetched or executed an engine during open');
+  await page.evaluate(async()=>{startupPhase='first-play';await player.play();});await page.waitForFunction(()=>player.state.currentTime>.3);
+  row.firstPlayPhase=await captureStartupPhase(page,row,'first-play');
+  row.firstPlayClassification=classifyPlaybackPhase({...common,previous:row.openPhase,current:row.firstPlayPhase,phase:'first-play'});
+  assert.deepEqual(row.firstPlayClassification.violations,[],'Disabled startup first play exceeded its observed output recovery policy');
+  await page.evaluate(async()=>{startupPhase='controls';await player.pause();await player.seek(1);await player.play();});await page.waitForFunction(()=>player.state.currentTime>1.15);
+  row.controlsPhase=await captureStartupPhase(page,row,'controls');
+  row.controlsClassification=classifyPlaybackPhase({...common,previous:row.firstPlayPhase,current:row.controlsPhase,phase:'controls'});
+  assert.deepEqual(row.controlsClassification.violations,[],'Disabled startup controls exceeded the selected native recipe');
+  assert.deepEqual(await page.evaluate(()=>errors),[]);assert.deepEqual(row.pageErrors,[]);
   await page.evaluate(()=>player.destroy());const deadline=Date.now()+2000;while(page.workers().length&&Date.now()<deadline)await page.waitForTimeout(50);assert.deepEqual(page.workers(),[]);assert.equal(await page.locator('#host video,#host canvas,iframe').count(),0);row.passed=true;return row;
- }finally{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await page.close();}
+ }finally{try{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});await page.close();}finally{activeAssRequests=previousRequests;}}
 }
 
 // Matroska ASS requires a real FFmpeg inspection worker before native loading.
@@ -328,6 +339,7 @@ async function captureStartupPhase(page,row,name){
 function classifyPlaybackPhase({name,previous,current,phase,assetBase,manifestFiles}){
  const violations=[],ass=name==='automatic-ass',direct=ass?'native-direct-mpv':'native-direct',remux=ass?'native-remux-mpv':'native-remux';
  const before=previous.diagnostics.plan?.id,plan=current.diagnostics.plan?.id,runtime=current.diagnostics.remuxRuntime.runtime,backend=current.diagnostics.backend;
+ if(name==='automatic-local-escalation-disabled'&&(previous.observation.policy!==null||current.observation.policy!==null))violations.push('Disabled startup policy changed between phases');
  const changed=before!==plan,records=current.verifications.filter(r=>r.phase===phase),failures=records.filter(r=>r.error);
  if(previous.state.sourceId===null||previous.state.sourceId===undefined||current.state.sourceId!==previous.state.sourceId||current.state.pendingOperation!==null)violations.push('Phase changed source identity or has an unfinished operation');
  if(!Number.isFinite(previous.at)||!Number.isFinite(current.at)||current.at<previous.at||records.some(r=>!Number.isFinite(r.started)||!Number.isFinite(r.finished)||r.finished<r.started||r.finished>current.at||r.started<previous.at))violations.push('Incomplete or out-of-window verification observation');
@@ -342,7 +354,7 @@ function classifyPlaybackPhase({name,previous,current,phase,assetBase,manifestFi
  if(current.observation.instantiations!==previous.observation.instantiations)violations.push('Unexpected main-thread phase instantiation');
  if(changed&&!recovery)violations.push('Unexpected post-open route change');
  if(recovery){
-  if(name!=='automatic-local'&&!ass||failures.length!==1||failure?.plan!==direct||failure?.budget!==outputBudget||failure?.automatic!==true||failure?.sourceKind!=='local'||failure?.nativeRemux!=='auto'||failure?.error?.name!=='StartupEvidenceTimeout'||failure?.error?.stage!=='output'||failure?.error?.message!=='Native output evidence timed out'||failure?.error?.evidenceTimeout!==true||!Number.isFinite(failure?.started)||!Number.isFinite(failure?.finished)||failure.finished-failure.started<outputBudget||failure.started<previous.at)violations.push('Missing exact bounded original native output-timeout evidence');
+  if(!['automatic-local','automatic-local-escalation-disabled'].includes(name)&&!ass||failures.length!==1||failure?.plan!==direct||failure?.budget!==outputBudget||failure?.automatic!==true||failure?.sourceKind!=='local'||failure?.nativeRemux!=='auto'||failure?.error?.name!=='StartupEvidenceTimeout'||failure?.error?.stage!=='output'||failure?.error?.message!=='Native output evidence timed out'||failure?.error?.evidenceTimeout!==true||!Number.isFinite(failure?.started)||!Number.isFinite(failure?.finished)||failure.finished-failure.started<outputBudget||failure.started<previous.at)violations.push('Missing exact bounded original native output-timeout evidence');
   const attempts=current.diagnostics.selection.attempts,skip=attempts.findIndex(a=>a.mode==='native'&&a.outcome==='skipped'&&a.reason===direct+': '+(ass?'Source policy requires controlled remux transport':'This source policy requires controlled remux transport')),selected=attempts.findIndex(a=>a.mode==='native'&&a.outcome==='selected'&&a.reason===remux+': Playback requirements and actual startup accepted');
   if(skip<0||selected<=skip||attempts.some(a=>a.outcome==='failed'))violations.push('Missing exact controlled-remux recovery selection');
  }else if(failures.length)violations.push('Unaccounted native verification failure');

@@ -2,18 +2,23 @@
 import {chromium,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {installLiveRuntime} from './api-stability/live-runtime.mjs';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
 
 const family=process.env.BROWSER??'chrome';
 assert.ok(['chrome','webkit'].includes(family));
 const out=`results/player-mobile/${family}-${Date.now()}`;
 await mkdir(out,{recursive:true});
-const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
-let browser;
+const report={passed:false,family,scope:process.env.BETA_ARCHIVE?'Installed-archive mobile player checks':'Workspace mobile player checks',testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex')};
+let browser,server,installed;
 try{
- const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);});});
+ if(process.env.BETA_ARCHIVE){installed=await installLiveRuntime(process.env.BETA_ARCHIVE);report.archiveSHA256=installed.archiveSHA256;report.runtimeFiles=installed.manifest.files;}
+ server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,...installed?{DEMUXE_RUNTIME_ROOT:installed.runtimeRoot}:{},PORT:'0'},stdio:['ignore','pipe','inherit']});
+ const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.once('exit',code=>reject(Error('Mobile server exited before readiness: '+code)));server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);});});
  browser=await(family==='webkit'?webkit:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome'}:{})});
+ report.browserVersion=browser.version();
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
  const errors=[];page.on('pageerror',error=>errors.push(String(error)));
  await page.goto(origin+'/');
@@ -164,6 +169,20 @@ try{
   finally{await host.destroy();host.remove();}
  }),true);
  console.log('PASS controls-mode overrides across six layouts and both themes; runtime/attribute changes, auto restoration, validation and pre-registration properties');
+ // The Appearance selector must preserve the active core and dialog focus.
+ await page.setViewportSize({width:390,height:844});
+ await page.evaluate(()=>{window.appearanceCore=viewer.player;viewer.controlsMode='auto';viewer.revealControls();if(!$('settings').open)$('settings-toggle').click();});
+ for(const mode of ['desktop','mobile','auto']){
+  await page.locator('#viewer #controls-mode-select').focus();
+  await page.locator('#viewer #controls-mode-select').selectOption(mode);
+  assert.deepEqual(await page.evaluate(()=>({mode:viewer.controlsMode,value:$('controls-mode-select').value,modal:$('settings').matches(':modal'),sameCore:viewer.player===appearanceCore,focused:viewer.shadowRoot.activeElement===$('controls-mode-select')})),{mode,value:mode,modal:mode!=='desktop',sameCore:true,focused:true});
+ }
+ await page.evaluate(()=>{viewer.setAttribute('controls-mode','desktop');});
+ assert.equal(await page.locator('#viewer #controls-mode-select').inputValue(),'desktop');
+ await page.evaluate(()=>{viewer.removeAttribute('controls-mode');});
+ assert.equal(await page.locator('#viewer #controls-mode-select').inputValue(),'auto');
+ await page.locator('#viewer #settings-close').click();
+ console.log('PASS Appearance controls selector updates presentation and follows host overrides without replacing the player');
 
  await page.setViewportSize({width:390,height:844});
  await page.locator('#viewer #settings-toggle').click();
@@ -235,4 +254,10 @@ try{
  assert.equal(await page.evaluate(()=>!document.querySelector(':modal')&&!$('settings').open),true);
  assert.deepEqual(errors,[]);
  console.log(`PASS ${family}: embedded modal focus and teardown; screenshots ${out}`);
-}finally{try{if(browser)await closeTestBrowser(browser,family);}finally{server.kill();}}
+ report.passed=true;
+}catch(error){report.error=String(error.stack);process.exitCode=1;}
+finally{
+ try{if(browser)await closeTestBrowser(browser,family);}catch(error){report.passed=false;report.cleanupError=String(error.stack);process.exitCode=1;}
+ finally{server?.kill();try{await installed?.cleanup();}catch(error){report.passed=false;report.cleanupError=String(error.stack);process.exitCode=1;}finally{await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('Mobile player report: '+out);}}
+}
+if(report.error)console.error(report.error);

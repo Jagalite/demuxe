@@ -42,7 +42,19 @@ try{
   await writeFile(output+'/result.json',JSON.stringify(report,null,2)+'\n');
   console.log(family,group,row.passed?'PASS':'FAIL',row.error??'');
  }
- report.passed=report.runs.length===12&&report.runs.every(row=>row.passed);
+ for(const family of ['chrome','webkit']){
+  const row={family,group:'mobile',passed:false};report.runs.push(row);
+  try{
+   const log=await run(['tests/player-mobile.mjs'],{BROWSER:family,BETA_ARCHIVE:archive},`${output}/${family}-mobile.log`,10*60*1000);
+   const matches=[...log.matchAll(/^Mobile player report: (.+)$/gm)];assert.equal(matches.length,1);
+   row.receipt=path.join(matches[0][1],'result.json');const bytes=await readFile(row.receipt),receipt=JSON.parse(bytes);
+   assert.equal(receipt.passed,true);assert.equal(receipt.family,family);assert.equal(receipt.archiveSHA256,report.archiveSHA256);
+   row.receiptSHA256=sha(bytes);row.passed=true;
+  }catch(error){row.error=String(error.stack);process.exitCode=1;}
+  await writeFile(output+'/result.json',JSON.stringify(report,null,2)+'\n');
+  console.log(family,'mobile',row.passed?'PASS':'FAIL',row.error??'');
+ }
+ report.passed=report.runs.length===14&&report.runs.every(row=>row.passed);
 }catch(error){report.error=String(error.stack);process.exitCode=1;}
 finally{
  for(const [file,bytes]of saved){if(bytes===null)await rm(file,{force:true});else await writeFile(file,bytes);}

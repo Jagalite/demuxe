@@ -20,15 +20,33 @@ The public API is documented in [STREAMING.md](../../docs/STREAMING.md).
 requires controlled manifest playback with the default policy. Shaka retains its
 throughput estimator and decision scheduling. Decisions cannot bypass eligible
 renditions, source ceilings, audio selection or buffer safety checks. Manual
-quality pins bypass the callback. Automatic upgrades retain buffered media;
-bitrate downgrades and default manual selection request responsive switching.
+quality pins bypass the callback. Both manual and automatic switches preserve all buffered media, including
+requests marked responsive. Shaka's delayed execution prevents a relative
+clearing margin from guaranteeing a safe segment boundary. The API selects
+HLS/DASH manifest renditions; arbitrary unrelated MP4 URLs are not a seamless
+rendition set. Fresh runtime measurements are required before making latency
+claims for this retained-buffer implementation.
 
-Responsive switching retains a computed safety margin through an observed video
-segment end, and preserves the whole buffer when compatibility, boundary facts
-or remaining headroom are insufficient. It selects HLS/DASH manifest renditions;
-arbitrary unrelated MP4 URLs are not a seamless rendition set.
+## Current retained-buffer check — 2026-10-07
 
-## Final browser evidence
+The current workspace runtime was exercised in the shared Chromium/Electron
+preview using the same synthetic HLS media and per-response 500,000 bytes/s
+pacing. This is **not a passing seamless-playback qualification**. Raw evidence
+is retained locally in `results/seamless-switching/retained-20261007-review/`,
+including runtime/source hashes, PCM, frame callbacks, request logs and analysis.
+
+Manual selection presented all three requested renditions, but recorded three
+buffering waits with corresponding PCM silence (about 573, 660 and 3638 ms).
+The custom selector ran five times with matching public candidate IDs; two
+requested transitions were not presented, and later candidate lists contained
+only the 720p30 rendition. Neither case reported a playback exception.
+Only 28–29 frame callbacks were captured over roughly 28 seconds of media,
+so these runs cannot establish smooth frame presentation or precise latency.
+The volume was also stalling file reads during the session. The results do not
+isolate storage, browser scheduling, eligibility policy or playback as the cause.
+A controlled rerun and exact-archive qualification remain required before release.
+
+## Historical browser evidence (superseded implementation)
 
 [Raw results and analysis](../../results/seamless-switching/production-20261006-boundary/REPORT.md)
 use the frozen runtime in `build/seamless-switching-production-20261006-boundary`.
