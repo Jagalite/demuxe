@@ -30,17 +30,25 @@ jobs:
           BETA_ARCHIVE: build/diagnostic-archive/demuxe-1.1.0.tgz
           HEADLESS: '1'
         run: |
+          echo "DEFAULT AUDIO SINK CONTROL"
           pactl list short sinks
-          for trial in 1 2 3 4 5; do
-            echo "CONSUMER TRIAL $trial"
-            BROWSER=chrome node tests/public-api-consumer.mjs || true
-            echo "RAW MEDIA CONTROL $trial"
+          for trial in 1 2 3; do
+            echo "DEFAULT CONSUMER TRIAL $trial"
+            BROWSER=chrome ONLY="static application at /assets/demuxe/" node tests/public-api-consumer.mjs || true
+            echo "DEFAULT RAW CONTROL $trial"
             BROWSER=chrome RAW_NATIVE=1 ONLY="raw native" node tests/public-api-consumer.mjs || true
           done
-          echo "PUBLIC API DIAGNOSTIC"
-          mkdir -p build/diagnostic-runtime
-          tar -xzf "$BETA_ARCHIVE" -C build/diagnostic-runtime --strip-components=1
-          DEMUXE_RUNTIME_ROOT="$PWD/build/diagnostic-runtime" BROWSER=chrome node tests/public-api.mjs || true
+          echo "50MS AUDIO SINK INTERVENTION"
+          pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2 norewinds=1
+          pactl set-default-sink demuxe_ci
+          pactl list short sinks
+          pactl list sinks
+          for trial in 1 2 3 4 5; do
+            echo "50MS CONSUMER TRIAL $trial"
+            BROWSER=chrome ONLY="static application at /assets/demuxe/" node tests/public-api-consumer.mjs || true
+            echo "50MS RAW CONTROL $trial"
+            BROWSER=chrome RAW_NATIVE=1 ONLY="raw native" node tests/public-api-consumer.mjs || true
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
