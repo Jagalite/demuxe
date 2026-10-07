@@ -27,7 +27,9 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts
-      - run: sudo sed -i -E 's|^URIs:.*apt-mirrors.*|URIs: https://archive.ubuntu.com/ubuntu/|; s|^URIs:.*apt-security-mirrors.*|URIs: https://security.ubuntu.com/ubuntu/|' /etc/apt/sources.list.d/ubuntu.sources && cat /etc/apt/sources.list.d/ubuntu.sources
+      - run: |
+          sudo sed -i -E 's|^URIs:.*apt-mirrors.*|URIs: https://archive.ubuntu.com/ubuntu/|; s|^URIs:.*apt-security-mirrors.*|URIs: https://security.ubuntu.com/ubuntu/|' /etc/apt/sources.list.d/ubuntu.sources
+          cat /etc/apt/sources.list.d/ubuntu.sources
       - run: sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update && sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y ffmpeg pulseaudio
       - run: npx playwright install --with-deps chrome
       - run: pulseaudio --start --exit-idle-time=-1
