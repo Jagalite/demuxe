@@ -32,9 +32,9 @@ async function check(name,fn){
   await page.addInitScript(()=>{window.mediaTrace=[];for(const name of ['play','playing','pause','waiting','stalled','canplay','loadedmetadata','error','ended'])document.addEventListener(name,e=>{if(e.target instanceof HTMLMediaElement)mediaTrace.push({event:name,at:performance.now(),time:e.target.currentTime,paused:e.target.paused,ready:e.target.readyState});},true);});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
   page.on('pageerror',error=>pageErrors.push(String(error)));
-  try{await fn(page);result.checks.push({name,passed:true,attempts});console.log('PASS',name,attempts.length?'after retry':'');return;}
+  try{await fn(page);result.checks.push({name,passed:true,attempts,mediaEvents,consoleMessages,trace:await page.evaluate(()=>window.mediaTrace)});console.log('PASS',name,attempts.length?'after retry':'');return;}
   catch(error){
-   const failure={error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,consoleMessages,mediaEvents,media:await page.evaluate(()=>{const p=window.viewer?.player,b=p?.current?.backend,v=b?.video;return {diagnostics:p?.diagnostics,trace:window.mediaTrace,video:v?{time:v.currentTime,paused:v.paused,readyState:v.readyState,networkState:v.networkState,error:v.error?.message,frames:v.getVideoPlaybackQuality(),decodedAudioBytes:v.webkitAudioDecodedByteCount}:null};}).catch(()=>null),workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
+   const failure={error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,consoleMessages,mediaEvents,media:await page.evaluate(()=>{const p=window.viewer?.player,b=p?.current?.backend,v=b?.video??window.rawVideo;return {diagnostics:p?.diagnostics,trace:window.mediaTrace,video:v?{time:v.currentTime,paused:v.paused,readyState:v.readyState,networkState:v.networkState,error:v.error?.message,frames:v.getVideoPlaybackQuality(),decodedAudioBytes:v.webkitAudioDecodedByteCount}:null};}).catch(()=>null),workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
    const retry=trial===0&&name.includes('application at')&&failure.error.includes('Playback engine worker failed: error');
    if(retry)console.log('RETRY',name,'after transient worker start failure');
    else{result.checks.push({name,passed:false,attempts});console.log('FAIL',name,String(error));process.exitCode=1;return;}
@@ -42,6 +42,12 @@ async function check(name,fn){
  }
 }
 try{
+if(process.env.RAW_NATIVE)await check('raw native media without Demuxe',async page=>{
+ await page.goto(origin+'/');
+ await page.evaluate(async()=>{const video=window.rawVideo=document.createElement('video');video.src='/media/movie.mp4';video.volume=.4;document.body.append(video);await video.play();});
+ await page.waitForFunction(()=>window.rawVideo.currentTime>.02,{},{timeout:2000});
+ await page.evaluate(()=>window.rawVideo.pause());
+});
 for(const bundle of [false,true])await check(`${bundle?'bundled':'static'} core-only import has no UI or engine side effects`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?coreonly'+(bundle?'&bundle':''));await page.waitForFunction(()=>window.coreOnly);assert.equal(await page.evaluate(()=>customElements.get('demuxe-player')),undefined);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet|\/player\/|styles\.js/.test(u)));assert.equal(page.workers().length,0);});
 for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{await viewer.player.setMode(mode);await viewer.open({url:location.origin+'/media/movie.mp4'});await viewer.player.setVolume(.4);await viewer.play();},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{await viewer.pause();await viewer.seek(1);});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
