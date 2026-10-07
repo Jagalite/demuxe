@@ -3,12 +3,14 @@ import type { BufferingPolicy } from '../types.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { Backend } from './backend.js';
 import type { RemoteSource, TextTrackSource, SubtitleAsset, TrackType } from '../types.js';
+import type { QualitySelector } from '../types.js';
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
 export declare class ShakaBackend extends EventTarget implements Backend {
     private video;
     private assetBase;
     private providerAssets?;
+    private selectQuality?;
     setWatchdogs(policy: import('../types.js').WatchdogPolicy): void;
     nativeProgressSample(): {
         eligible: boolean;
@@ -53,7 +55,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private disposal?;
     private listeners;
     private blobs;
-    constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy, providerAssets?: ProviderRuntimeAssets | undefined);
+    constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy, providerAssets?: ProviderRuntimeAssets | undefined, selectQuality?: QualitySelector | undefined);
     /** Shaka owns image-track indexing. Return its authored reference without
      * downloading a sprite through playback's network/error/ABR machinery. */
     previewFrame(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
@@ -94,6 +96,9 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     };
     private variantFacts;
     private observedVariants;
+    private bufferedSeconds;
+    private segmentDuration;
+    private chooseAdaptiveQuality;
     streamingState(): import('../types.js').StreamingState;
     setQuality(policy: import('../types.js').QualityPolicy): Promise<void>;
     seekToLive(): Promise<void>;

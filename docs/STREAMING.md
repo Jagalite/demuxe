@@ -90,6 +90,79 @@ configuration/license contract is introduced.
 
 ## Public adaptive options
 
+Use `adaptation: {}` at player construction to require controlled HLS/DASH
+selection, including on browsers that could otherwise play HLS directly. Shaka
+retains ownership of throughput estimation, scheduling and adaptation intervals.
+An optional synchronous selector can override its recommendation:
+
+```js
+import {Player, defaultQualitySelection} from 'demuxe';
+
+const preferMotion = true;
+const player = new Player(container, {
+  adaptation: {
+    select(context) {
+      // Candidates already satisfy the source ceiling, current quality limits,
+      // audio selection and Shaka's compatible adaptation set.
+      const preferred = context.candidates.find(q =>
+        q.height === 720 && q.frameRate === 60);
+      if (preferMotion && preferred &&
+          (preferred.bandwidth ?? Infinity) < (context.bandwidthEstimate ?? 0) * 0.75) {
+        return {type: 'switch', id: preferred.id, urgency: 'buffered'};
+      }
+      return defaultQualitySelection(context);
+    },
+  },
+});
+```
+
+The callback receives frozen candidate metadata, current and recommended quality
+IDs, playhead time, forward buffer in seconds, playback rate, estimated bandwidth
+(or `null`), maximum segment duration (or `null`), buffering state and viewport
+size. IDs match `getStreamingState()` and remain source-scoped. It runs at Shaka
+decision opportunities after source acceptance, not on each frame or on a fixed
+application timer. Return `{type:'keep'}`, `{type:'default'}`, or a candidate ID
+with `urgency: 'buffered' | 'responsive'`. It must be quick and synchronous;
+exceptions, asynchronous returns and invalid choices use the default policy.
+Explicit manual quality pins bypass the selector. Configuration and source
+changes retire obsolete decisions. No backend objects are exposed to the callback.
+Very fast cached/local segment downloads may not establish the throughput samples
+needed for another automatic decision. For an immediate application-driven choice,
+use `setQuality`; changing application variables read by the callback does not
+itself schedule a new adaptation decision.
+
+The default keeps ordinary upgrades buffered and requests responsive downgrades
+when the recommended bitrate is below the current bitrate. A custom policy can
+prefer resolution or frame rate using candidate metadata, but cannot bypass source
+ceilings or directly clear buffers. A controlled adaptation request cannot silently
+fall back to an engine that cannot honor it.
+
+Manual selection defaults to responsive intent (currently buffered for safety):
+
+```js
+const quality = player.getStreamingState().qualities.find(q => q.height === 720);
+if (quality) await player.setQuality({mode: 'manual', id: quality.id});
+
+// Preserve all buffered media if faster visible selection is unnecessary.
+if (quality) await player.setQuality({
+  mode: 'manual', id: quality.id, switching: 'buffered',
+});
+await player.setQuality({mode: 'auto', maxHeight: 1080});
+```
+
+`responsive` expresses a preference for a quicker handoff, subject to backend
+safety. The current Shaka adapter preserves all buffered media for both urgencies.
+Shaka can defer clearing until an in-flight segment update finishes, then applies
+its relative safety margin against the later playhead. A margin calculated at
+selection time therefore cannot guarantee removal at a segment boundary. Until
+an execution-time boundary guarantee is available, responsive requests use the
+buffered fallback and may take longer to become visible.
+
+Selection completion means the request was accepted, not that the target quality
+is already on screen. `selectedId`, `observedQuality` and the deliberately unknown
+`presentedId` retain their existing meanings. This API selects manifest renditions;
+it does not turn unrelated MP4 URLs into a seamless rendition set.
+
 ```js
 await player.openRemote({
   url: 'https://media.example/show/manifest.mpd',

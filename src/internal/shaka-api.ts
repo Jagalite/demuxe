@@ -13,7 +13,7 @@ export declare namespace Shaka {
       audioCodec:string|null; videoCodec:string|null;
       originalVideoId:string|null; originalAudioId:string|null;
       bandwidth:number; width:number|null; height:number|null;
-      videoId:number|null; frameRate:number|null; hdr:string|null;
+      videoId:number|null; audioId?:number|null; frameRate:number|null; hdr:string|null;
     };
     type TextTrack = {id:number;active:boolean;codecs:string|null;mimeType:string|null;label:string|null;language:string};
     type RetryParameters = {timeout:number;maxAttempts:number;[key:string]:unknown};
@@ -32,6 +32,8 @@ export declare namespace Shaka {
       abr:Record<string,unknown>;restrictions:Record<string,unknown>;
     };
     type ImageStream = {id:number;encrypted:boolean;segmentIndex:object|null;mimeType:string;createSegmentIndex():Promise<void>};
+    type Variant = {id:number;bandwidth:number;audio?:{id:number}|null;video?:{id:number;segmentIndex?:{find(time:number):number|null;get(position:number):{endTime:number}|null}|null}|null};
+    type SwitchCallback = (variant:Variant,clearBuffer?:boolean,safeMargin?:number)=>void;
     type Thumbnail = {uris:string[];startByte:number;endByte:number|null;mimeType:string|null;positionX:number;positionY:number;width:number;height:number;startTime:number};
   }
   class Player extends EventTarget {
@@ -55,14 +57,25 @@ export declare namespace Shaka {
     getVariantTracks():extern.Track[];
     getTextTracks():extern.TextTrack[];
     selectAudioTrack(track:extern.AudioTrack):void;
-    selectVariantTrack(track:extern.Track,clearBuffer?:boolean):void;
+    selectVariantTrack(track:extern.Track,clearBuffer?:boolean,safeMargin?:number):void;
     selectTextTrack(track:extern.TextTrack|null):void;
     addTextTrackAsync(uri:string,language:string,kind:string,mimeType:string,codec?:string,label?:string):Promise<extern.TextTrack>;
-    getManifest():{imageStreams:extern.ImageStream[]}|null;
+    getManifest():{imageStreams:extern.ImageStream[];variants?:extern.Variant[];presentationTimeline?:{getMaxSegmentDuration():number}}|null;
+    getStats():{estimatedBandwidth?:number};
     getImageTracks():{id:number;width:number|null}[];
     getThumbnails(id:number,time:number):Promise<extern.Thumbnail|null>;
   }
   namespace polyfill {function installAll():void;}
+  namespace abr {
+    class SimpleAbrManager {
+      init(switchCallback:extern.SwitchCallback,disableStreamCallback:(...args:unknown[])=>unknown):void;
+      chooseVariant(preferFastSwitching?:boolean):extern.Variant|null;
+      setVariants(variants:extern.Variant[],isLowLatency?:boolean):boolean;
+      getBandwidthEstimate():number;
+      stop():void;
+      release():void;
+    }
+  }
   namespace net {
     namespace HttpFetchPlugin {const parse:extern.SchemePlugin;}
     namespace NetworkingEngine {

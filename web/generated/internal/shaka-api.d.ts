@@ -26,6 +26,7 @@ export declare namespace Shaka {
             width: number | null;
             height: number | null;
             videoId: number | null;
+            audioId?: number | null;
             frameRate: number | null;
             hdr: string | null;
         };
@@ -78,6 +79,23 @@ export declare namespace Shaka {
             mimeType: string;
             createSegmentIndex(): Promise<void>;
         };
+        type Variant = {
+            id: number;
+            bandwidth: number;
+            audio?: {
+                id: number;
+            } | null;
+            video?: {
+                id: number;
+                segmentIndex?: {
+                    find(time: number): number | null;
+                    get(position: number): {
+                        endTime: number;
+                    } | null;
+                } | null;
+            } | null;
+        };
+        type SwitchCallback = (variant: Variant, clearBuffer?: boolean, safeMargin?: number) => void;
         type Thumbnail = {
             uris: string[];
             startByte: number;
@@ -118,12 +136,19 @@ export declare namespace Shaka {
         getVariantTracks(): extern.Track[];
         getTextTracks(): extern.TextTrack[];
         selectAudioTrack(track: extern.AudioTrack): void;
-        selectVariantTrack(track: extern.Track, clearBuffer?: boolean): void;
+        selectVariantTrack(track: extern.Track, clearBuffer?: boolean, safeMargin?: number): void;
         selectTextTrack(track: extern.TextTrack | null): void;
         addTextTrackAsync(uri: string, language: string, kind: string, mimeType: string, codec?: string, label?: string): Promise<extern.TextTrack>;
         getManifest(): {
             imageStreams: extern.ImageStream[];
+            variants?: extern.Variant[];
+            presentationTimeline?: {
+                getMaxSegmentDuration(): number;
+            };
         } | null;
+        getStats(): {
+            estimatedBandwidth?: number;
+        };
         getImageTracks(): {
             id: number;
             width: number | null;
@@ -132,6 +157,16 @@ export declare namespace Shaka {
     }
     namespace polyfill {
         function installAll(): void;
+    }
+    namespace abr {
+        class SimpleAbrManager {
+            init(switchCallback: extern.SwitchCallback, disableStreamCallback: (...args: unknown[]) => unknown): void;
+            chooseVariant(preferFastSwitching?: boolean): extern.Variant | null;
+            setVariants(variants: extern.Variant[], isLowLatency?: boolean): boolean;
+            getBandwidthEstimate(): number;
+            stop(): void;
+            release(): void;
+        }
     }
     namespace net {
         namespace HttpFetchPlugin {

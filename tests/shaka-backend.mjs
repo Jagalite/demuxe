@@ -28,6 +28,66 @@ globalThis.fetch=async()=>new Response('// fake runtime');
 globalThis.document={createElement:()=>({remove(){}}),head:{append(script){globalThis.shaka=runtime;queueMicrotask(()=>script.onload?.());}}};
 function video(){const value=new EventTarget(),textEvents=new EventTarget();return Object.assign(value,{textTracks:Object.assign([],{addEventListener:textEvents.addEventListener.bind(textEvents),removeEventListener:textEvents.removeEventListener.bind(textEvents)}),paused:true,ended:false,currentTime:0,duration:30,volume:1,playbackRate:1,videoWidth:640,videoHeight:360,readyState:4,muted:false,buffered:{length:0},seekable:{length:0},getVideoPlaybackQuality:()=>({totalVideoFrames:1,droppedVideoFrames:0}),pause(){this.paused=true;},async play(){this.paused=false;},load(){},removeAttribute(){},replaceChildren(){}});}
 const source={url:'https://media.test/main.mpd',format:'dash'};
+test('manual quality preserves buffered media for responsive and buffered requests',async()=>{
+ const low={id:4,active:true,videoCodec:'avc1.640020',audioCodec:'mp4a.40.2',audioId:7,height:360,bandwidth:500000};
+ variantOverride=[low,{...low,id:5,active:false,height:720,bandwidth:2000000}];
+ const v=video();v.currentTime=2;v.buffered={length:1,start:()=>0,end:()=>10};
+ const backend=new ShakaBackend(v,new URL('https://app.test/'));
+ try{
+  await backend.openRemote(source);backend.player.getManifest=()=>({presentationTimeline:{getMaxSegmentDuration:()=>1},variants:variantOverride.map(t=>({id:t.id,video:{segmentIndex:{find:time=>Math.floor(time),get:position=>({endTime:position+1})}}}))});backend.player.getStats=()=>({estimatedBandwidth:10000000});
+  const select=backend.player.selectVariantTrack.bind(backend.player),calls=[];backend.player.selectVariantTrack=(...args)=>{calls.push(args);select(...args);};
+  await backend.setQuality({mode:'manual',id:'variant:5'});assert.deepEqual(calls.at(-1).slice(1),[false,0]);
+  await backend.setQuality({mode:'manual',id:'variant:4',switching:'buffered'});assert.deepEqual(calls.at(-1).slice(1),[false,0]);
+  variantOverride[1].audioId=8;await backend.setQuality({mode:'manual',id:'variant:5'});assert.deepEqual(calls.at(-1).slice(1),[false,0]);
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
+test('deferred manual and automatic switches never remove from a later mid-segment playhead',async()=>{
+ const low={id:4,active:true,videoCodec:'avc1.640020',audioCodec:'mp4a.40.2',audioId:7,height:360,bandwidth:500000};
+ variantOverride=[low,{...low,id:5,active:false,height:720,bandwidth:2000000}];
+ class Abr {
+  init(callback){this.callback=callback;}setVariants(variants){this.variants=variants;}
+  chooseVariant(){return this.variants[1];}getBandwidthEstimate(){return 10000000;}
+  suggest(){this.callback(this.chooseVariant());}stop(){}release(){}
+ }
+ runtime.abr={SimpleAbrManager:Abr};
+ const v=video();v.currentTime=16.6;v.buffered={length:1,start:()=>0,end:()=>30};
+ const backend=new ShakaBackend(v,new URL('https://app.test/'),undefined,undefined,c=>({type:'switch',id:c.recommendedId,urgency:'responsive'}));
+ const pending=[],removals=[];
+ const defer=(target,clear,margin)=>pending.push(()=>{if(clear)removals.push(v.currentTime+margin);});
+ try{
+  await backend.openRemote(source);
+  backend.player.getManifest=()=>({presentationTimeline:{getMaxSegmentDuration:()=>1},variants:variantOverride.map(t=>({id:t.id,video:{segmentIndex:{find:t=>Math.floor(t),get:p=>({endTime:p+1})}}}))});
+  backend.player.getStats=()=>({estimatedBandwidth:10000000});
+  const select=backend.player.selectVariantTrack.bind(backend.player);
+  backend.player.selectVariantTrack=(...args)=>{defer(...args);select(...args);};
+  await backend.setQuality({mode:'manual',id:'variant:5'});
+  assert.equal(pending.length,1);v.currentTime=16.85;pending.shift()();
+  assert.deepEqual(removals,[],'manual selection must not defer a relative-margin removal');
+  await backend.setQuality({mode:'auto'});variantOverride[0].active=true;variantOverride[1].active=false;v.currentTime=16.6;
+  const abr=backend.player.config.abrFactory();abr.init(defer,()=>{});abr.setVariants(variantOverride);abr.suggest();
+  assert.equal(pending.length,1);v.currentTime=16.85;pending.shift()();
+  assert.deepEqual(removals,[],'automatic selection must not defer a relative-margin removal');
+ }finally{await backend.destroy();variantOverride=undefined;delete runtime.abr;}
+});
+test('automatic callback receives immutable eligible renditions; invalid choices and errors use default',async()=>{
+ const low={id:4,active:true,videoCodec:'avc1',audioCodec:'aac',audioId:7,height:360,bandwidth:400000};
+ variantOverride=[low,{...low,id:5,active:false,height:720,bandwidth:900000},{...low,id:6,active:false,height:1080,bandwidth:2000000}];
+ let choice,seen;const backend=new ShakaBackend(video(),new URL('https://app.test/'),undefined,undefined,c=>{seen=c;return choice(c);});
+ try{
+  await backend.openRemote({...source,streaming:{maxBandwidth:1000000}});
+  const variants=variantOverride.map(t=>({id:t.id})),choose=()=>backend.chooseAdaptiveQuality(variants[1],variants,2000000);
+  choice=c=>{assert.ok(Object.isFrozen(c));assert.ok(Object.isFrozen(c.candidates[0]));return {type:'keep'};};assert.equal(choose().variant.id,4);assert.deepEqual(seen.candidates.map(q=>q.id),['variant:4','variant:5']);
+  for(const callback of [()=>({type:'switch',id:'variant:6'}),()=>{throw Error('caller');},()=>Promise.reject(Error('async not supported'))]){choice=callback;assert.equal(choose().variant.id,5);}
+  await new Promise(resolve=>setTimeout(resolve,0));
+  choice=()=>({type:'switch',id:'variant:5',urgency:'responsive'});assert.equal(choose().urgency,'responsive');
+  await backend.setQuality({mode:'manual',id:'variant:4'});choice=()=>{throw Error('manual pin must bypass callback');};seen=null;choose();assert.equal(seen,null);
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
+test('automatic callback retirement cannot return a new switch',async()=>{
+ const low={id:4,active:true,videoCodec:'avc1',audioCodec:'aac',height:360,bandwidth:400000};variantOverride=[low,{...low,id:5,active:false,bandwidth:900000}];
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'),undefined,undefined,()=>{void backend.destroy();return {type:'switch',id:'variant:5'};});
+ try{await backend.openRemote(source);assert.equal(backend.chooseAdaptiveQuality({id:5},[{id:4},{id:5}],1000000),null);}finally{await backend.destroy();variantOverride=undefined;}
+});
 test('Shaka backend preserves audio and text selection intent and exposes actual stream state',async()=>{
   const v=video(),backend=new ShakaBackend(v,new URL('https://app.test/'));
   try{await backend.gain(1);await backend.openRemote(source);await backend.verifyStartup();

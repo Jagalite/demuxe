@@ -28,6 +28,8 @@ export type {ModeChangeDetail,SelectionChangeDetail,PlaybackStats,PlaybackExplan
 export type {AttachmentHandle,SubtitleStyle,TimingSettings} from './types.js';
 export type {Chapter} from './types.js';
 export type {QualityPolicy,StreamingQuality,StreamingState} from './types.js';
+export type {QualitySelectionContext,QualitySelectionDecision,QualitySelector} from './types.js';
+export {defaultQualitySelection} from './internal/machine/quality-switching.js';
 export {inspectMedia,CUSTOM_SOURCE_PLAYBACK_LIMIT} from './sources.js';
 export type {CustomSource,InspectionOptions,MediaInspection} from './types.js';
 export type {SeekOptions,PlaybackRange,LoopPolicy,SnapshotOptions,VideoSnapshot} from './types.js';

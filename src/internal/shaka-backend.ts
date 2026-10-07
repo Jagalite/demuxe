@@ -16,6 +16,9 @@ import {initialShakaBackend,transitionShakaBackend,shakaLeaseCurrent,shakaQualit
 import {shakaStreamingProjection,shakaTrackProjection,shakaSeekTarget,shakaPreviewChoice} from './machine/shaka-observation.js';
 import {shakaRequestedAudio,shakaSelectAudio,shakaInitialRepresentation,shakaSelectText,shakaExpectedOutput,type ShakaAudioFacts,type ShakaSelectionVariant} from './machine/shaka-selection.js';
 import {plainVTT} from './plain-vtt.js';
+import {switchingAbrFactory} from './shaka-abr.js';
+import {qualitySelection,qualitySwitchBuffer} from './machine/quality-switching.js';
+import type {QualitySelector,QualitySelectionContext,QualitySelectionDecision} from '../types.js';
 
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
@@ -64,7 +67,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private disposal?:Promise<void>;
   private listeners:Array<()=>void>=[];
   private blobs=new Set<string>();
-  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),buffering:BufferingPolicy=bufferingPolicy(),private providerAssets?:ProviderRuntimeAssets) {
+  constructor(private video:HTMLVideoElement,private assetBase=new URL('../../../',import.meta.url),buffering:BufferingPolicy=bufferingPolicy(),private providerAssets?:ProviderRuntimeAssets,private selectQuality?:QualitySelector) {
     super();this.control=initialShakaBackend(buffering);this.native=new NativePlayer(video,'never',assetBase);
     for(const type of ['mpv','activity','error','log']) {
       const listener=(event:Event)=>{
@@ -161,7 +164,10 @@ export class ShakaBackend extends EventTarget implements Backend {
       this.listen(player,'error',failed,lease);
       const observed=(event:Event)=>{const e=event as Event&{mediaQuality?:Record<string,unknown>;position?:number};if(!this.stopped&&this.control.epoch===epoch&&e.mediaQuality&&Number.isFinite(e.position)){const q=e.mediaQuality,number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v:null;this.move({type:'observed',epoch,value:{observation:'playhead-buffer',position:e.position!,contentType:String(q.contentType??'unknown'),width:number(q.width),height:number(q.height),bandwidth:number(q.bandwidth),codec:typeof q.codecs==='string'?q.codecs:null}});changed();}};
       this.listen(player,'mediaqualitychanged',observed,lease);
-      player.configure({streaming:{observeQualityChanges:true,preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity}});
+      player.configure({streaming:{observeQualityChanges:true,preferNativeHls:false,preferNativeDash:false,useNativeHlsForFairPlay:false},abr:{enabled:!source.streaming?.representation},restrictions:{maxBandwidth:source.streaming?.maxBandwidth??Infinity},...(runtime.abr?.SimpleAbrManager?{abrFactory:switchingAbrFactory(runtime,
+        (recommended,variants,estimate)=>this.chooseAdaptiveQuality(recommended,variants,estimate),
+        ()=>this.control.phase!=='ready'||this.failure||this.control.effect||this.control.requests.length||this.qualityPolicy.mode!=='auto'?null:qualitySwitchBuffer(),
+      )}:{})});
       this.check(lease);const defaults=player.getConfiguration().streaming;this.check(lease);this.move({type:'defaults',lease,value:{bufferingGoal:defaults.bufferingGoal,bufferBehind:defaults.bufferBehind}});
       player.configure({streaming:shakaBufferingOptions(this.buffering)});
       this.check(lease);await player.attach(this.video);this.check(lease);
@@ -202,6 +208,39 @@ export class ShakaBackend extends EventTarget implements Backend {
   startupEvidence(){return {...this.native.diagnostics.capability,sourceBufferCreated:!!this.player&&this.player.getLoadMode()===this.runtime?.Player.LoadMode.MEDIA_SOURCE};}
   private variantFacts(tracks:Shaka.extern.Track[]){return tracks.map(t=>({id:t.id,active:t.active,audioIdentity:JSON.stringify([t.audioLanguage??t.language,t.originalLanguage,t.label,t.audioRoles,t.channelsCount,t.audioCodec,t.spatialAudio,t.accessibilityPurpose]),videoCodec:t.videoCodec??null,originalVideoId:t.originalVideoId??null,originalAudioId:t.originalAudioId??null,bandwidth:t.bandwidth,height:t.height??null}));}
   private observedVariants(tracks:Shaka.extern.Track[]){return tracks.map(track=>({...this.variantFacts([track])[0],videoId:track.videoId,width:track.width,frameRate:track.frameRate,audioCodec:track.audioCodec,hdr:track.hdr}));}
+  private bufferedSeconds(){
+    const ranges=this.video.buffered,time=this.video.currentTime;
+    for(let i=0;i<ranges.length;i++)if(ranges.start(i)<=time&&ranges.end(i)>time)return ranges.end(i)-time;
+    return 0;
+  }
+  private segmentDuration(){const value=this.player?.getManifest?.()?.presentationTimeline?.getMaxSegmentDuration();return typeof value==='number'&&Number.isFinite(value)&&value>0?value:null;}
+  private chooseAdaptiveQuality(recommended:Shaka.extern.Variant,variants:readonly Shaka.extern.Variant[],estimate:number):Readonly<{variant:Shaka.extern.Variant;urgency:'buffered'|'responsive'}>|null{
+    const player=this.player,state=this.control;
+    if(this.stopped||this.failure)return null;
+    const fallback={variant:recommended,urgency:'buffered' as const};
+    if(!player||state.phase!=='ready'||state.effect||state.requests.length||state.source?.representation||state.quality.mode!=='auto')return fallback;
+    const tracks=player.getVariantTracks(),plan=shakaQualityPlan(state,this.variantFacts(tracks),state.quality);
+    const allowed=variants.filter(v=>plan.ids.includes(v.id));
+    if(!allowed.some(v=>v.id===recommended.id))return null;
+    const finite=(value:number|null|undefined)=>typeof value==='number'&&Number.isFinite(value)&&value>=0?value:null;
+    const context:QualitySelectionContext=Object.freeze({
+      candidates:Object.freeze(tracks.filter(t=>allowed.some(v=>v.id===t.id)).map(t=>Object.freeze({id:`variant:${t.id}`,width:finite(t.width),height:finite(t.height),bandwidth:finite(t.bandwidth),frameRate:finite(t.frameRate),videoCodec:t.videoCodec??null,audioCodec:t.audioCodec??null,dynamicRange:t.hdr??null}))),
+      currentId:tracks.find(t=>t.active)?`variant:${tracks.find(t=>t.active)!.id}`:null,recommendedId:`variant:${recommended.id}`,
+      currentTime:this.video.currentTime,bufferedSeconds:this.bufferedSeconds(),playbackRate:this.video.playbackRate,
+      bandwidthEstimate:estimate>0?finite(estimate):null,maxSegmentDuration:this.segmentDuration(),buffering:player.isBuffering?.()??false,
+      viewport:Object.freeze({width:this.video.clientWidth??0,height:this.video.clientHeight??0}),
+    });
+    let decision:QualitySelectionDecision|undefined;
+    try{
+      const result=this.selectQuality?.(context);
+      if(result&&typeof (result as unknown as {then?:unknown}).then==='function')void Promise.resolve(result).catch(()=>{});
+      else if(result)decision=result.type==='switch'?{type:'switch',id:result.id,urgency:result.urgency}:result.type==='keep'?{type:'keep'}:undefined;
+    }catch{/* Caller policy cannot interrupt playback. Use the default. */}
+    // A callback may synchronously close the player or start a control operation.
+    if(this.player!==player||this.control!==state||this.stopped)return null;
+    const selected=qualitySelection(context,decision),variant=allowed.find(v=>`variant:${v.id}`===selected.id);
+    return variant?{variant,urgency:selected.urgency}:fallback;
+  }
   streamingState():import('../types.js').StreamingState{
     const player=this.loaded(),state=this.control,check=()=>{if(this.player!==player||this.control!==state||this.stopped)throw new PlayerError('ABORTED','Shaka observation retired');};
     const tracks=player.getVariantTracks();check();const facts=this.observedVariants(tracks);check();
@@ -233,7 +272,8 @@ export class ShakaBackend extends EventTarget implements Backend {
           this.check(lease);if(!configured)throw new PlayerError('UNSUPPORTED_FEATURE','Shaka rejected the quality configuration');
           this.control=stepShakaQuality(this.control,lease,'configured');
         }else if(phase==='select'){
-          player.selectVariantTrack(allowed[0],false);this.check(lease);
+          const transition=qualitySwitchBuffer();this.check(lease);
+          player.selectVariantTrack(allowed[0],transition.clearBuffer,transition.safeMargin);this.check(lease);
           const selected=player.getVariantTracks().find(t=>t.active)?.id;this.check(lease);
           this.control=verifyShakaQuality(this.control,lease,selected);
           if(this.control.qualityChange?.phase==='rollback')failure=new PlayerError('UNSUPPORTED_FEATURE','Shaka did not select the requested quality');

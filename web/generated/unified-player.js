@@ -87,6 +87,8 @@ export class Player extends EventTarget {
     previewSource;
     ready = Promise.resolve();
     assetBase;
+    qualitySelector;
+    adaptiveSelection;
     providerRuntime;
     get buffering() { return this.control.preferences.buffering; }
     set buffering(value) { this.updatePreferences({ buffering: value }); }
@@ -728,6 +730,10 @@ export class Player extends EventTarget {
     stopWatchdogs() { const timer = this.monitor; this.monitor = undefined; this.monitorHandleId = undefined; this.dispatchControl({ type: 'monitor.stop' }); clearInterval(timer); }
     constructor(container, options = {}) {
         super();
+        if (options.adaptation !== undefined && (!options.adaptation || typeof options.adaptation !== 'object' || Array.isArray(options.adaptation) || options.adaptation.select !== undefined && typeof options.adaptation.select !== 'function'))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid adaptation policy');
+        this.qualitySelector = options.adaptation?.select;
+        this.adaptiveSelection = options.adaptation !== undefined;
         const providerPreferences = normalizeProviderPreferences(options.providerPreferences);
         this.startupEscalation = startupEscalationPolicy(options.startupEscalation);
         this.watchdogConfiguration = watchdogPolicy(options.watchdogs);
@@ -1150,7 +1156,7 @@ export class Player extends EventTarget {
         return copyData({ ...raw, qualities: raw.qualities.map(q => ({ ...q, id: prefix + q.id })), selectedId: raw.selectedId ? prefix + raw.selectedId : null, presentedId: raw.presentedId ? prefix + raw.presentedId : null, requested: raw.requested.mode === 'manual' ? { ...raw.requested, id: prefix + raw.requested.id } : { ...raw.requested } });
     }
     setQuality(policy) {
-        if (!policy || !['auto', 'manual'].includes(policy.mode) || policy.mode === 'manual' && typeof policy.id !== 'string' || policy.mode === 'auto' && [policy.maxHeight, policy.maxBandwidth].some(v => v !== undefined && (!Number.isFinite(v) || v <= 0)))
+        if (!policy || !['auto', 'manual'].includes(policy.mode) || policy.mode === 'manual' && (typeof policy.id !== 'string' || policy.switching !== undefined && !['buffered', 'responsive'].includes(policy.switching)) || policy.mode === 'auto' && [policy.maxHeight, policy.maxBandwidth].some(v => v !== undefined && (!Number.isFinite(v) || v <= 0)))
             throw new PlayerError('INVALID_ARGUMENT', 'Invalid quality policy');
         const requested = { ...policy };
         return this.enqueue(async () => {
@@ -1450,7 +1456,18 @@ export class Player extends EventTarget {
             current();
             const subtitleTracks = this.sourceInspection?.probe.tracks.filter(t => t.type === 'sub') ?? [];
             const defaultSubtitleStreamIndex = (subtitleTracks.find(t => t.default) ?? subtitleTracks[0])?.index;
-            backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface, { providerAssets: this.providerRuntime, mode: mode, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture), buffering: this.buffering, audioOutput: this.audioOutput, audioFallback: this.audioFallback, runtime: this.remuxRuntime, assetBase: this.assetBase, duration: this.sourceInspection?.probe.duration, resourceLimits: this.resourceLimits, fonts: this.fonts, prefetchedWasm: () => this.startupModules?.bytes(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`) }) : 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering, this.providerRuntime) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && recipe?.native?.selectedAudio ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime, this.providerRuntime, { providerPreferences: this.remuxSelection.providerPreferences, prefetchAfterMs: this.startupEscalation?.prefetchAfterMs, prefetch: prefetchFallback, module: async (path) => (await this.startupModules?.ready(path)?.catch(() => undefined)) ?? (path === `web/engine-remux${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm` ? await this.preparation?.readyModule('engine-remux') : undefined) }) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, providerAssets: this.providerRuntime, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
+            backend = 'PrivateSoftwarePlayer' in module ? new module.PrivateSoftwarePlayer(surface, { providerAssets: this.providerRuntime, mode: mode, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture), buffering: this.buffering, audioOutput: this.audioOutput, audioFallback: this.audioFallback, runtime: this.remuxRuntime, assetBase: this.assetBase, duration: this.sourceInspection?.probe.duration, resourceLimits: this.resourceLimits, fonts: this.fonts, prefetchedWasm: () => this.startupModules?.bytes(`web/engine-mpv-playback-${this.remuxRuntime}/player.wasm`) }) : 'ShakaBackend' in module ? new module.ShakaBackend(surface, this.assetBase, this.buffering, this.providerRuntime, this.qualitySelector ? context => {
+                if (this.destroyed || this.current?.backend !== backend || this.busy)
+                    return { type: 'default' };
+                const sourceId = this.sourceSerial, prefix = `${sourceId}:`;
+                const snapshot = Object.freeze({ ...context, candidates: Object.freeze(context.candidates.map(q => Object.freeze({ ...q, id: prefix + q.id }))), currentId: context.currentId ? prefix + context.currentId : null, recommendedId: prefix + context.recommendedId });
+                const result = this.qualitySelector(snapshot);
+                if (this.destroyed || this.current?.backend !== backend || this.sourceSerial !== sourceId || this.busy)
+                    return { type: 'keep' };
+                if (result?.type === 'switch')
+                    return result.id.startsWith(prefix) ? { ...result, id: result.id.slice(prefix.length) } : { type: 'default' };
+                return result;
+            } : undefined) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && recipe?.native?.selectedAudio ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime, this.providerRuntime, { providerPreferences: this.remuxSelection.providerPreferences, prefetchAfterMs: this.startupEscalation?.prefetchAfterMs, prefetch: prefetchFallback, module: async (path) => (await this.startupModules?.ready(path)?.catch(() => undefined)) ?? (path === `web/engine-remux${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm` ? await this.preparation?.readyModule('engine-remux') : undefined) }) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, providerAssets: this.providerRuntime, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
             session = { backend, surface };
             await this.registerSession(session, sessionId, true);
             current();
@@ -1701,7 +1718,7 @@ export class Player extends EventTarget {
             mpvSubtitleSourceQualified: this.mpvSubtitleAssetsAvailable && this.fileServicesSource(source) && !!inspected && Number.isFinite(inspected.probe.duration) && inspected.probe.duration > 0 && !!selectiveSubtitle && (!this.privateRemux || ['ass', 'ssa', 'subrip', 'mov_text', 'hdmv_pgs_subtitle', 'dvd_subtitle'].includes(selectiveSubtitle.codec)) && settings.subtitles && settings.sid !== 'no',
             mpvSubtitleAVRejection: inspected ? nativeRejection(inspected.probe, { ...inspectedSettings, subtitles: false }) : 'Source inspection required',
             shakaSourceRejection: remote?.demuxer ? 'Explicit demuxer hints require FFmpeg' : undefined,
-            streamingFallbackRejection: remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
+            streamingFallbackRejection: this.adaptiveSelection || remote?.streaming?.maxBandwidth !== undefined || remote?.streaming?.representation !== undefined ? 'FFmpeg fallback cannot preserve an explicit adaptive quality constraint' : undefined,
             remuxSourceRejection: inspected ? remuxRejection(inspected.probe, inspectedSettings) : undefined,
             hybridSourceRejection: video && !['h264', 'hevc', 'vp8', 'vp9', 'av1'].includes(video.codec) && !webgpuDecoderSupported(video.codec) ? `Demuxe has no external decoder contract for ${video.codec}` : undefined, webGPUCodecQualified: webgpuDecoderSupported(video?.codec ?? ''), toneMapping: this.candidatePreferences.toneMapping, hybridAudioFilters: this.hybridAudioFilters,
             adaptation: this.audioAdaptation, allowLossy: this.allowLossy, nativeASS: this.nativeASS, externalFormats: attachments.map(a => plainVTT(a) ? 'browser-vtt' : a.format), browserTextTracks: !!textTracks.length,
@@ -1710,7 +1727,7 @@ export class Player extends EventTarget {
             audioOutput: this.audioOutput, nativeRemux: requirements.nativeRemux ?? this.nativeRemux, manifest: !!remote?.format && remote.format !== 'file',
             requiresRemux: !!(remote && (remote.headers || remote.refreshAuthorization || remote.allowedOrigins || remote.immutable !== undefined || remote.credentials === 'omit' || !!(settings.subtitles && selectiveSubtitle))),
             privateRemux: this.privateRemux, atomicMpvProviders: !!this.providerRuntime, isolated: globalThis.crossOriginIsolated === true, mse: typeof MediaSource !== 'undefined', webCodecs: typeof VideoDecoder !== 'undefined', webAudio: typeof AudioContext !== 'undefined',
-            nativeSourceRejection: remote?.format && remote.format !== 'file' ? nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : nativeSourceRejection });
+            nativeSourceRejection: remote?.format && remote.format !== 'file' ? (this.adaptiveSelection ? 'Controlled quality selection requires Shaka' : nativeManifestRejection(remote, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl'))) : nativeSourceRejection });
         const element = inspected ? document.createElement('video') : undefined;
         const capabilities = inspected ? nativeBrowserCapabilities(inspected.probe, inspectedSettings.aid, { canPlayType: mime => element.canPlayType(mime), isTypeSupported: typeof MediaSource === 'undefined' ? undefined : mime => MediaSource.isTypeSupported(mime) }) : undefined;
         const withEvidence = (capability) => ({ ...capability, decodingInfo: this.mediaCapabilityQueries.cached(capability, inspected.probe) });
@@ -2642,7 +2659,7 @@ export class Player extends EventTarget {
                             break;
                         }
                         case 'manifest': {
-                            const nativeReason = source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';
+                            const nativeReason = this.adaptiveSelection ? 'Controlled quality selection requires Shaka' : source.kind === 'remote' ? nativeManifestRejection(source.options, settings, !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')) : 'Explicit demuxer requires FFmpeg';
                             current();
                             advance({ kind: 'work.manifest', id: lease.id, nativeReason });
                             break;

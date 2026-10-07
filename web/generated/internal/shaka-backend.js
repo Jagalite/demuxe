@@ -11,12 +11,15 @@ import { initialShakaBackend, transitionShakaBackend, shakaLeaseCurrent, shakaQu
 import { shakaStreamingProjection, shakaTrackProjection, shakaSeekTarget, shakaPreviewChoice } from './machine/shaka-observation.js';
 import { shakaRequestedAudio, shakaSelectAudio, shakaInitialRepresentation, shakaSelectText, shakaExpectedOutput } from './machine/shaka-selection.js';
 import { plainVTT } from './plain-vtt.js';
+import { switchingAbrFactory } from './shaka-abr.js';
+import { qualitySelection, qualitySwitchBuffer } from './machine/quality-switching.js';
 /** Shaka exclusively owns adaptive manifests, scheduling, ABR and MediaSource.
  * NativePlayer supplies only media-element controls, output verification and gain. */
 export class ShakaBackend extends EventTarget {
     video;
     assetBase;
     providerAssets;
+    selectQuality;
     setWatchdogs(policy) { this.native.setWatchdogs(policy); }
     nativeProgressSample() { return this.native.nativeProgressSample(); }
     ready = Promise.resolve();
@@ -77,11 +80,12 @@ export class ShakaBackend extends EventTarget {
     disposal;
     listeners = [];
     blobs = new Set();
-    constructor(video, assetBase = new URL('../../../', import.meta.url), buffering = bufferingPolicy(), providerAssets) {
+    constructor(video, assetBase = new URL('../../../', import.meta.url), buffering = bufferingPolicy(), providerAssets, selectQuality) {
         super();
         this.video = video;
         this.assetBase = assetBase;
         this.providerAssets = providerAssets;
+        this.selectQuality = selectQuality;
         this.control = initialShakaBackend(buffering);
         this.native = new NativePlayer(video, 'never', assetBase);
         for (const type of ['mpv', 'activity', 'error', 'log']) {
@@ -296,7 +300,7 @@ export class ShakaBackend extends EventTarget {
                 changed();
             } };
             this.listen(player, 'mediaqualitychanged', observed, lease);
-            player.configure({ streaming: { observeQualityChanges: true, preferNativeHls: false, preferNativeDash: false, useNativeHlsForFairPlay: false }, abr: { enabled: !source.streaming?.representation }, restrictions: { maxBandwidth: source.streaming?.maxBandwidth ?? Infinity } });
+            player.configure({ streaming: { observeQualityChanges: true, preferNativeHls: false, preferNativeDash: false, useNativeHlsForFairPlay: false }, abr: { enabled: !source.streaming?.representation }, restrictions: { maxBandwidth: source.streaming?.maxBandwidth ?? Infinity }, ...(runtime.abr?.SimpleAbrManager ? { abrFactory: switchingAbrFactory(runtime, (recommended, variants, estimate) => this.chooseAdaptiveQuality(recommended, variants, estimate), () => this.control.phase !== 'ready' || this.failure || this.control.effect || this.control.requests.length || this.qualityPolicy.mode !== 'auto' ? null : qualitySwitchBuffer()) } : {}) });
             this.check(lease);
             const defaults = player.getConfiguration().streaming;
             this.check(lease);
@@ -406,6 +410,48 @@ export class ShakaBackend extends EventTarget {
     startupEvidence() { return { ...this.native.diagnostics.capability, sourceBufferCreated: !!this.player && this.player.getLoadMode() === this.runtime?.Player.LoadMode.MEDIA_SOURCE }; }
     variantFacts(tracks) { return tracks.map(t => ({ id: t.id, active: t.active, audioIdentity: JSON.stringify([t.audioLanguage ?? t.language, t.originalLanguage, t.label, t.audioRoles, t.channelsCount, t.audioCodec, t.spatialAudio, t.accessibilityPurpose]), videoCodec: t.videoCodec ?? null, originalVideoId: t.originalVideoId ?? null, originalAudioId: t.originalAudioId ?? null, bandwidth: t.bandwidth, height: t.height ?? null })); }
     observedVariants(tracks) { return tracks.map(track => ({ ...this.variantFacts([track])[0], videoId: track.videoId, width: track.width, frameRate: track.frameRate, audioCodec: track.audioCodec, hdr: track.hdr })); }
+    bufferedSeconds() {
+        const ranges = this.video.buffered, time = this.video.currentTime;
+        for (let i = 0; i < ranges.length; i++)
+            if (ranges.start(i) <= time && ranges.end(i) > time)
+                return ranges.end(i) - time;
+        return 0;
+    }
+    segmentDuration() { const value = this.player?.getManifest?.()?.presentationTimeline?.getMaxSegmentDuration(); return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null; }
+    chooseAdaptiveQuality(recommended, variants, estimate) {
+        const player = this.player, state = this.control;
+        if (this.stopped || this.failure)
+            return null;
+        const fallback = { variant: recommended, urgency: 'buffered' };
+        if (!player || state.phase !== 'ready' || state.effect || state.requests.length || state.source?.representation || state.quality.mode !== 'auto')
+            return fallback;
+        const tracks = player.getVariantTracks(), plan = shakaQualityPlan(state, this.variantFacts(tracks), state.quality);
+        const allowed = variants.filter(v => plan.ids.includes(v.id));
+        if (!allowed.some(v => v.id === recommended.id))
+            return null;
+        const finite = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+        const context = Object.freeze({
+            candidates: Object.freeze(tracks.filter(t => allowed.some(v => v.id === t.id)).map(t => Object.freeze({ id: `variant:${t.id}`, width: finite(t.width), height: finite(t.height), bandwidth: finite(t.bandwidth), frameRate: finite(t.frameRate), videoCodec: t.videoCodec ?? null, audioCodec: t.audioCodec ?? null, dynamicRange: t.hdr ?? null }))),
+            currentId: tracks.find(t => t.active) ? `variant:${tracks.find(t => t.active).id}` : null, recommendedId: `variant:${recommended.id}`,
+            currentTime: this.video.currentTime, bufferedSeconds: this.bufferedSeconds(), playbackRate: this.video.playbackRate,
+            bandwidthEstimate: estimate > 0 ? finite(estimate) : null, maxSegmentDuration: this.segmentDuration(), buffering: player.isBuffering?.() ?? false,
+            viewport: Object.freeze({ width: this.video.clientWidth ?? 0, height: this.video.clientHeight ?? 0 }),
+        });
+        let decision;
+        try {
+            const result = this.selectQuality?.(context);
+            if (result && typeof result.then === 'function')
+                void Promise.resolve(result).catch(() => { });
+            else if (result)
+                decision = result.type === 'switch' ? { type: 'switch', id: result.id, urgency: result.urgency } : result.type === 'keep' ? { type: 'keep' } : undefined;
+        }
+        catch { /* Caller policy cannot interrupt playback. Use the default. */ }
+        // A callback may synchronously close the player or start a control operation.
+        if (this.player !== player || this.control !== state || this.stopped)
+            return null;
+        const selected = qualitySelection(context, decision), variant = allowed.find(v => `variant:${v.id}` === selected.id);
+        return variant ? { variant, urgency: selected.urgency } : fallback;
+    }
     streamingState() {
         const player = this.loaded(), state = this.control, check = () => { if (this.player !== player || this.control !== state || this.stopped)
             throw new PlayerError('ABORTED', 'Shaka observation retired'); };
@@ -474,7 +520,9 @@ export class ShakaBackend extends EventTarget {
                         this.control = stepShakaQuality(this.control, lease, 'configured');
                     }
                     else if (phase === 'select') {
-                        player.selectVariantTrack(allowed[0], false);
+                        const transition = qualitySwitchBuffer();
+                        this.check(lease);
+                        player.selectVariantTrack(allowed[0], transition.clearBuffer, transition.safeMargin);
                         this.check(lease);
                         const selected = player.getVariantTracks().find(t => t.active)?.id;
                         this.check(lease);

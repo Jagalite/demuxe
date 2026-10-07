@@ -115,6 +115,9 @@ export type PlayerOptions = {
   preview?:PreviewOptions|false;
   /** Automatic balanced buffering and auto preload when omitted. */
   buffering?: BufferingOptions;
+  /** Use controlled HLS/DASH adaptation. An empty object uses the default policy.
+   * Optional synchronous callback customizes Shaka's automatic quality decisions. */
+  adaptation?: Readonly<{select?:QualitySelector}>;
   /** Package runtime root; includes web/ and fixtures/. Same-origin only. */
   assetBase?: string;
   audioOutput?: AudioOutput;
@@ -251,8 +254,21 @@ export type AttachmentHandle = Readonly<{id:string;kind:'subtitle'|'font';source
 export type SubtitleStyle = Readonly<{fontSize?:number;color?:string;borderSize?:number;fontFamily?:string}>;
 export type TimingSettings = Readonly<{subtitleDelay:number;audioDelay:number;effectiveSubtitleDelay:number|null;effectiveAudioDelay:number|null;subtitleStyle:SubtitleStyle;styleScope:'plain-text'}>;
 
-export type QualityPolicy = Readonly<{mode:'auto';maxHeight?:number;maxBandwidth?:number}|{mode:'manual';id:string}>;
+export type QualityPolicy = Readonly<{mode:'auto';maxHeight?:number;maxBandwidth?:number}|{mode:'manual';id:string;switching?:'buffered'|'responsive'}>;
 export type StreamingQuality = Readonly<{id:string;width:number|null;height:number|null;bandwidth:number|null;frameRate:number|null;videoCodec:string|null;audioCodec:string|null;dynamicRange:string|null}>;
+export type QualitySelectionContext = Readonly<{
+  /** Eligible renditions, with the same source-scoped IDs as getStreamingState(). */
+  candidates:readonly StreamingQuality[];
+  currentId:string|null;recommendedId:string;
+  currentTime:number;bufferedSeconds:number;playbackRate:number;
+  /** Shaka throughput estimate; null means unavailable, not zero. */
+  bandwidthEstimate:number|null;maxSegmentDuration:number|null;
+  buffering:boolean;viewport:Readonly<{width:number;height:number}>;
+}>;
+export type QualitySelectionDecision = Readonly<{type:'default'}|{type:'keep'}|{type:'switch';id:string;urgency?:'buffered'|'responsive'}>;
+/** Called on Shaka decision opportunities, not each frame. Must return synchronously.
+ * Throwing or invalid results use the default policy; source restrictions still apply. */
+export type QualitySelector = (context:QualitySelectionContext)=>QualitySelectionDecision;
 export type StreamingState = Readonly<{qualities:readonly StreamingQuality[];requested:QualityPolicy;selectedId:string|null;presentedId:string|null;observedQuality:Readonly<{observation:'playhead-buffer';position:number;contentType:string;width:number|null;height:number|null;bandwidth:number|null;codec:string|null}>|null;transition:'unknown';live:Readonly<{isLive:boolean;seekable:TimeRange|null;latencySeconds:number|null;nearLive:boolean|null}>}>;
 
 /** Immutable random-access bytes. Playback stages at most 32 MiB before acceptance. */

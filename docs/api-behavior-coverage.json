@@ -4,13 +4,13 @@
   "interpretation": "Mapped-partial links a member to a reviewed behavior family and relevant test implementations. It does not assert that every member or behavior in that family is directly tested. Live evidence applies only to the listed assertions and sampled input hashes; it is not complete package or release qualification.",
   "summary": {
     "entrypoints": 7,
-    "exportDeclarations": 131,
-    "runtimeItems": 223,
-    "mappedPartial": 223,
+    "exportDeclarations": 135,
+    "runtimeItems": 224,
+    "mappedPartial": 224,
     "unmapped": 0,
     "withRecentLiveAssertions": 7,
     "fullyCovered": 0,
-    "structuralOnlyContracts": 102
+    "structuralOnlyContracts": 105
   },
   "behaviorGroups": [
     {
@@ -292,13 +292,15 @@
       "apis": [
         ".#Player.getStreamingState",
         ".#Player.setQuality",
-        ".#Player.seekToLive"
+        ".#Player.seekToLive",
+        ".#defaultQualitySelection"
       ],
       "behavior": "Constrain quality by source/audio intent and restore failed configurations",
       "states": "loaded, selecting, buffering, live, retired",
       "failures": "configure/select/verify failure, rollback failure, supersession",
       "backends": "Shaka; other routes capability-gated",
       "unit": [
+        "tests/quality-switching.mjs",
         "tests/shaka-backend.mjs",
         "tests/api-stability/shaka-selection.mjs",
         "tests/api-stability/remaining-policy-sequences.mjs"
@@ -1744,6 +1746,16 @@
       "member": null,
       "status": "mapped-partial",
       "behaviorGroup": "public-constants-errors",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#defaultQualitySelection",
+      "entry": ".",
+      "export": "defaultQualitySelection",
+      "member": null,
+      "status": "mapped-partial",
+      "behaviorGroup": "streaming-quality",
       "liveAssertions": [],
       "liveEvidence": []
     },
@@ -4057,6 +4069,7 @@
       "entry": ".",
       "export": "PlayerOptions",
       "members": [
+        "adaptation",
         "adaptiveFrameDrop",
         "allowLossyAudio",
         "assetBase",
@@ -4407,6 +4420,38 @@
     {
       "entry": ".",
       "export": "QualityPolicy",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "QualitySelectionContext",
+      "members": [
+        "bandwidthEstimate",
+        "bufferedSeconds",
+        "buffering",
+        "candidates",
+        "currentId",
+        "currentTime",
+        "maxSegmentDuration",
+        "playbackRate",
+        "recommendedId",
+        "viewport"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "QualitySelectionDecision",
+      "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "QualitySelector",
       "members": [],
       "status": "structural-only",
       "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
@@ -5370,6 +5415,7 @@
         "transport",
         "type"
       ],
+      "defaultQualitySelection": [],
       "Diagnostics": [
         "adaptiveFrameDrop",
         "audioFilters",
@@ -5627,6 +5673,7 @@
       ],
       "PlayerEventName": [],
       "PlayerOptions": [
+        "adaptation",
         "adaptiveFrameDrop",
         "allowLossyAudio",
         "assetBase",
@@ -5879,6 +5926,20 @@
         "values"
       ],
       "QualityPolicy": [],
+      "QualitySelectionContext": [
+        "bandwidthEstimate",
+        "bufferedSeconds",
+        "buffering",
+        "candidates",
+        "currentId",
+        "currentTime",
+        "maxSegmentDuration",
+        "playbackRate",
+        "recommendedId",
+        "viewport"
+      ],
+      "QualitySelectionDecision": [],
+      "QualitySelector": [],
       "RemoteSource": [
         "allowedOrigins",
         "credentials",

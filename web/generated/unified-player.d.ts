@@ -14,6 +14,8 @@ export declare class Player extends EventTarget {
     private previewSource?;
     readonly ready: Promise<void>;
     private assetBase;
+    private readonly qualitySelector?;
+    private readonly adaptiveSelection;
     private providerRuntime?;
     private get buffering();
     private set buffering(value);
