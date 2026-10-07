@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Player } from '../unified-player.js';
+import { ViewportExpansion, viewportStyles } from './viewport.js';
 import { PLAYER_EVENTS } from '../types.js';
 import { normalizeTrackPolicy } from '../internal/track-policy.js';
 import { watchdogPolicy } from '../internal/watchdogs.js';
@@ -20,7 +21,7 @@ import { AdvancedSettings, advancedLabels, advancedSettingsStyles } from './adva
 import { applyLayout, isPlayerLayout, playerLayouts, presentationStyles } from './presentation.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', controlsMode: 'Controls', controlsAuto: 'Auto', controlsMobile: 'Mobile', controlsDesktop: 'Desktop', layout: 'Layout', theme: 'Theme', classic: 'Classic', cinema: 'Cinema', rail: 'Rail', studio: 'Studio', focus: 'Focus', deck: 'Deck', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', noFullscreen: 'Fullscreen is unavailable here. Open this page in a browser tab.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', controlsMode: 'Controls', controlsAuto: 'Auto', controlsMobile: 'Mobile', controlsDesktop: 'Desktop', layout: 'Layout', theme: 'Theme', classic: 'Classic', cinema: 'Cinema', rail: 'Rail', studio: 'Studio', focus: 'Focus', deck: 'Deck', demuxeTheme: 'Demuxe', lightTheme: 'Light', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen', expandPlayer: 'Expand player', exitExpandedPlayer: 'Exit expanded view', noFullscreen: 'Fullscreen and browser expansion are unavailable here.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -369,8 +370,14 @@ export class DemuxePlayerElement extends Base {
         this.settings(false, false); };
     isScreenPress(event) { return !event.composedPath().some(node => node instanceof Element && node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay')); }
     resizeObserver;
-    fullscreenChanged = () => { const active = document.fullscreenElement === this; this.$('fullscreen').setAttribute('aria-pressed', String(active)); this.iconButton('fullscreen', active ? 'collapse' : 'expand', active ? this.labels.exitFullscreen : this.labels.fullscreen); };
-    constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); this.hoverPreview = new ScrubberPreview(this.input('timeline'), this.$('thumbnail-preview'), this.$('thumbnail-image'), this.$('thumbnail-time'), () => this.previewThumbnails ? this.core?.preview : undefined, this.$('thumbnail-target')); }
+    viewportExpansion;
+    fullscreenRequest;
+    fullscreenChanged = () => {
+        const native = this.ownerDocument.fullscreenElement === this, expanded = !!this.viewportExpansion?.active, active = native || expanded;
+        this.$('fullscreen').setAttribute('aria-pressed', String(active));
+        this.iconButton('fullscreen', active ? 'collapse' : 'expand', native ? this.labels.exitFullscreen : expanded ? this.labels.exitExpandedPlayer : typeof this.requestFullscreen === 'function' && this.ownerDocument.fullscreenEnabled !== false ? this.labels.fullscreen : this.labels.expandPlayer);
+    };
+    constructor() { super(); this.newReady(); this.attachShadow({ mode: 'open' }); this.renderShell(); this.viewportExpansion = new ViewportExpansion(this, this.$('shell'), this.fullscreenChanged); this.hoverPreview = new ScrubberPreview(this.input('timeline'), this.$('thumbnail-preview'), this.$('thumbnail-image'), this.$('thumbnail-time'), () => this.previewThumbnails ? this.core?.preview : undefined, this.$('thumbnail-target')); }
     newReady() { this.readiness = new Promise((resolve, reject) => { this.resolveReady = resolve; this.rejectReady = reject; }); void this.readiness.catch(() => { }); }
     get ready() { return this.readiness; }
     get player() { return this.core; }
@@ -595,6 +602,7 @@ export class DemuxePlayerElement extends Base {
             return;
         }
         if (name === 'controls' && !this.controls) {
+            this.viewportExpansion?.close(false);
             const focused = this.shadowRoot?.activeElement;
             const moveFocus = !!focused && ['topbar', 'controls', 'transport', 'settings', 'diagnostics-overlay'].some(id => this.$(id).contains(focused));
             this.settings(false, false);
@@ -685,6 +693,7 @@ export class DemuxePlayerElement extends Base {
         if (terminal)
             this.customPreviewStrategy = undefined;
         this.core = undefined;
+        this.fullscreenRequest = undefined;
         this.unsubscribe = undefined;
         this.resizeObserver = undefined;
         this.sourceAbort = undefined;
@@ -701,7 +710,7 @@ export class DemuxePlayerElement extends Base {
         attempt(() => this.rejectReady(new PlayerError('ABORTED', terminal ? 'Player element is destroyed' : 'Player element disconnected')));
         if (!terminal)
             attempt(() => this.newReady());
-        for (const action of [() => terminal ? this.hoverPreview.destroy() : this.hoverPreview.hide(), () => { this.timelinePointer = undefined; this.$('scrub-position').hidden = true; this.settings(false, false); }, () => clearTimeout(this.hideTimer), () => clearTimeout(this.seekPreviewTimer), () => sourceAbort?.abort(), () => this.resetQueue(), () => this.view({ type: 'source', name: '', sourceId: null }), () => this.updateTitle(), () => unsubscribe?.(), () => observer?.disconnect(), () => document.removeEventListener('fullscreenchange', this.fullscreenChanged), () => document.removeEventListener('pointerdown', this.dismissMenu, true), () => this.advanced?.reconcile()])
+        for (const action of [() => this.viewportExpansion?.close(false), () => terminal ? this.hoverPreview.destroy() : this.hoverPreview.hide(), () => { this.timelinePointer = undefined; this.$('scrub-position').hidden = true; this.settings(false, false); }, () => clearTimeout(this.hideTimer), () => clearTimeout(this.seekPreviewTimer), () => sourceAbort?.abort(), () => this.resetQueue(), () => this.view({ type: 'source', name: '', sourceId: null }), () => this.updateTitle(), () => unsubscribe?.(), () => observer?.disconnect(), () => document.removeEventListener('fullscreenchange', this.fullscreenChanged), () => document.removeEventListener('pointerdown', this.dismissMenu, true), () => this.advanced?.reconcile()])
             attempt(action);
         let destruction;
         attempt(() => { destruction = old?.destroy(); });
@@ -984,10 +993,48 @@ export class DemuxePlayerElement extends Base {
             (trigger.getClientRects().length ? trigger : this.$('settings-toggle')).focus();
         }
     }
-    fullscreen() { const active = document.fullscreenElement === this; const request = active ? this.core?.presentation.exitFullscreen() : this.core?.presentation.requestFullscreen(); if (!request) {
-        this.announce(this.labels.noFullscreen);
-        return;
-    } void request.then(() => { this.fullscreenChanged(); }, () => this.announce(this.labels.noFullscreen)); }
+    fullscreen() {
+        if (this.fullscreenRequest)
+            return;
+        if (this.viewportExpansion?.active) {
+            this.settings(false, false);
+            this.viewportExpansion.close();
+            return;
+        }
+        const expand = () => {
+            if (this.terminal || !this.isConnected)
+                return;
+            if (!this.controls) {
+                this.announce(this.labels.noFullscreen);
+                return;
+            }
+            try {
+                this.settings(false, false);
+                this.viewportExpansion?.open();
+                this.revealControls();
+            }
+            catch {
+                this.announce(this.labels.noFullscreen);
+            }
+        };
+        const active = this.ownerDocument.fullscreenElement === this;
+        if (!active && (typeof this.requestFullscreen !== 'function' || this.ownerDocument.fullscreenEnabled === false)) {
+            expand();
+            return;
+        }
+        const core = this.core, request = active ? core?.presentation.exitFullscreen() : core?.presentation.requestFullscreen();
+        if (!request) {
+            this.announce(this.labels.noFullscreen);
+            return;
+        }
+        this.fullscreenRequest = request;
+        void request.then(() => this.fullscreenChanged(), error => { if (core !== this.core || this.terminal || !this.isConnected || error?.code === 'ABORTED')
+            return; if (active)
+            this.announce(this.labels.noFullscreen);
+        else
+            expand(); }).finally(() => { if (this.fullscreenRequest === request)
+            this.fullscreenRequest = undefined; });
+    }
     iconButton(id, icon, label) { const button = this.$(id); if (button.dataset.icon !== icon) {
         button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${icons[icon]}</svg>`;
         button.dataset.icon = icon;
@@ -1033,7 +1080,7 @@ export class DemuxePlayerElement extends Base {
             this.$(id + '-label').textContent = this.labels[id === 'live' ? 'streamLive' : id];
     }
     renderShell() {
-        this.shadowRoot.innerHTML = `<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}</style>${playerShell()}`;
+        this.shadowRoot.innerHTML = `<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}${viewportStyles}</style>${playerShell()}`;
         this.advanced = new AdvancedSettings(this.shadowRoot, () => this.core, work => this.runSettings(work));
         this.updatePresentation();
         this.labelControls();
@@ -1175,6 +1222,11 @@ export class DemuxePlayerElement extends Base {
             if (event.key === 'Escape' && this.controlState.menuOpen) {
                 event.preventDefault();
                 this.settings(false);
+                return;
+            }
+            if (event.key === 'Escape' && this.viewportExpansion?.active) {
+                event.preventDefault();
+                this.viewportExpansion.close();
                 return;
             }
             if (this.controlState.menuOpen)

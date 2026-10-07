@@ -25,7 +25,8 @@ try{
  await page.evaluate(async()=>{
   window.viewer=document.querySelector('demuxe-player');await viewer.ready;
   window.$=id=>viewer.shadowRoot.getElementById(id);
-  await viewer.open(location.origin+'/fixtures/example.mp4');await viewer.pause();
+  // Controls tests do not qualify audible output; mute before any startup recovery play.
+  await viewer.setMuted(true);await viewer.open(location.origin+'/fixtures/example.mp4');await viewer.pause();
  });
  for(const [width,height] of [[320,568],[390,844],[667,375],[844,390]]){
   await page.setViewportSize({width,height});
@@ -227,11 +228,11 @@ try{
   assert.equal(await page.evaluate(()=>seeks.length),1,'cancellation must not seek');
   assert.equal(await page.evaluate(()=>!viewer.dragging&&$('scrub-position').hidden&&Math.abs(Number($('timeline').value)-viewer.player.state.currentTime)<.15),true);
   // A stationary press still holds controls open; it need not change the range value.
-  await page.evaluate(async()=>{viewer.controlsAutoHideDelay=50;await viewer.play();viewer.revealControls();});
+  await page.evaluate(async()=>{window.originalAutoHideDelay=viewer.controlsAutoHideDelay;viewer.controlsAutoHideDelay=50;await viewer.play();viewer.revealControls();});
   await touch('touchStart',.7);
   await page.waitForTimeout(150);
   assert.equal(await page.evaluate(()=>viewer.dragging&&!$('shell').classList.contains('idle')),true);
-  await touch('touchCancel');await page.evaluate(()=>viewer.pause());
+  await touch('touchCancel');await page.evaluate(async()=>{await viewer.pause();viewer.controlsAutoHideDelay=originalAutoHideDelay;viewer.seek=realSeek;});
   await cdp.detach();
   console.log('PASS native Chromium touch: timestamp during drag, one seek on release, no seek on cancellation, stationary hold prevents auto-hide');
   await page.locator('#viewer #fullscreen').click();
@@ -243,6 +244,68 @@ try{
   await page.evaluate(()=>document.exitFullscreen());
   console.log('PASS phone fullscreen fills the viewport and retains modal settings');
  }
+ // Browser expansion uses the same composed shell when container fullscreen is absent.
+ await page.setViewportSize({width:390,height:844});
+ await page.evaluate(()=>{
+  viewer.revealControls();window.expansionCore=viewer.player;window.expansionSurface=viewer.player.surface;window.expansionSource=viewer.player.state.sourceId;
+  window.originalFullscreen=Object.getOwnPropertyDescriptor(viewer,'requestFullscreen');Object.defineProperty(viewer,'requestFullscreen',{value:undefined,configurable:true});
+  window.outside=document.createElement('button');outside.textContent='Outside player';document.body.append(outside);
+  window.beforeExpansionOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='clip';window.originalOverflow=document.documentElement.style.overflow;
+  window.subtitleLayer=document.createElement('canvas');subtitleLayer.dataset.testSubtitle='';subtitleLayer.style.position='absolute';$('surface').append(subtitleLayer);
+ });
+ await page.evaluate(async()=>{await viewer.seek(0);await viewer.play();window.expansionTime=viewer.player.state.currentTime;});
+ await page.locator('#viewer #fullscreen').click();
+ await page.waitForFunction(()=>viewer.player.state.currentTime>expansionTime+.2);
+ assert.equal(await page.evaluate(()=>viewer.player===expansionCore&&viewer.player.state.playbackIntent==='play'),true);
+ await page.evaluate(()=>viewer.pause());
+ for(let i=0;i<12;i++){await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>$('shell').contains(viewer.shadowRoot.activeElement)),true);}
+ // An inert custom control subtree must not trap Tab on an unfocusable child.
+ await page.evaluate(()=>{
+  window.inertControls=document.createElement('div');inertControls.inert=true;
+  inertControls.innerHTML='<button>Unavailable custom control</button>';
+  $('fullscreen').after(inertControls);$('fullscreen').focus();
+ });
+ await page.keyboard.press('Tab');
+ assert.equal(await page.evaluate(()=>viewer.shadowRoot.activeElement!==$('fullscreen')&&!inertControls.contains(viewer.shadowRoot.activeElement)),true);
+ await page.evaluate(()=>inertControls.remove());
+ for(const [width,height]of [[390,844],[844,390]]){
+  await page.setViewportSize({width,height});
+  for(const layout of ['classic','cinema','rail','studio','focus','deck']){
+   await page.evaluate(layout=>{viewer.layout=layout;viewer.revealControls();},layout);
+   assert.equal(await page.evaluate(()=>{const r=$('shell').getBoundingClientRect();return $('shell').matches(':popover-open')&&Math.abs(r.width-innerWidth)<2&&Math.abs(r.height-innerHeight)<2&&Math.abs(r.left)<2&&Math.abs(r.top)<2&&viewer.player===expansionCore&&viewer.player.surface===expansionSurface&&viewer.player.state.sourceId===expansionSource&&$('surface').contains(subtitleLayer)&&outside.inert;}),true,`Expanded ${layout} ${width}x${height}`);
+   const controls=await page.evaluate(()=>['fullscreen','settings-toggle','play','timeline','mute'].map(id=>{const r=$(id).getBoundingClientRect();return {id,inside:r.width>0&&r.height>0&&r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1};}));
+   assert.deepEqual(controls.filter(c=>!c.inside),[],`Expanded controls ${layout} ${width}x${height}`);
+  }
+  await page.screenshot({path:`${out}/expanded-${width}x${height}.png`});
+ }
+ await page.evaluate(()=>{viewer.layout='classic';});
+ await page.locator('#viewer #settings-toggle').click();
+ assert.equal(await page.evaluate(()=>$('settings').matches(':modal')&&$('shell').matches(':popover-open')),true);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.evaluate(()=>!$('settings').open&&$('shell').matches(':popover-open')),true);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.evaluate(()=>!$('shell').hasAttribute('popover')&&!outside.inert&&document.documentElement.style.overflow===originalOverflow&&viewer.shadowRoot.activeElement===$('fullscreen')),true);
+ // Reopening before the native toggle event must not snapshot our own page locks.
+ await page.evaluate(()=>{$('fullscreen').click();$('shell').hidePopover();$('fullscreen').click();});
+ assert.equal(await page.evaluate(()=>$('shell').matches(':popover-open')&&outside.inert),true);
+ await page.locator('#viewer #fullscreen').click();
+ assert.equal(await page.evaluate(()=>!outside.inert&&document.documentElement.style.overflow===originalOverflow),true);
+ // Repeated taps cannot turn an in-flight request into a spurious fallback.
+ await page.evaluate(()=>{window.nativeFullscreenCalls=0;Object.defineProperty(viewer,'requestFullscreen',{value:()=>{nativeFullscreenCalls++;return new Promise((_,reject)=>window.rejectFullscreen=reject);},configurable:true});});
+ await page.locator('#viewer #fullscreen').click();await page.locator('#viewer #fullscreen').click();
+ assert.equal(await page.evaluate(()=>nativeFullscreenCalls===1&&!$('shell').hasAttribute('popover')),true);
+ await page.evaluate(()=>rejectFullscreen(new DOMException('Denied','NotAllowedError')));await page.waitForFunction(()=>$('shell').matches(':popover-open'));
+ await page.locator('#viewer #fullscreen').click();
+ assert.equal(await page.evaluate(()=>!$('shell').hasAttribute('popover')&&!outside.inert),true);
+ await page.evaluate(()=>{Object.defineProperty(viewer,'requestFullscreen',{value:undefined,configurable:true});});
+ await page.locator('#viewer #fullscreen').click();
+ await page.evaluate(()=>viewer.controls=false);
+ assert.equal(await page.evaluate(()=>!$('shell').hasAttribute('popover')&&!outside.inert&&document.documentElement.style.overflow===originalOverflow),true);
+ await page.evaluate(()=>{viewer.controls=true;document.documentElement.style.overflow=beforeExpansionOverflow;});
+ await page.evaluate(()=>{if(originalFullscreen)Object.defineProperty(viewer,'requestFullscreen',originalFullscreen);else delete viewer.requestFullscreen;outside.remove();subtitleLayer.remove();});
+ console.log('PASS browser expansion: all layouts and rotation, composed surface preserved, modal settings, Escape, touch exit and native denial fallback');
+ // Retire media/preparation work before navigating away from the first fixture.
+ await page.evaluate(()=>viewer.destroy());
  // Narrow embedded players also get a viewport-sized sheet, even below the fold.
  await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{window.viewer=document.querySelector('demuxe-player');await viewer.ready;window.$=id=>viewer.shadowRoot.getElementById(id);});
@@ -250,10 +313,22 @@ try{
  assert.equal(await page.evaluate(()=>{const r=$('settings').getBoundingClientRect();return $('settings').matches(':modal')&&r.top>=0&&r.bottom<=innerHeight+1&&r.height>viewer.getBoundingClientRect().height;}),true);
  await page.keyboard.press('Tab');
  assert.equal(await page.evaluate(()=>$('settings').contains(viewer.shadowRoot.activeElement)),true);
+ await page.locator('demuxe-player').first().locator('#settings-close').click();
+ await page.evaluate(()=>{Object.defineProperty(viewer,'requestFullscreen',{value:undefined,configurable:true});window.destroyOverflow=document.documentElement.style.overflow;});
+ await page.locator('demuxe-player').first().locator('#fullscreen').click();
+ assert.equal(await page.evaluate(()=>$('shell').matches(':popover-open')),true);
  await page.evaluate(()=>viewer.destroy());
- assert.equal(await page.evaluate(()=>!document.querySelector(':modal')&&!$('settings').open),true);
+ assert.equal(await page.evaluate(()=>!document.querySelector(':modal')&&!$('settings').open&&!$('shell').hasAttribute('popover')&&document.documentElement.style.overflow===destroyOverflow),true);
+ // A transformed embedding ancestor cannot constrain the expanded top layer.
+ assert.equal(await page.evaluate(async()=>{
+  const holder=document.createElement('div');holder.style.cssText='transform:translate(17px,23px);width:240px;overflow:hidden';
+  const host=document.createElement('demuxe-player');host.setAttribute('controls','');holder.append(host);document.body.append(holder);await host.ready;
+  Object.defineProperty(host,'requestFullscreen',{value:undefined});const shell=host.shadowRoot.getElementById('shell'),button=host.shadowRoot.getElementById('fullscreen'),overflow=document.documentElement.style.overflow;
+  button.click();const r=shell.getBoundingClientRect(),expanded=shell.matches(':popover-open')&&Math.abs(r.top)<2&&Math.abs(r.left)<2&&Math.abs(r.width-innerWidth)<2&&Math.abs(r.height-innerHeight)<2;
+  holder.remove();await host.destroy();return expanded&&!shell.hasAttribute('popover')&&document.documentElement.style.overflow===overflow;
+ }),true);
  assert.deepEqual(errors,[]);
- console.log(`PASS ${family}: embedded modal focus and teardown; screenshots ${out}`);
+ console.log(`PASS ${family}: embedded modal focus, transformed embedding, disconnect and teardown; screenshots ${out}`);
  report.passed=true;
 }catch(error){report.error=String(error.stack);process.exitCode=1;}
 finally{

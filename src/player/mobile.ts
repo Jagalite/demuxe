@@ -16,7 +16,7 @@ const mobileRules = `
  #shell .transport #back,#shell .transport #forward{width:48px;height:48px;min-width:48px;min-height:48px;flex-basis:48px}
  #shell .transport .play{width:64px;height:64px;min-width:64px;min-height:64px;flex-basis:64px}
  #shell .transport .play svg{width:36px;height:36px}
- #shell[data-layout=classic] .transport{top:45%}
+ #shell[data-layout=classic]:not(:popover-open) .transport{top:45%}
  #shell[data-layout=rail] .transport{flex-direction:row;left:50%;top:42%;transform:translate(-50%,-50%);padding:4px}
  #shell[data-layout=rail] .transport .play{order:0}
  #shell[data-layout=focus] .transport{bottom:116px}
@@ -34,12 +34,12 @@ const mobileRules = `
  #shell.menu-open .transport{visibility:hidden}
 `;
 const portraitRules = `
- :host(:not(:fullscreen)) #shell[data-layout=classic]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
- :host(:not(:fullscreen)) #shell[data-layout=classic] .stage{grid-area:1/1/2/2}
- :host(:not(:fullscreen)) #shell[data-layout=classic] .topbar{grid-area:1/1/2/2}
- :host(:not(:fullscreen)) #shell[data-layout=classic] .transport{grid-area:1/1/2/2;top:50%}
- :host(:not(:fullscreen)) #shell[data-layout=classic] .controls{grid-area:2/1;position:relative;inset:auto;padding-top:4px;background:var(--demuxe-panel-background)}
- :host(:not(:fullscreen)) #shell[data-layout=classic].idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic].idle .controls *{opacity:1;visibility:visible;translate:none;pointer-events:auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .topbar{grid-area:1/1/2/2}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport{grid-area:1/1/2/2;top:50%}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .controls{grid-area:2/1;position:relative;inset:auto;padding-top:4px;background:var(--demuxe-panel-background)}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls *{opacity:1;visibility:visible;translate:none;pointer-events:auto}
 `;
 export const mobileStyles = `
 .settings{margin:0;left:auto}

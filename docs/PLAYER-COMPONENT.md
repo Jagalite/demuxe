@@ -40,7 +40,7 @@ after-controls slots. Labels can be overridden before or after connection.
 Controls use semantic buttons/ranges/selects, visible focus, scoped keyboard
 shortcuts, local drag preview, and an aria-live status that excludes time updates.
 Settings restore focus on close. Fullscreen requests the component container in
-the user gesture, keeping controls and subtitles together. PiP/casting are not
+the user gesture, keeping controls and subtitles together. When that API is unavailable or denied, the button expands the composed player to the browser viewport instead. PiP/casting are not
 qualified. Loading, live windows and errors use core state only.
 
 Forwarded core events are dispatched once with unchanged detail, bubbles:false;
@@ -235,8 +235,20 @@ are also built into the component. File selection, URL submission, and file drop
 focus the stage so Space controls playback; the public close() method closes media. The component contains no example media, engine selector,
 raw filters or memory metrics. The playground keeps automatic engine selection
 enabled and shows a compact engine/media summary below the player. A live stream with no known seek window shows LIVE
-and disables the finite seek control. Browser fullscreen denial produces a message;
-no fake fullscreen, PiP or casting fallback is applied.
+and disables the finite seek control.
+
+When container fullscreen is unavailable or denied, the fullscreen button expands
+the composed player to fill the browser viewport using the Popover API. Browser
+toolbars may remain visible. The expanded view preserves the existing media
+surface, subtitles and custom controls; tap the collapse button or press Escape
+to return. Closing settings with Escape keeps the expanded view open. Background
+page controls are inert until exit, and destroy/disconnect restores them.
+The button is labelled “Expand player” when container fullscreen is unavailable,
+and “Exit expanded view” while expanded. Browsers without either API display an
+unavailability message. No native-video-only, PiP or casting fallback is applied.
+This fallback belongs to the component controls: the core
+`player.presentation.requestFullscreen()` API and `state.fullscreen` continue to
+represent browser fullscreen only.
 
 Experimental playback optimizations use the existing Player owner and do not add
 public modes or automatic component controls. See [the integration stage](OPTIMIZATION-INTEGRATION.md)

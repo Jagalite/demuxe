@@ -69,7 +69,9 @@ export declare const defaultLabels: Readonly<{
     retry: "Retry";
     resume: "Press Play to continue";
     shortcuts: "K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen";
-    noFullscreen: "Fullscreen is unavailable here. Open this page in a browser tab.";
+    expandPlayer: "Expand player";
+    exitExpandedPlayer: "Exit expanded view";
+    noFullscreen: "Fullscreen and browser expansion are unavailable here.";
     noWindow: "Live playback · seek window unavailable";
     openURL: "Open URL";
     closeMedia: "Close media";
@@ -242,6 +244,8 @@ export declare class DemuxePlayerElement extends Base {
     private dismissMenu;
     private isScreenPress;
     private resizeObserver?;
+    private viewportExpansion?;
+    private fullscreenRequest?;
     private fullscreenChanged;
     constructor();
     private newReady;
