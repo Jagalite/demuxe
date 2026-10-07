@@ -16,8 +16,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --ignore-scripts
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg pulseaudio
-      - run: npx playwright install --with-deps chromium chrome firefox webkit
+      - run: sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update && sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y ffmpeg pulseaudio
+      - run: npx playwright install --with-deps chrome
       - run: pulseaudio --start --exit-idle-time=-1
       - name: Download retained unqualified archive for diagnosis
         env:
