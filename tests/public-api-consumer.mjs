@@ -25,12 +25,16 @@ async function check(name,fn){
  if(process.env.ONLY&&!name.includes(process.env.ONLY))return;
  const attempts=[];
  for(let trial=0;trial<2;trial++){
-  const page=await browser.newPage(),failedRequests=[],pageErrors=[];
+  const page=await browser.newPage(),failedRequests=[],pageErrors=[],consoleMessages=[],mediaEvents=[];
+  page.on('console', message=>consoleMessages.push({type:message.type(),text:message.text()}));
+  const cdp=await page.context().newCDPSession(page);await cdp.send('Media.enable');
+  for(const event of ['playerErrorsRaised','playerMessagesLogged','playerEventsAdded','playerPropertiesChanged'])cdp.on('Media.'+event,data=>mediaEvents.push({event,data}));
+  await page.addInitScript(()=>{window.mediaTrace=[];for(const name of ['play','playing','pause','waiting','stalled','canplay','loadedmetadata','error','ended'])document.addEventListener(name,e=>{if(e.target instanceof HTMLMediaElement)mediaTrace.push({event:name,at:performance.now(),time:e.target.currentTime,paused:e.target.paused,ready:e.target.readyState});},true);});
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
   page.on('pageerror',error=>pageErrors.push(String(error)));
   try{await fn(page);result.checks.push({name,passed:true,attempts});console.log('PASS',name,attempts.length?'after retry':'');return;}
   catch(error){
-   const failure={error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
+   const failure={error:String(error.stack),state:await page.evaluate(()=>window.viewer?.player?.state).catch(()=>null),failedRequests,pageErrors,consoleMessages,mediaEvents,media:await page.evaluate(()=>{const p=window.viewer?.player,b=p?.current?.backend,v=b?.video;return {diagnostics:p?.diagnostics,trace:window.mediaTrace,video:v?{time:v.currentTime,paused:v.paused,readyState:v.readyState,networkState:v.networkState,error:v.error?.message,frames:v.getVideoPlaybackQuality(),decodedAudioBytes:v.webkitAudioDecodedByteCount}:null};}).catch(()=>null),workers:page.workers().map(worker=>worker.url())};attempts.push(failure);
    const retry=trial===0&&name.includes('application at')&&failure.error.includes('Playback engine worker failed: error');
    if(retry)console.log('RETRY',name,'after transient worker start failure');
    else{result.checks.push({name,passed:false,attempts});console.log('FAIL',name,String(error));process.exitCode=1;return;}
