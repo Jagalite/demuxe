@@ -69,9 +69,11 @@ staging. The catalogue continues to compare baseline/candidate behavior with the
 same browser and fixture bytes. Current subtitle-service hashes are checked as
 standard engine artifacts; the removed standalone ASS engine is not required.
 
-Use a new prerelease version in `package.json` for changed npm archive bytes.
+Use a new version in `package.json` for changed npm archive bytes.
 An RC tag can identify that package version, but must point at the clean source
-recorded in its manifest. Stable npm versions remain outside this beta policy.
+recorded in its manifest. Stable versions use the matching `v<version>` tag (for example, `v1.1.0`).
+The same exact-archive gates apply to stable releases. GitHub marks a qualified
+stable release as latest; prerelease package versions remain GitHub prereleases.
 Tag updates/deletions do not deploy. A manual workflow dispatch rebuilds Pages
 for an existing tag without creating a release or staging npm.
 

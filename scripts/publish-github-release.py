@@ -25,8 +25,10 @@ def publish(directory, tag, commit, repo, modular=False):
         spec.loader.exec_module(modular_verify)
         record = modular_verify.validate(directory, tag, commit)
         files = [directory / name for name in sorted(record['files'])] + [directory / 'modular-verification.json']
+        prerelease = True
     else:
-        verify.validate(directory, tag, commit)
+        _, version = verify.validate(directory, tag, commit)
+        prerelease = '-' in version
         files = sorted(path for path in directory.iterdir() if path.is_file())
     # Distinguish absence from API/authentication failure without swallowing errors.
     releases = json.loads(gh('api', '--paginate', '--slurp', f'repos/{repo}/releases?per_page=100'))
@@ -34,9 +36,13 @@ def publish(directory, tag, commit, repo, modular=False):
     if len(found) > 1:
         raise ValueError('Multiple releases for one tag')
     if not found:
-        gh('release', 'create', tag, '--repo', repo, '--verify-tag', '--draft', '--prerelease',
-           '--title', tag, '--notes', 'Qualified developer beta. Runtime and corresponding source archives are attached. npm publication awaits maintainer approval in Staged Packages.')
-    release = json.loads(gh('release', 'view', tag, '--repo', repo, '--json', 'isDraft,assets'))
+        notes = ('Qualified developer beta.' if prerelease else 'Qualified stable release.')
+        notes += ' Runtime and corresponding source archives are attached; qualification scope is recorded in verification.json. npm publication awaits maintainer approval in Staged Packages.'
+        gh('release', 'create', tag, '--repo', repo, '--verify-tag', '--draft',
+           *(['--prerelease'] if prerelease else []), '--title', tag, '--notes', notes)
+    release = json.loads(gh('release', 'view', tag, '--repo', repo, '--json', 'isDraft,isPrerelease,assets'))
+    if not release['isDraft'] and release['isPrerelease'] != prerelease:
+        raise ValueError('Published release classification differs from the verified package version')
     names = {entry['name'] for entry in release['assets']}
     with tempfile.TemporaryDirectory() as temporary:
         for path in files:
@@ -49,7 +55,8 @@ def publish(directory, tag, commit, repo, modular=False):
             else:
                 raise ValueError('Published release is incomplete; refusing to modify it: ' + path.name)
     if release['isDraft']:
-        gh('release', 'edit', tag, '--repo', repo, '--draft=false', '--prerelease', '--latest=false')
+        gh('release', 'edit', tag, '--repo', repo, '--draft=false',
+           f'--prerelease={str(prerelease).lower()}', f'--latest={str(not prerelease).lower()}')
     print(f'Published verified GitHub Release: https://github.com/{repo}/releases/tag/{tag}')
 
 

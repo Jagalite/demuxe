@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Stage the exact qualified beta attached to a published GitHub Release.
+"""Stage the exact qualified archive attached to a published GitHub Release.
 
 This checks the release handoff; it does not replace verify-beta-release.py.
 """
@@ -74,8 +74,10 @@ def validate(directory, tag, commit):
         manifest = read_json(tar, 'package/release-manifest.json')
         require(package.get('name') == 'demuxe' and not package.get('private'), 'Wrong/private package')
         version = package['version']
-        require(re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.-]+', version),
-                'Only prerelease versions may use the beta publishing workflow')
+        require(re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?', version),
+                'Invalid release package version')
+        if '-' not in version:
+            require(tag == f'v{version}', 'Stable release tag must match the package version')
         require(manifest.get('version') == version and manifest.get('dirtySource') is False and
                 manifest.get('sourceTag') == tag and manifest.get('sourceCommit') == commit,
                 'Runtime metadata does not match verified tagged source')

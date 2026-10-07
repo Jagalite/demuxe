@@ -23,10 +23,12 @@ rerun the full catalogue or turn the Pages development archive into a qualified
 release. Publishing a release is the maintainer's attestation that its verification
 record was produced by the release gates.
 
-Only a non-private `demuxe` prerelease version is accepted. The job uses
+Non-private `demuxe` stable and prerelease versions are accepted. A stable
+version must use its matching `v<version>` tag; both require the same archive
+qualification evidence. The job uses
 `npm stage publish <verified archive> --tag latest --access public --ignore-scripts --provenance`;
 it never publishes the private repository root or rebuilds the archive.
-Stable versions need a separate release policy and are rejected. Approval updates
+Approval updates
 `latest`; the independent `beta` alias is unchanged. Staging success means awaiting
 approval, not publicly published.
 The job ends after staging; it does not poll the public registry for a version
@@ -94,5 +96,5 @@ python3 scripts/publish-npm-release.py --assets build/release \
 Validation is the default; only `--stage` contacts npm and submits a pending version. The tests
 use synthetic archives and mocked registry/publish calls. They cover changed
 archives, mismatched refs, missing qualification, unsafe names, inventory changes,
-dirty source, stable versions, conflicting npm versions and staging failures without a direct-publish fallback.
+dirty source, stable tag mismatches, conflicting npm versions and staging failures without a direct-publish fallback.
 They do not publish or substitute for native/browser release qualification.

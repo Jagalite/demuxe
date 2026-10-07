@@ -91,15 +91,35 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'qualification suites'):
             self.validate()
 
-    def test_dirty_and_stable_packages(self):
+    def test_dirty_package(self):
         self.manifest['dirtySource'] = True
         self.repack()
         with self.assertRaisesRegex(ValueError, 'tagged source'):
             self.validate()
-        self.package['version'] = '0.3.0'
+
+    def stable_package(self, tag='v1.1.0'):
+        self.package['version'] = self.manifest['version'] = '1.1.0'
+        self.manifest['sourceTag'] = self.record['sourceTag'] = tag
+        source = self.directory / self.record['source']['file']
+        tar(source, {'source-manifest.json': {'sourceTag': tag, 'sourceCommit': COMMIT}})
+        self.manifest['sourceArchive']['sha256'] = self.record['source']['sha256'] = publisher.digest(source)
         self.repack()
-        with self.assertRaisesRegex(ValueError, 'Only prerelease'):
+
+    def test_verified_stable_package(self):
+        self.stable_package()
+        self.assertEqual(publisher.validate(self.directory, 'v1.1.0', COMMIT), (self.archive, '1.1.0'))
+
+    def test_stable_package_requires_matching_tag(self):
+        self.stable_package(TAG)
+        with self.assertRaisesRegex(ValueError, 'Stable release tag'):
             self.validate()
+
+    def test_stable_package_still_requires_qualification(self):
+        self.stable_package()
+        self.record['tests'] = self.record['tests'][1:]
+        self.write_record()
+        with self.assertRaisesRegex(ValueError, 'qualification suites'):
+            publisher.validate(self.directory, 'v1.1.0', COMMIT)
 
     def test_unlisted_member(self):
         self.repack({'package/surprise.json': {}})

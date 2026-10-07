@@ -168,7 +168,7 @@ class ReleaseGuards(unittest.TestCase):
     def test_release_only_published_after_all_uploads(self):
         (self.root / 'runtime.tgz').write_bytes(b'archive')
         (self.root / 'source.tar.gz').write_bytes(b'source')
-        with patch.object(publisher.verify, 'validate'), patch.object(publisher, 'gh', side_effect=['[[]]', '', '{"isDraft":true,"assets":[]}', '', '', '']) as gh:
+        with patch.object(publisher.verify, 'validate', return_value=(self.root / 'runtime.tgz', '1.1.0-rc.3')), patch.object(publisher, 'gh', side_effect=['[[]]', '', '{"isDraft":true,"assets":[]}', '', '', '']) as gh:
             publisher.publish(self.root, 'tag', 'commit', 'owner/repo')
             calls = [c.args for c in gh.call_args_list]
             self.assertEqual(calls[1][:2], ('release', 'create'))
@@ -179,14 +179,14 @@ class ReleaseGuards(unittest.TestCase):
     def test_failed_upload_leaves_release_draft(self):
         (self.root / 'runtime.tgz').write_bytes(b'archive')
         error = subprocess.CalledProcessError(1, ['gh', 'release', 'upload'])
-        with patch.object(publisher.verify, 'validate'), patch.object(publisher, 'gh', side_effect=['[[]]', '', '{"isDraft":true,"assets":[]}', error]) as gh:
+        with patch.object(publisher.verify, 'validate', return_value=(self.root / 'runtime.tgz', '1.1.0-rc.3')), patch.object(publisher, 'gh', side_effect=['[[]]', '', '{"isDraft":true,"assets":[]}', error]) as gh:
             with self.assertRaises(subprocess.CalledProcessError):
                 publisher.publish(self.root, 'tag', 'commit', 'owner/repo')
             self.assertFalse(any(c.args[:2] == ('release', 'edit') for c in gh.call_args_list))
 
     def test_published_release_cannot_gain_missing_assets(self):
         (self.root / 'runtime.tgz').write_bytes(b'archive')
-        with patch.object(publisher.verify, 'validate'), patch.object(publisher, 'gh', side_effect=['[[{"tag_name":"tag"}]]', '{"isDraft":false,"assets":[]}']) as gh:
+        with patch.object(publisher.verify, 'validate', return_value=(self.root / 'runtime.tgz', '1.1.0-rc.3')), patch.object(publisher, 'gh', side_effect=['[[{"tag_name":"tag"}]]', '{"isDraft":false,"isPrerelease":true,"assets":[]}']) as gh:
             with self.assertRaisesRegex(ValueError, 'refusing to modify'):
                 publisher.publish(self.root, 'tag', 'commit', 'owner/repo')
             self.assertEqual(gh.call_count, 2)
