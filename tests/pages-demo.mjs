@@ -48,6 +48,7 @@ async function observeOutput(page){
  await page.addInitScript(()=>{
   const originalConnect=AudioNode.prototype.connect,OriginalContext=window.AudioContext;
   const analysers=[],tapped=new WeakSet(),media=new Set(),observerContexts=[];
+  let nativeObserver;
   const now=()=>performance.now();
   const probe=window.pagesProbe={started:null,openMs:null,videoMs:null,audioMs:null,videoEvidence:null,peakRms:0,videoFrames:0,
    closeObservers:()=>Promise.all(observerContexts.splice(0).map(context=>context.close()))};
@@ -68,7 +69,7 @@ async function observeOutput(page){
     if(element.requestVideoFrameCallback){
      const frame=()=>{if(probe.started!==null&&element.isConnected&&surface.contains(element)){probe.videoFrames++;probe.videoMs??=now()-probe.started;probe.videoEvidence='requestVideoFrameCallback';}element.requestVideoFrameCallback(frame);};element.requestVideoFrameCallback(frame);
     }
-    try{const context=new OriginalContext(),source=context.createMediaElementSource(element);observerContexts.push(context);source.connect(context.destination);void context.resume();}catch(error){probe.audioObserverError=String(error);}
+    try{const context=nativeObserver??new OriginalContext(),source=context.createMediaElementSource(element);if(!nativeObserver)observerContexts.push(context);source.connect(context.destination);void context.resume();}catch(error){probe.audioObserverError=String(error);}
    }
    if(probe.started===null)return;
    const player=window.player;
@@ -76,7 +77,13 @@ async function observeOutput(page){
    if(Number(player?.diagnostics.backend?.rendered)>0&&probe.videoMs===null){probe.videoMs=now()-probe.started;probe.videoEvidence='renderer counter';}
    for(const analyser of analysers){const data=new Float32Array(analyser.fftSize);analyser.getFloatTimeDomainData(data);const rms=Math.sqrt(data.reduce((sum,n)=>sum+n*n,0)/data.length);probe.peakRms=Math.max(probe.peakRms,rms);if(rms>.005)probe.audioMs??=now()-probe.started;}
   },10);
-  document.addEventListener('click',event=>{if(event.composedPath().some(n=>n instanceof Element&&n.id==='demo'))probe.started=now();},true);
+  document.addEventListener('click',event=>{
+   const clicked=id=>event.composedPath().some(n=>n instanceof Element&&n.id===id);
+   // Prepare measurement infrastructure during the source-menu gesture, before
+   // timing example playback. A suspended observer can stall the media clock.
+   if(clicked('open-menu')&&!nativeObserver){nativeObserver=new OriginalContext();observerContexts.push(nativeObserver);window.pagesAudioObserverReady=nativeObserver.resume().then(()=>{probe.audioObserverReadyAt=now();});}
+   if(clicked('demo'))probe.started=now();
+  },true);
  });
 }
 try{
@@ -113,6 +120,7 @@ try{
    }
    await page.evaluate(mode=>player.setMode(mode),mode);
    await page.locator('#viewer #open-menu').click();
+   await page.evaluate(()=>window.pagesAudioObserverReady);
    await page.getByRole('button',{name:'Try an example'}).click();
    await page.waitForFunction(()=>pagesProbe.openMs!==null&&pagesProbe.videoMs!==null&&pagesProbe.audioMs!==null&&player.state.currentTime>.65&&player.state.status==='playing');
    const initial=await page.evaluate(()=>({...pagesProbe,mode:player.state.activeMode,route:player.diagnostics.plan,position:player.state.currentTime}));

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-name: Shaka release archive diagnostic
+name: Pages release archive diagnostic
 on:
   push:
     branches: [release-1.1.0-shaka-diagnostic]
@@ -9,7 +9,7 @@ permissions:
 jobs:
   diagnostic:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,21 +17,26 @@ jobs:
           node-version: '22'
       - run: npm ci --ignore-scripts
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg pulseaudio
-      - run: npx playwright install --with-deps chrome firefox
+      - run: npx playwright install --with-deps chromium firefox
       - run: pulseaudio --start --exit-idle-time=-1
       - name: Download retained unqualified archive for diagnosis
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh run download 37649920658 --repo Jagalite/demuxe --name unqualified-runtime-debug --dir build/diagnostic-archive
-      - name: Diagnose exact archive native-file phases in Chrome and Firefox
-        env:
-          BETA_ARCHIVE: build/diagnostic-archive/demuxe-1.1.0.tgz
-          HEADLESS: '1'
+        run: gh run download 37665885140 --repo Jagalite/demuxe --name unqualified-runtime-debug --dir build/diagnostic-archive
+      - name: Assemble diagnostic Pages snapshot with archived runtime bytes
         run: |
-          BROWSER=chrome node tests/shaka-package.mjs
-          BROWSER=firefox node tests/shaka-package.mjs
+          mkdir -p build/diagnostic-runtime
+          tar -xzf build/diagnostic-archive/demuxe-1.1.0.tgz -C build/diagnostic-runtime
+          cp -R build/diagnostic-runtime/package/web/. web/
+          python3 scripts/build-pages.py --preview
+      - name: Diagnose real output with activated audio observer
+        env:
+          PAGES_ALLOW_PREVIEW: '1'
+        run: |
+          BROWSER=firefox node tests/pages-demo.mjs
+          BROWSER=chromium node tests/pages-demo.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: shaka-phase-diagnostic
-          path: results/shaka-package
+          name: pages-observer-diagnostic
+          path: results/pages
