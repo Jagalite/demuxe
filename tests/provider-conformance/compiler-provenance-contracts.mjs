@@ -12,6 +12,21 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 test('fresh mpv compiler outputs form a complete packaged import closure without native builds',async()=>{
  const profile=JSON.parse(await readFile(path.join(root,'licensing/provider-packages.json'))).profiles.mpv;
  const compiled=JSON.parse(execFileSync(process.execPath,['scripts/compile-provider-sources.mjs','mpv'],{cwd:root,maxBuffer:8*1024*1024,encoding:'utf8'}));
+ // Exercise the real distribution audit on freshly compiled source inputs.
+ // Import closure alone does not prove that the native package can be audited.
+ execFileSync('python3',['-c',`
+import json, runpy, sys
+sys.path.insert(0, 'scripts')
+audit = runpy.run_path('scripts/audit-provider-package.py')
+config = json.load(open('licensing/provider-packages.json'))
+policy = audit['Policy']()
+spec = config['targets']['mpv']
+sources = sorted({source for output in json.load(sys.stdin).values() for source in output['inputs']})
+assert sources
+for source in sources:
+    assert audit['owner'](source, config, policy) in spec['owners'], source
+    assert policy.classify(source) in spec['licenses'], source
+`],{cwd:root,input:JSON.stringify(compiled),encoding:'utf8',stdio:['pipe','pipe','pipe']});
  // Native assets are leaves here; their bytes and provenance have separate gates.
  const files=Object.fromEntries(profile.engines.map(name=>[name,'']));
  for(const name of profile.files)files[name]=/\.m?js$/.test(name)?await readFile(path.join(root,profile.fileOverrides?.[name]??name),'utf8'):'';
