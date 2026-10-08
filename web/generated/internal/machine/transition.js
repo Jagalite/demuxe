@@ -31,6 +31,10 @@ export function transitionPlayer(state, input) {
         if (transport !== decision.state.transport)
             decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, transport }) });
     }
+    if (input.type === 'play.retire' && decision.state.settingsTransactions.pending) {
+        const transactions = decision.state.settingsTransactions;
+        decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, settingsTransactions: Object.freeze({ ...transactions, pending: Object.freeze({ ...transactions.pending, resumeSuppressed: true }) }) }) });
+    }
     const transport = decision.state.transport;
     if (transport.pending && (input.type === 'source.clear' || !playerTransportAuthority(decision.state, transport.pending.id)))
         decision = Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, transport: retirePlayerTransport(transport) }) });

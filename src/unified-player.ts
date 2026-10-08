@@ -1872,6 +1872,14 @@ export class Player extends EventTarget {
     switch(effect.kind){
       case 'seek':return invoke('seek',[effect.value]);
       case 'seek.verify':return this.settled(session!,this.mode,effect.value);
+      case 'seek.resume':{
+        const pending=this.control.settingsTransactions.pending;
+        if(!pending)throw new PlayerError('ABORTED','Seek setting was retired');
+        const resume=this.dispatchControl({type:'setting.resume',id:pending.id});
+        if(!resume.accepted)throw new PlayerError('ABORTED','Seek setting was retired');
+        for(const next of resume.effects??[])await this.executeSetting(backend,next,session,current);
+        return;
+      }
       case 'volume':return invoke('volume',[effect.value]);
       case 'rate':return invoke('rate',[effect.value]);
       case 'gain':return invoke('gain',[effect.value]);
@@ -2015,11 +2023,24 @@ export class Player extends EventTarget {
       const begin=this.dispatchControl({type:'transport.seek.begin',intent:seekId,target:seconds,previous,sourceId,seekable:this.state.seekable});
       if(!begin.accepted)throw new PlayerError(begin.reason==='invalid'?'INVALID_ARGUMENT':'ABORTED',begin.message??'Seek was retired');const id=begin.id!;
       try{
-        try{await accepted.backend.seek(begin.transportEffect!.target!);await this.settled(accepted,this.mode,seconds);this.dispatchControl({type:'transport.complete',id});}
+        try{
+          // Keep the target stable until both presentation and native position
+          // acknowledge it, even when host scheduling delays observations.
+          if(begin.transportEffect?.kind==='hold-seek')await this.backendEffect(accepted,'backend.pause');
+          this.assertOperation();await accepted.backend.seek(begin.transportEffect!.target!);
+          await this.settled(accepted,this.mode,seconds);
+          const verified=this.dispatchControl({type:'transport.seek.verified',id});
+          if(!verified.accepted)throw new PlayerError('ABORTED','Seek verification was retired');
+          if(verified.transportEffect?.kind==='resume'){
+            await this.backendEffect(accepted,'backend.play');this.assertOperation();
+            this.dispatchControl({type:'transport.complete',id});
+          }
+        }
         catch(error){
           const streaming=this.current===accepted&&this.source?.kind==='remote'&&['hls','dash'].includes(this.source.options.format??'');
           const failed=this.dispatchControl({type:'transport.seek.failed',id,boundary:error instanceof SeekPresentationBoundary,terminal:terminalSourceFailure(error),code:playerError(error).code,invalidPosition:/out of range|Invalid seek/i.test(String(error)),streaming});
           if(!failed.accepted||failed.transportEffect?.kind==='reject')throw error;
+          if(failed.transportEffect?.kind==='pause'){await this.backendEffect(accepted,'backend.pause').catch(()=>{});throw error;}
           let effect=failed.transportEffect,restoreFailure:{error:unknown}|undefined;
           if(effect?.kind==='restore'){
             try{
@@ -2032,6 +2053,7 @@ export class Player extends EventTarget {
               }
             }catch(restoreError){
               const restoration=this.dispatchControl({type:'transport.seek.restore-failed',id,terminal:terminalSourceFailure(restoreError),code:playerError(restoreError).code});
+              if(restoration.accepted&&restoration.transportEffect?.kind==='pause')await this.backendEffect(accepted,'backend.pause').catch(()=>{});
               if(!restoration.accepted||restoration.transportEffect?.kind!=='fallback')throw restoreError;
               restoreFailure={error:restoreError};effect=restoration.transportEffect;
             }

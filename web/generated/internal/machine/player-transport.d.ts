@@ -14,6 +14,7 @@ type Work = Readonly<{
     target: number;
     previous: number;
     wasPaused: boolean;
+    held: boolean;
     trialSame: boolean;
     trialVerified: boolean;
     bounded: boolean;
@@ -27,7 +28,7 @@ export type PlayerTransportState = Readonly<{
     pending: Work | null;
 }>;
 export type TransportEffect = Readonly<{
-    kind: 'verify' | 'seek' | 'fallback' | 'restore' | 'resume' | 'pause' | 'reject' | 'ignore';
+    kind: 'verify' | 'hold-seek' | 'seek' | 'fallback' | 'restore' | 'resume' | 'pause' | 'reject' | 'ignore';
     target?: number;
     budget?: number;
     start?: number;
@@ -82,7 +83,7 @@ export type PlayerTransportInput = Readonly<{
     terminal?: boolean;
     code?: string;
 }> | Readonly<{
-    type: 'transport.seek.restored' | 'transport.seek.resumed' | 'transport.complete' | 'transport.finished';
+    type: 'transport.seek.verified' | 'transport.seek.restored' | 'transport.seek.resumed' | 'transport.complete' | 'transport.finished';
     id: number;
 }>;
 export declare function initialPlayerTransport(): PlayerTransportState;

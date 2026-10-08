@@ -102,7 +102,12 @@ export class RangeReader {
         }catch(error){
           controller.abort();void reader?.cancel().catch(()=>{});void response?.body?.cancel().catch(()=>{});check();
           const retryAfter=response?.headers.get('Retry-After'),serverWait=retryAfter?(/^\d+$/.test(retryAfter)?Number(retryAfter)*1000:Math.max(0,Date.parse(retryAfter)-Date.now())):0;
-          const retry=this.checkResult(this.transition({type:'retry',id,retryable:!!error.retry||error.name==='AbortError'||error instanceof TypeError,now:performance.now(),serverWait,random:Math.random()}));
+          const decision=this.transition({type:'retry',id,retryable:!!error.retry||error.name==='AbortError'||error instanceof TypeError,now:performance.now(),serverWait,random:Math.random()});
+          if(decision.error){
+            const detail=error instanceof TypeError?'. Browser transport failed; check connectivity, CORS, and redirect policy.':'';
+            throw new Error(decision.error+detail,{cause:error});
+          }
+          const retry=this.checkResult(decision);
           if(!retry.retry)throw Error(error.message);
           await waitFor(new Promise(resolve=>{const timer=setTimeout(done,retry.wait),self=this;function done(){clearTimeout(timer);if(self.retryWake===done)self.retryWake=null;retryWake=null;resolve();}this.retryWake=retryWake=done;}));
         }finally{clearTimeout(timer);if(this.controller===controller)this.controller=null;if(attemptController===controller)attemptController=null;}

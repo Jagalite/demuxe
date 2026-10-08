@@ -47,7 +47,7 @@ export type SettingCommand=
 export type SettingEffect=
   | Readonly<{kind:'volume'|'rate'|'gain';value:number}>
   | Readonly<{kind:'subtitles';value:boolean}>
-  | Readonly<{kind:'pause'|'play'}>
+  | Readonly<{kind:'pause'|'play'|'seek.resume'}>
   | Readonly<{kind:'track';track:'audio'|'sub';value:string}>
   | Readonly<{kind:'track.verify';track:'audio'|'sub';value:string;settings:Readonly<PlaybackSettings>}>
   | Readonly<{kind:'buffering';value:BufferingPolicy}>
@@ -59,13 +59,13 @@ export type SettingEffect=
   | Readonly<{kind:'seek'|'seek.verify';value:number}>
   | Readonly<{kind:'source.reconfigure';settings:Readonly<PlaybackSettings>}>
   | Readonly<{kind:'source.replace';settings:Readonly<PlaybackSettings>;mode:PlaybackMode}>;
-export type SettingTransaction=Readonly<{id:number;operation:number;epoch:number;session:number|null;phase:'applying'|'compensating'|'accepted';reconfigure:boolean;promote:boolean;mode?:PlaybackMode;automatic?:boolean;automaticDuringApply:boolean;after:readonly SettingEffect[];settings:Readonly<PlaybackSettings>;preferences:PlayerPreferences;settingsPatch:Readonly<Partial<PlaybackSettings>>;preferencesPatch:Readonly<Partial<PlayerPreferences>>;rollback:readonly SettingEffect[]}>;
+export type SettingTransaction=Readonly<{id:number;operation:number;epoch:number;session:number|null;phase:'applying'|'compensating'|'accepted';reconfigure:boolean;promote:boolean;mode?:PlaybackMode;automatic?:boolean;automaticDuringApply:boolean;resumeSuppressed?:boolean;after:readonly SettingEffect[];settings:Readonly<PlaybackSettings>;preferences:PlayerPreferences;settingsPatch:Readonly<Partial<PlaybackSettings>>;preferencesPatch:Readonly<Partial<PlayerPreferences>>;rollback:readonly SettingEffect[]}>;
 export type SettingsTransactions=Readonly<{serial:number;pending:SettingTransaction|null;degraded:Readonly<{id:number;operation:number;session:number|null}>|null}>;
 export function initialSettingsTransactions():SettingsTransactions{return Object.freeze({serial:0,pending:null,degraded:null});}
 export type SettingTransactionInput=
   | Readonly<{type:'preferences.change';value:Partial<PlayerPreferences>}>
   | Readonly<{type:'setting.begin';command:SettingCommand;hasBackend:boolean;hasSource?:boolean;hybridAudioFilters?:boolean}>
-  | Readonly<{type:'setting.accept'|'setting.failed'|'setting.restored'|'setting.degraded';id:number}>;
+  | Readonly<{type:'setting.resume'|'setting.accept'|'setting.failed'|'setting.restored'|'setting.degraded';id:number}>;
 export function settingAutomaticSelection(state:PlayerControlState):boolean{const pending=state.settingsTransactions.pending;return pending?.phase==='applying'&&pending.automaticDuringApply&&pending.automatic!==undefined?pending.automatic:state.source.automatic;}
 export function settingAuthority(state:PlayerControlState,id:number):boolean{
   const pending=state.settingsTransactions.pending,operation=state.operations.entries.find(entry=>entry.id===state.operations.active);
@@ -159,7 +159,13 @@ export function transitionSettingTransaction(state:PlayerControlState,input:Sett
       }
     }
     const effects:SettingEffect[]=!noop&&(reconfigure?input.hasSource:input.hasBackend)?[copyData(effect)]:[],restore:SettingEffect[]=!noop&&input.hasBackend&&!reconfigure?[copyData(rollback)]:[];
-    if(!noop&&(command.kind==='range'||command.kind==='loop')&&input.hasBackend&&effect.kind==='seek'){effects.push(Object.freeze({kind:'seek.verify',value:effect.value}));restore.push(Object.freeze({kind:'seek.verify',value:command.facts.time}));}
+    if(!noop&&(command.kind==='range'||command.kind==='loop')&&input.hasBackend&&effect.kind==='seek'){
+      effects.push(Object.freeze({kind:'seek.verify',value:effect.value}));restore.push(Object.freeze({kind:'seek.verify',value:command.facts.time}));
+      if(state.source.mode!=='native'&&!state.settings.pause){
+        effects.unshift(Object.freeze({kind:'pause'}));restore.unshift(Object.freeze({kind:'pause'}));
+        effects.push(Object.freeze({kind:'seek.resume'}));restore.push(Object.freeze({kind:'seek.resume'}));
+      }
+    }
     if(input.hasBackend&&verifyTrack){effects.push(Object.freeze({kind:'track.verify',track:verifyTrack,value:settings[verifyTrack==='audio'?'aid':'sid'],settings}));restore.push(Object.freeze({kind:'track.verify',track:verifyTrack,value:state.settings[verifyTrack==='audio'?'aid':'sid'],settings:state.settings}));}
     const settingKey:keyof PlaybackSettings|undefined=command.kind==='volume'?'volume':command.kind==='rate'?'speed':command.kind==='gain'||command.kind==='routedGain'?'gain':command.kind==='pause'?'pause':command.kind==='subtitles'||command.kind==='visibility'?'subtitles':command.kind==='track'||command.kind==='publicTrack'&&!noop?(command.track==='audio'?'aid':'sid'):command.kind==='filters'?command.key:undefined;
     const preferenceKey:keyof PlayerPreferences|undefined=command.kind==='publicTrack'&&selection?.action!=='none'||command.kind==='track'&&command.clearPublicSelection?'publicSelections':command.kind==='mute'?'muted':command.kind==='buffering'?'buffering':command.kind==='output'?'outputDeviceId':command.kind==='quality'?'qualityPolicy':command.kind==='range'?'playbackRange':command.kind==='loop'?'loopPolicy':command.kind==='subtitleDelay'||command.kind==='audioDelay'||command.kind==='subtitleStyle'||command.kind==='toneMapping'?command.kind:undefined;
@@ -169,6 +175,7 @@ export function transitionSettingTransaction(state:PlayerControlState,input:Sett
   }
   if(!settingAuthority(state,input.id))return result(state,false,input.id);
   const pending=state.settingsTransactions.pending!;
+  if(input.type==='setting.resume')return result(state,true,input.id,!pending.resumeSuppressed&&!state.settings.pause?[Object.freeze({kind:'play'})]:empty);
   if(input.type==='setting.failed'){
     if(pending.phase!=='applying')return result(state,false,input.id);
     return result({...state,settingsTransactions:Object.freeze({...state.settingsTransactions,pending:Object.freeze({...pending,phase:'compensating'})})},true,input.id,pending.rollback);

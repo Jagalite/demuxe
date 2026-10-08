@@ -98,18 +98,21 @@ export function playerError(error, id = null, operation = null, scope = 'operati
     if (facts.typed)
         return new PlayerError(facts.typed.code, message, id ?? facts.typed.operationId, operation ?? facts.typed.operation, scope, facts.typed.retryable);
     const code = facts.timeline ? 'UNSUPPORTED_TIMELINE'
-        : facts.names.includes('AbortError') || /^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/im.test(semantic) ? 'ABORTED'
-            : facts.names.includes('NotAllowedError') || /autoplay|user gesture|audio context.*suspended/i.test(semantic) ? 'AUTOPLAY_BLOCKED'
-                : /cross.origin isolat|secure.*isolated/i.test(semantic) ? 'ISOLATION_REQUIRED'
-                    : /representation changed|changed length|Source changed/i.test(semantic) ? 'SOURCE_CHANGED'
-                        : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(semantic) ? 'SOURCE_PERMISSION'
-                            // This deadline belongs to retained decoder ownership, not source I/O.
-                            // Keep generic native command/output and transport deadlines unchanged.
-                            : /^(?:Error:\s*)?(?:Retained decoder:\s*(?:Error:\s*)?)?Retained decoder request deadline exceeded\s*$/im.test(semantic) ? 'DECODE_FAILED'
-                                : /timed? ?out|deadline/i.test(semantic) ? 'NETWORK_TIMEOUT'
-                                    : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(semantic) ? 'ASSET_LOAD_FAILED'
-                                        : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(semantic) ? 'INVALID_ARGUMENT'
-                                            : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(semantic) ? 'UNSUPPORTED_FEATURE'
-                                                : /unsupported|no playback route|no browser bridge/i.test(semantic) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
+        // Keep the public network-budget category for exhausted attempts, including
+        // per-attempt AbortError causes; the message distinguishes limit vs time.
+        : /^(?:Error:\s*)?Media read retry (?:limit|deadline) exceeded\b/im.test(semantic) ? 'NETWORK_TIMEOUT'
+            : facts.names.includes('AbortError') || /^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/im.test(semantic) ? 'ABORTED'
+                : facts.names.includes('NotAllowedError') || /autoplay|user gesture|audio context.*suspended/i.test(semantic) ? 'AUTOPLAY_BLOCKED'
+                    : /cross.origin isolat|secure.*isolated/i.test(semantic) ? 'ISOLATION_REQUIRED'
+                        : /representation changed|changed length|Source changed/i.test(semantic) ? 'SOURCE_CHANGED'
+                            : /\b(?:401|403)\b|permission|origin.*not allowed|authorization/i.test(semantic) ? 'SOURCE_PERMISSION'
+                                // This deadline belongs to retained decoder ownership, not source I/O.
+                                // Keep generic native command/output and transport deadlines unchanged.
+                                : /^(?:Error:\s*)?(?:Retained decoder:\s*(?:Error:\s*)?)?Retained decoder request deadline exceeded\s*$/im.test(semantic) ? 'DECODE_FAILED'
+                                    : /timed? ?out|deadline/i.test(semantic) ? 'NETWORK_TIMEOUT'
+                                        : /fetch.*module|load.*font|\.wasm|initialization|worker.*failed|import.*module|Aborted\(.*fetch|wasm.*failed|WebAssembly.*(?:compile|instantiate)/i.test(semantic) ? 'ASSET_LOAD_FAILED'
+                                            : /Invalid|Expected|must be|limited to|queue.*full|No source/i.test(semantic) ? 'INVALID_ARGUMENT'
+                                                : /preserve.*track|unknown.*track|require.*mode|unsupported.*feature|not supported.*source|filters require|cannot.*discard|external.*require/i.test(semantic) ? 'UNSUPPORTED_FEATURE'
+                                                    : /unsupported|no playback route|no browser bridge/i.test(semantic) ? 'UNSUPPORTED_MEDIA' : 'DECODE_FAILED';
     return new PlayerError(code, message, id, operation, scope, ['NETWORK_TIMEOUT', 'ASSET_LOAD_FAILED', 'AUTOPLAY_BLOCKED'].includes(code));
 }

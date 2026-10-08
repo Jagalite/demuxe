@@ -86,7 +86,7 @@ export function transitionRangeReader(state:RangeReaderState,command:RangeReader
  if(command.type==='body-complete')return active.bodyBytes===active.expected?result(state,{complete:true}):result(state,{error:'Truncated range body',retry:true});
  if(command.type==='retry'){
   if(!command.retryable)return result(state,{retry:false});
-  if(active.attempt>=Math.ceil(state.config.readDeadlineMs/1500))return result(state,{error:'Media read retry deadline exceeded'});
+  if(active.attempt>=Math.ceil(state.config.readDeadlineMs/1500))return result(state,{error:'Media read retry limit exceeded'});
   const backoff=80*2**Math.min(active.attempt-1,3)*(0.75+command.random*0.5),wait=Math.min(Math.max(0,active.deadline!-command.now),Math.max(Number.isFinite(command.serverWait)?command.serverWait:0,backoff));
   return result({...state,stats:Object.freeze({...state.stats,retries:state.stats.retries+1})},{retry:true,wait});
  }

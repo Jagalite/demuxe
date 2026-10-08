@@ -187,3 +187,15 @@ test('routed tone mapping remains a private requirement when candidate preparati
   const {p}=adapter(t);p.select=async()=>{assert.equal(p.toneMapping,'off');assert.equal(p.candidatePreferences.toneMapping,'hdr-to-sdr');throw Error('candidate unavailable');};
   await assert.rejects(p.setToneMapping('hdr-to-sdr'),/candidate unavailable/);assert.equal(p.toneMapping,'off');assert.equal(p.control.settingsTransactions.pending,null);
 });
+
+test('moving range and loop repositioning hold through verification and suppress resume after Pause',()=>{
+ for(const mode of ['hybrid','software'])for(const kind of ['range','loop'])for(const compensate of [false,true])for(const pauseRequested of [false,true]){
+  const r=core();r.send({type:'source.configure',mode});r.send({type:'settings.change',value:{pause:false}});r.start();
+  const d=r.send({type:'setting.begin',hasBackend:true,command:{kind,value:{start:4,end:8},facts:{hasBackend:true,time:1,duration:12,seekable:[{start:0,end:12}]}}});
+  assert.deepEqual(d.effects.map(e=>e.kind),['pause','seek','seek.verify','seek.resume']);
+  if(compensate){const rollback=r.send({type:'setting.failed',id:d.id});assert.deepEqual(rollback.effects.map(e=>e.kind),['pause','seek','seek.verify','seek.resume']);assert.equal(rollback.effects[1].value,1);}
+  if(pauseRequested)r.send({type:'play.retire'});
+  assert.deepEqual(r.send({type:'setting.resume',id:d.id}).effects,pauseRequested?[]:[{kind:'play'}]);
+  r.send({type:'operation.retire',terminal:false});assert.equal(r.send({type:'setting.resume',id:d.id}).accepted,false);
+ }
+});

@@ -36,6 +36,10 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
   const confirmation=decision.state.trackConfirmation;
   if(confirmation.pending&&(input.type==='source.clear'||!trackConfirmationAuthority(decision.state,confirmation.pending.id)))decision=Object.freeze({...decision,state:Object.freeze({...decision.state,trackConfirmation:retireTrackConfirmation(confirmation)})});
   if(input.type==='play.retire'){const transport=pausePlayerTransport(decision.state.transport);if(transport!==decision.state.transport)decision=Object.freeze({...decision,state:Object.freeze({...decision.state,transport})});}
+  if(input.type==='play.retire'&&decision.state.settingsTransactions.pending){
+    const transactions=decision.state.settingsTransactions;
+    decision=Object.freeze({...decision,state:Object.freeze({...decision.state,settingsTransactions:Object.freeze({...transactions,pending:Object.freeze({...transactions.pending!,resumeSuppressed:true})})})});
+  }
   const transport=decision.state.transport;
   if(transport.pending&&(input.type==='source.clear'||!playerTransportAuthority(decision.state,transport.pending.id)))decision=Object.freeze({...decision,state:Object.freeze({...decision.state,transport:retirePlayerTransport(transport)})});
   if(decision.state!==state&&input.type!=='resource.event'){

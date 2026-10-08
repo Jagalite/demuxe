@@ -78,3 +78,11 @@ test('classification retains the original message for public redaction',()=>{
   assert.equal(error.code,'DECODE_FAILED');assert.match(error.message,/Decoder failed\nframe@https:\/\/example\.test\/player\.wasm/);
   assert.doesNotMatch(error.message,/password|token=secret|Bearer credential/);
 });
+
+test('range retry exhaustion remains a network budget failure with opaque or per-attempt abort causes',()=>{
+ for(const cause of [new TypeError('Failed to fetch'),new DOMException('Idle request','AbortError')]){
+  const error=playerError(new Error('Media read retry limit exceeded',{cause}));
+  assert.equal(error.code,'NETWORK_TIMEOUT');assert.equal(error.retryable,true);assert.match(error.message,/retry limit/);
+ }
+ assert.equal(playerError(new DOMException('Superseded','AbortError')).code,'ABORTED');
+});

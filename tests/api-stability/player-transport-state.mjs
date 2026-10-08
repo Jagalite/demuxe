@@ -138,21 +138,21 @@ function boundaryFixture(t){
 test('public boundary seek restores the accepted position and resumes before rejecting unavailable target',async t=>{
  const {p,calls}=boundaryFixture(t);
  await assert.rejects(p.seek(75),error=>error.code==='INVALID_ARGUMENT'&&/audiovisual presentation end/.test(error.message));
- assert.deepEqual(calls,[['seek',75],['seek',42],'play']);assert.equal(p.settings.pause,false);assert.equal(p.control.transport.pending,null);
+ assert.deepEqual(calls,['pause',['seek',75],['seek',42],'play']);assert.equal(p.settings.pause,false);assert.equal(p.control.transport.pending,null);
 });
 test('close during boundary restoration suppresses resume and fallback after late completion',async t=>{
  const {p,backend,calls}=boundaryFixture(t);let began,finish;const restoring=new Promise(resolve=>began=resolve),seek=backend.seek;
  backend.seek=async target=>{await seek(target);if(target===42){began();await new Promise(resolve=>finish=resolve);}};
  const seeking=p.seek(75),rejected=assert.rejects(seeking,error=>error.code==='ABORTED');await restoring;
  const closing=p.close();finish();await Promise.all([closing,rejected]);
- assert.deepEqual(calls,[['seek',75],['seek',42]]);assert.equal(p.control.transport.pending,null);assert.equal(p.source,undefined);
+ assert.deepEqual(calls,['pause',['seek',75],['seek',42]]);assert.equal(p.control.transport.pending,null);assert.equal(p.source,undefined);
 });
 test('failed boundary restoration selects the next route with original requested target',async t=>{
  const {p,backend,calls}=boundaryFixture(t),seek=backend.seek;let selected;
  backend.seek=async target=>{if(target===42)throw new PlayerError('DECODE_FAILED','restore unavailable');await seek(target);};
  p.select=async(...args)=>{selected=args;};await p.seek(75);
  assert.equal(selected[4],2);assert.equal(selected[5],75);assert.match(selected[6].at(-1).reason,/accepted position recovery failed: restore unavailable/);
- assert.deepEqual(calls,[['seek',75]]);assert.equal(p.control.transport.pending,null);
+ assert.deepEqual(calls,['pause',['seek',75]]);assert.equal(p.control.transport.pending,null);
 });
 
 
@@ -178,7 +178,7 @@ for(const code of ['SOURCE_PERMISSION','SOURCE_CHANGED','ABORTED','AUTOPLAY_BLOC
  const {p,backend,calls}=boundaryFixture(t),seek=backend.seek;
  backend.seek=async target=>{if(target===42)throw new PlayerError(code,'fixture terminal restoration');await seek(target);};
  await assert.rejects(p.seek(75),error=>error.code===code);
- assert.deepEqual(calls,[['seek',75]]);assert.equal(p.control.transport.pending,null);
+ assert.deepEqual(calls,['pause',['seek',75]]);assert.equal(p.control.transport.pending,null);
 });
 test('public boundary restoration preserves legacy terminal transport message classification',async t=>{
  const {p,backend}=boundaryFixture(t),seek=backend.seek;
@@ -198,7 +198,7 @@ test('Pause during boundary restoration suppresses transient play before the que
  backend.seek=async target=>{await seek(target);if(target===42){began();await new Promise(resolve=>finish=resolve);}};
  const seeking=p.seek(75),rejected=assert.rejects(seeking,error=>error.code==='INVALID_ARGUMENT');await restoring;
  const paused=p.pause();finish();await Promise.all([paused,rejected]);
- assert.deepEqual(calls,[['seek',75],['seek',42],'pause']);assert.equal(p.settings.pause,true);assert.equal(p.control.transport.pending,null);
+ assert.deepEqual(calls,['pause',['seek',75],['seek',42],'pause']);assert.equal(p.settings.pause,true);assert.equal(p.control.transport.pending,null);
 });
 
 
@@ -248,4 +248,54 @@ test('public Firefox resume passes the short budget and retains existing remux r
  p.playNativeVerified=async(_backend,_playing,budget)=>{assert.equal(budget,500);throw new StartupEvidenceTimeout('output',budget);};
  p.select=async(...args)=>{selected++;assert.deepEqual(args[8],{nativeRemux:'always'});};
  await p.play();assert.equal(selected,1);assert.equal(p.control.transport.pending,null);
+});
+
+test('Wasm moving seeks hold transport and only resume a current playing intent',()=>{
+ for(const mode of ['hybrid','software'])for(const paused of [false,true])for(const pauseDuringSeek of [false,true]){
+  const m=model({mode,paused}),begin=m.seek(),id=begin.id;
+  assert.equal(begin.transportEffect.kind,paused?'seek':'hold-seek');
+  if(pauseDuringSeek)m.send({type:'play.retire'});
+  const verified=m.send({type:'transport.seek.verified',id});assert.equal(verified.accepted,true);
+  assert.equal(verified.transportEffect?.kind,!paused&&!pauseDuringSeek?'resume':undefined);
+  if(verified.transportEffect){assert.equal(m.send({type:'transport.complete',id}).accepted,true);}
+  assert.equal(m.state.transport.pending.phase,'finished');
+ }
+});
+test('retired seek verification cannot resume a replacement source or cancelled operation',()=>{
+ for(const retirement of ['operation.cancel','operation.retire']){
+  const m=model({mode:'hybrid'}),id=m.seek().id;
+  m.send(retirement==='operation.cancel'?{type:retirement,id:m.operation}:{type:retirement,terminal:false});
+  assert.equal(m.send({type:'transport.seek.verified',id}).accepted,false);
+ }
+});
+
+test('delayed seek confirmation holds playback and Pause suppresses its resume',async t=>{
+ for(const mode of ['hybrid','software'])for(const pauseDuringSeek of [false,true]){
+  const {p,backend,calls}=fixture(t,{mode});let presented,release;
+  const ready=new Promise(r=>presented=r);
+  p.settled=async()=>{assert.equal(calls[0],'pause');presented();await new Promise(r=>release=r);};
+  const seeking=p.seek(4);await ready;const paused=pauseDuringSeek?p.pause():undefined;
+  release();await seeking;await paused;
+  assert.deepEqual(calls,['pause',['seek',4],pauseDuringSeek?'pause':'play']);
+ }
+});
+
+test('failed seek resume is contained by a pause and does not trigger route fallback',async t=>{
+ const {p,backend,calls}=fixture(t,{mode:'hybrid'});backend.play=async()=>{calls.push('play');throw Error('resume failed');};
+ p.select=async()=>assert.fail('resume failure is not a seek decoder failure');
+ await assert.rejects(p.seek(4),/resume failed/);assert.deepEqual(calls,['pause',['seek',4],'play','pause']);assert.equal(p.settings.pause,true);
+});
+
+test('failed held restoration reports paused playback',async t=>{
+ const {p,backend}=boundaryFixture(t),seek=backend.seek;
+ backend.seek=async target=>{if(target===42)throw new PlayerError('SOURCE_PERMISSION','restore denied');await seek(target);};
+ await assert.rejects(p.seek(75),error=>error.code==='SOURCE_PERMISSION');
+ assert.equal(p.settings.pause,true);
+});
+test('failed boundary resume pauses without selecting a new route',async t=>{
+ const {p,backend,calls}=boundaryFixture(t);
+ backend.play=async()=>{calls.push('play');throw Error('boundary resume failed');};
+ await assert.rejects(p.seek(75),/boundary resume failed/);
+ assert.deepEqual(calls,['pause',['seek',75],['seek',42],'play','pause']);
+ assert.equal(p.settings.pause,true);
 });

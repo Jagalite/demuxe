@@ -68,6 +68,9 @@ export function playerError(error: unknown, id: number | null = null, operation:
   const facts=classificationFacts(error),semantic=facts.message;
   if(facts.typed)return new PlayerError(facts.typed.code,message,id??facts.typed.operationId,operation??facts.typed.operation,scope,facts.typed.retryable);
   const code: PlayerErrorCode = facts.timeline?'UNSUPPORTED_TIMELINE'
+    // Keep the public network-budget category for exhausted attempts, including
+    // per-attempt AbortError causes; the message distinguishes limit vs time.
+    : /^(?:Error:\s*)?Media read retry (?:limit|deadline) exceeded\b/im.test(semantic)?'NETWORK_TIMEOUT'
     : facts.names.includes('AbortError')||/^(?:Operation aborted|Open aborted|Player (?:element )?(?:is )?destroyed|Player element disconnected)|cancelled/im.test(semantic)?'ABORTED'
     : facts.names.includes('NotAllowedError')||/autoplay|user gesture|audio context.*suspended/i.test(semantic)?'AUTOPLAY_BLOCKED'
     : /cross.origin isolat|secure.*isolated/i.test(semantic)?'ISOLATION_REQUIRED'

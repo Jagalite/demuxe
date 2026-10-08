@@ -215,6 +215,12 @@ export function transitionSettingTransaction(state, input) {
         if (!noop && (command.kind === 'range' || command.kind === 'loop') && input.hasBackend && effect.kind === 'seek') {
             effects.push(Object.freeze({ kind: 'seek.verify', value: effect.value }));
             restore.push(Object.freeze({ kind: 'seek.verify', value: command.facts.time }));
+            if (state.source.mode !== 'native' && !state.settings.pause) {
+                effects.unshift(Object.freeze({ kind: 'pause' }));
+                restore.unshift(Object.freeze({ kind: 'pause' }));
+                effects.push(Object.freeze({ kind: 'seek.resume' }));
+                restore.push(Object.freeze({ kind: 'seek.resume' }));
+            }
         }
         if (input.hasBackend && verifyTrack) {
             effects.push(Object.freeze({ kind: 'track.verify', track: verifyTrack, value: settings[verifyTrack === 'audio' ? 'aid' : 'sid'], settings }));
@@ -229,6 +235,8 @@ export function transitionSettingTransaction(state, input) {
     if (!settingAuthority(state, input.id))
         return result(state, false, input.id);
     const pending = state.settingsTransactions.pending;
+    if (input.type === 'setting.resume')
+        return result(state, true, input.id, !pending.resumeSuppressed && !state.settings.pause ? [Object.freeze({ kind: 'play' })] : empty);
     if (input.type === 'setting.failed') {
         if (pending.phase !== 'applying')
             return result(state, false, input.id);

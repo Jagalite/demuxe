@@ -74,6 +74,10 @@ source policy before fetching:
   remain authorized; updated headers retain Shaka's range semantics.
 - Fetch uses **`redirect: 'error'`**. A response filter runs too late to prevent
   sending a redirected authenticated request. Supply final authorized URLs.
+- Exhausted attempts report a retry limit; an elapsed read budget reports a deadline.
+  Both retain the `NETWORK_TIMEOUT` public category. An opaque browser transport
+  failure may be connectivity, CORS, or redirect policy; its message does not
+  claim which policy failed.
 - CORS remains a server requirement, including preflight and credential rules.
 - Retired requests are aborted; authorization completion cannot reactivate a
   destroyed session. Player filters/listeners and owned text blobs are released

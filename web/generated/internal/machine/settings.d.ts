@@ -125,7 +125,7 @@ export type SettingEffect = Readonly<{
     kind: 'subtitles';
     value: boolean;
 }> | Readonly<{
-    kind: 'pause' | 'play';
+    kind: 'pause' | 'play' | 'seek.resume';
 }> | Readonly<{
     kind: 'track';
     track: 'audio' | 'sub';
@@ -175,6 +175,7 @@ export type SettingTransaction = Readonly<{
     mode?: PlaybackMode;
     automatic?: boolean;
     automaticDuringApply: boolean;
+    resumeSuppressed?: boolean;
     after: readonly SettingEffect[];
     settings: Readonly<PlaybackSettings>;
     preferences: PlayerPreferences;
@@ -202,7 +203,7 @@ export type SettingTransactionInput = Readonly<{
     hasSource?: boolean;
     hybridAudioFilters?: boolean;
 }> | Readonly<{
-    type: 'setting.accept' | 'setting.failed' | 'setting.restored' | 'setting.degraded';
+    type: 'setting.resume' | 'setting.accept' | 'setting.failed' | 'setting.restored' | 'setting.degraded';
     id: number;
 }>;
 export declare function settingAutomaticSelection(state: PlayerControlState): boolean;

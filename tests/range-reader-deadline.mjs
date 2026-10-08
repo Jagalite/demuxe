@@ -90,3 +90,15 @@ for(const action of ['close','beginEpoch'])test(`extended playback deadline does
  const advance=clock(t),state=trickle(t),r=new RangeReader({...options,readDeadlineMs:45000});
  const read=assert.rejects(r.read(0n,1024),{name:'AbortError'});await turn();await advance(750);r[action]();await read;assert.equal(state.aborts,1);assert.equal(r.stats.activeBytes,0);r.close();
 });
+
+test('opaque browser failures exhaust attempts before the deadline and preserve their cause',async t=>{
+ const advance=clock(t),cause=new TypeError('Failed to fetch');let requests=0;
+ t.mock.method(globalThis,'fetch',async()=>{requests++;throw cause;});
+ const r=new RangeReader({...options,readDeadlineMs:15000});let finished=false;
+ const read=assert.rejects(r.read(0n,1),error=>{
+  assert.match(error.message,/retry limit exceeded/);assert.match(error.message,/connectivity, CORS, and redirect policy/);
+  assert.doesNotMatch(error.message,/deadline exceeded/);assert.equal(error.cause,cause);return true;
+ }).finally(()=>finished=true);
+ for(let n=0;n<14&&!finished;n++)await advance(1000);
+ await read;assert.equal(requests,10);r.close();
+});
