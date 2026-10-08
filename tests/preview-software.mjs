@@ -18,7 +18,7 @@ try{
   const file=new File([await(await fetch('/'+fixture)).blob()],'software.mkv');await p.open(file);
   let previewInput={file};
   // Some browsers decode HEVC natively. Exercise the software provider explicitly
-  // for that codec; FFV1 exercises the unchanged production fallback routing.
+  // for that codec; FFV1 exercises the accepted-engine production provider.
   if(codec==='hevc')p.preview.setProviders([new SoftwarePreviewProvider(()=>previewInput,document,new URL('/',location.href))]);
   let seeks=0,errors=0;p.addEventListener('seeking',()=>seeks++);p.addEventListener('error',()=>errors++);
   const before={time:p.state.currentTime,intent:p.state.playbackIntent},owners=document.querySelectorAll('iframe').length;
@@ -32,8 +32,11 @@ try{
   await p.play();const start=p.state.currentTime;await p.preview.getFrame({time:1});await new Promise(r=>setTimeout(r,200));const advanced=p.state.currentTime>start;await p.pause();
   // Drive the exact mpv property notification used for software rebuffering.
   const buffering=value=>{const backend=p.current.backend;backend.properties.set('paused-for-cache',value);backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'paused-for-cache',data:value}}));};
-  // Software decoder previews are admitted only while paused. Start real work,
-  // then verify playback preempts it before testing buffering cache behavior.
+  // Let the reusable production child retire, then begin fresh decoder work.
+  const idleDeadline=performance.now()+7000;
+  while(document.querySelectorAll('iframe').length>owners&&performance.now()<idleDeadline)await new Promise(r=>setTimeout(r,10));
+  if(document.querySelectorAll('iframe').length!==owners)throw Error('Idle preview worker did not retire');
+  // Buffering must preempt previews regardless of the playback admission policy.
   const pressureRequest=p.preview.getFrame({time:0}).catch(e=>e.name);
   const deadline=performance.now()+5000;
   while(document.querySelectorAll('iframe').length===owners&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
@@ -44,6 +47,8 @@ try{
   const blocked=await p.preview.getFrame({time:5}),cachedDuringBuffering=await p.preview.getFrame({time:2,width:160});
   const ownersDuringBuffering=document.querySelectorAll('iframe').length;
   buffering(false);await p.pause();const resumed=await p.preview.getFrame({time:0});
+  const retiredDeadline=performance.now()+7000;
+  while(document.querySelectorAll('iframe').length>owners&&performance.now()<retiredDeadline)await new Promise(r=>setTimeout(r,10));
   const leakedOwners=document.querySelectorAll('iframe').length-owners;
   await p.open(file);const invalidated=p.preview.diagnostics.cacheEntries===0;
   const remote={url:new URL('/'+fixture,location.href).href,immutable:true};await p.openRemote(remote);previewInput={remote};const remoteFrame=await p.preview.getFrame({time:2,width:160});
@@ -51,7 +56,7 @@ try{
   return {preempted,blocked,bufferingHit:cachedDuringBuffering?.cache,ownersDuringBuffering,owners,resumed:!!resumed,remotePath:remoteFrame?.path,before,after,path:frame.path,time:frame.time,actualTime:frame.actualTime,accuracy:frame.temporalAccuracy,dimensions:[frame.width,frame.height],nonblack,cache:hit.cache,cancelled,aborted,latest:latest?.time,advanced,seeks,errors,leakedOwners,invalidated,ownersAfterDestroy:document.querySelectorAll('iframe').length,latencyMs:frame.metrics.totalMs};
  },{fixture,codec});
  assert.equal(result.preempted,'AbortError');assert.equal(result.blocked,null);assert.equal(result.bufferingHit,'hit');assert.equal(result.ownersDuringBuffering,result.owners);assert.equal(result.resumed,true);
- assert.deepEqual(result.before,result.after);assert.equal(result.remotePath,'software');if(codec==='ffv1')assert.equal(result.path,'software');assert.equal(result.nonblack,true);assert.deepEqual(result.dimensions,[160,90]);assert.equal(result.cache,'hit');assert.equal(result.cancelled,'AbortError');assert.equal(result.aborted,'AbortError');assert.ok(Math.abs(result.time-2)<.2);assert.ok(Math.abs(result.latest-4)<.2);assert.equal(result.actualTime,null);assert.equal(result.accuracy,'approximate');assert.equal(result.advanced,true);assert.equal(result.seeks,0);assert.equal(result.errors,0);assert.equal(result.leakedOwners,0);assert.equal(result.invalidated,true);assert.equal(result.ownersAfterDestroy,0);
+ assert.deepEqual(result.before,result.after);assert.equal(result.remotePath,codec==='hevc'?'software':'software-pthread');if(codec==='ffv1')assert.equal(result.path,'software-pthread');assert.equal(result.nonblack,true);assert.deepEqual(result.dimensions,[160,90]);assert.equal(result.cache,'hit');assert.equal(result.cancelled,'AbortError');assert.equal(result.aborted,'AbortError');assert.ok(Math.abs(result.time-2)<.2);assert.ok(Math.abs(result.latest-4)<.2);assert.equal(result.actualTime,null);assert.equal(result.accuracy,'approximate');assert.equal(result.advanced,true);assert.equal(result.seeks,0);assert.equal(result.errors,0);assert.equal(result.leakedOwners,0);assert.equal(result.invalidated,true);assert.equal(result.ownersAfterDestroy,0);
  // An idle primary player tears down quickly; its destroy promise must still
  // join a software preview that has just started allocating its worker tree.
  const teardown=await page.evaluate(async fixture=>{

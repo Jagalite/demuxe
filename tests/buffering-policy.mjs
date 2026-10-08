@@ -86,3 +86,9 @@ test('native runtime updates change hints and reject providers without update su
  await assert.rejects(p.setBuffering(bufferingPolicy()),e=>e.code==='UNSUPPORTED_FEATURE');assert.equal(video.preload,'metadata');
  let received;p.remux={setBuffering:async value=>received=value};await p.setBuffering(bufferingPolicy({aheadSeconds:25}));assert.equal(received.forwardSeconds,25);
 });
+test('Remux defaults to adaptive 8 to 64 MiB and respects explicit ceilings',()=>{
+ for(const memoryBudget of [undefined,8*MiB,40*MiB,64*MiB]){
+  const r=resolveBuffering(bufferingPolicy({memoryBudget}),'remux');
+  assert.equal(r.forwardLimitBytes,8*MiB);assert.equal(r.maxForwardLimitBytes,memoryBudget??64*MiB);
+ }
+});

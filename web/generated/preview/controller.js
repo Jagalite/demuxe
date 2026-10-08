@@ -13,6 +13,7 @@ const emptyMetrics = () => ({ providerSelectionMs: 0, cacheLookupMs: 0, totalMs:
  * authority contains only data and cannot issue playback or source effects. */
 export class PreviewController {
     providers = [];
+    releasingProviders = false;
     cleanups = new Set();
     destruction;
     pregenerator;
@@ -22,7 +23,9 @@ export class PreviewController {
     callers = new Map();
     state;
     constructor(providers = [], options = {}) {
-        const { pregenerate, strategy, ...settings } = options;
+        const { pregenerate, strategy, duringPlayback, ...settings } = options;
+        if (duringPlayback !== undefined && !['auto', 'allow', 'defer'].includes(duringPlayback))
+            throw new TypeError('Invalid preview duringPlayback policy');
         if (pregenerate !== undefined && strategy !== undefined)
             throw new TypeError('Choose preview strategy or pregenerate, not both');
         this.state = createPreviewControl(settings);
@@ -182,8 +185,10 @@ export class PreviewController {
             throw errors.length === 1 ? errors[0] : new AggregateError(errors, 'Preview cancellation failed');
     }
     /** Playback pressure cancels generation, but resident thumbnails remain usable. */
-    setSuspended(value) { this.dispatch({ kind: 'suspended', value }); this.pregenerator?.setEnabled(this.state.allowed && !value); if (value)
-        this.cancelWork(); }
+    setSuspended(value) { this.dispatch({ kind: 'suspended', value }); this.pregenerator?.setEnabled(this.state.allowed && !value); if (value) {
+        this.cancelWork();
+        this.releaseProviders();
+    } }
     /** Suppress expensive decoder providers while allowing independent native previews. */
     setPlaybackActive(value) {
         this.dispatch({ kind: 'playback', value });
@@ -233,7 +238,25 @@ export class PreviewController {
     releaseEvictedImages() { const retained = new Set(this.state.cache.map(entry => entry.key)); for (const key of this.images.keys())
         if (!retained.has(key))
             this.images.delete(key); }
-    clear() { this.cancelWork(); this.dispatch({ kind: 'clear-cache' }); this.images.clear(); this.pregenerator?.reset(); }
+    releaseProviders() {
+        if (this.releasingProviders)
+            return;
+        this.releasingProviders = true;
+        try {
+            for (const provider of [...this.providers]) {
+                try {
+                    const completion = provider.release?.();
+                    if (completion)
+                        this.trackCleanup(completion);
+                }
+                catch { }
+            }
+        }
+        finally {
+            this.releasingProviders = false;
+        }
+    }
+    clear() { this.cancelWork(); this.releaseProviders(); this.dispatch({ kind: 'clear-cache' }); this.images.clear(); this.pregenerator?.reset(); }
     destroy() {
         if (this.destruction)
             return this.destruction;

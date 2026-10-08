@@ -114,8 +114,9 @@ providers without the runtime setter reject with `UNSUPPORTED_FEATURE`; consult
 
 Ahead time must be greater than zero and at most 120 seconds; behind time is 0–120
 seconds. The existing 8–64 MiB memory-budget range remains. Targets are subject to
-fragment/keyframe granularity and backend limits: Remux caps its coded-data ceiling
-at 12 MiB and scales forward time above 1x playback; non-auto preload uses a smaller
+fragment/keyframe granularity and backend limits: Remux grows its coded-data target
+from 8 MiB up to the requested cap (64 MiB by default) when a protected GOP blocks
+progress, and scales forward time above 1x playback; non-auto preload uses a smaller
 paused/preparation target. These are not total browser/decoder-memory caps. At the coded-data ceiling, Remux may shorten requested history to preserve forward
 progress, evicting at safe GOP boundaries and waiting for SourceBuffer completion.
 Reducing limits does not promise immediate release of all resident data. If the
@@ -134,3 +135,11 @@ Video policies and thumbnail strategies have independent scheduling and budgets.
 This API unifies existing controls; profiles do not dynamically predict network health.
 Adaptive tuning, explicit range fetch/release, and full-file/offline downloads are not
 implemented by this API and must not be advertised as supported strategies.
+
+### Adaptive Remux GOP buffering
+
+Remux starts with an 8 MiB coded-data target. If the protected GOP prevents target preparation or playback refill, it doubles the target to 16, 32, then 64 MiB without restarting the decoder. An explicit `memoryBudget` is the maximum, including non-power-of-two limits; 8 MiB disables growth. At the limit the operation fails promptly. Normal buffer fullness does not trigger growth.
+
+The selected-engine Remux thumbnail child inherits that cap. Only one child is retained, its predecessor finishes teardown before replacement, and idle children are released after five seconds. Playback plus its preview therefore have combined coded targets of at most 128 MiB by default (twice an explicit cap). This is not a process-memory ceiling: fragment overshoot, source caches, Wasm memory, and browser decoder allocations are additional.
+
+Growth survives seeks within a source and resets on a new open or buffering-policy change. Effective native diagnostics report the current grown target in `forwardLimitBytes` and expose `maxForwardLimitBytes`, plus `settings.codedBudgetBytes`, `settings.maxCodedBudgetBytes`, and `settings.budgetGrowths`.

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PreviewSessionOptions, type PreviewSession } from './preview-session.js';
 import type { BufferingPolicy } from '../types.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { Backend } from './backend.js';
@@ -56,6 +57,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private listeners;
     private blobs;
     constructor(video: HTMLVideoElement, assetBase?: URL, buffering?: BufferingPolicy, providerAssets?: ProviderRuntimeAssets | undefined, selectQuality?: QualitySelector | undefined);
+    createPreviewSession(options: PreviewSessionOptions): PreviewSession | null;
     /** Shaka owns image-track indexing. Return its authored reference without
      * downloading a sprite through playback's network/error/ABR machinery. */
     previewFrame(request: import('../preview/controller.js').PreviewContext): Promise<import('../preview/controller.js').PreviewResult | null>;
@@ -123,6 +125,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
         control: "hint" | "profile";
         cache?: boolean;
         forwardLimitBytes?: number;
+        maxForwardLimitBytes?: number;
         backwardLimitBytes?: number;
         forwardSeconds?: number;
         backwardSeconds?: number;

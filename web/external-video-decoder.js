@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {initialExternalDecoder,externalDecoderCurrent,beginExternalDecoderConfiguration,acceptExternalDecoderConfiguration,retireExternalDecoder,externalDecoderSubmission} from './generated/internal/machine/external-video-decoder.js';
+import {webCodecsDurationWorkaround} from './generated/internal/machine/browser-compatibility.js';
 // Internal decoder service contract. PTS and duration are integer microseconds.
 // The mpv mailbox owns packet bytes until submit returns. A backend owns every
 // emitted frame until it transfers ownership to the retained-frame presenter.
@@ -21,30 +22,44 @@ export function assertExternalVideoDecoder(backend){
   return backend;
 }
 
+const frameDurations=new WeakMap();
+// Preserve the original browser frame (including its presentation timestamp).
+export function externalFrameDuration(frame){return frameDurations.get(frame)??frame.duration??0;}
+
 export class WebCodecsVideoDecoder {
-  constructor({output,error,dequeue,Decoder=globalThis.VideoDecoder}) {
+  constructor({output,error,dequeue,Decoder=globalThis.VideoDecoder,Chunk=globalThis.EncodedVideoChunk,userAgent=globalThis.navigator?.userAgent??''}) {
     this.Decoder=Decoder;this.output=output;this.error=error;this.dequeue=dequeue;
-    this.machine=initialExternalDecoder();this.handles=new Map();
+    this.Chunk=Chunk;this.durationWorkaround=webCodecsDurationWorkaround(userAgent);
+    this.machine=initialExternalDecoder();this.handles=new Map();this.durations=new Map();
   }
   get generation(){return this.machine.generation;}
   get decoder(){return this.machine.current?this.handles.get(this.machine.current.id)??null:null;}
   get queuedPackets(){return this.decoder?.decodeQueueSize??0;}
   closeHandle(id){
-    const decoder=this.handles.get(id);this.handles.delete(id);
+    const decoder=this.handles.get(id);this.handles.delete(id);this.durations.delete(id);
     if(decoder&&decoder.state!=='closed')decoder.close();
   }
   assertCurrent(lease){if(!externalDecoderCurrent(this.machine,lease))throw Error('Decoder configuration was retired');}
   configure(config){
     const decision=beginExternalDecoderConfiguration(this.machine);this.machine=decision.state;
     const lease=decision.lease;let acquired=null;
+    const durations=[];this.durations.set(lease.id,durations);
     try{
       if(decision.close!==null)this.closeHandle(decision.close);
       this.assertCurrent(lease);
       const Decoder=this.Decoder;this.assertCurrent(lease);
       if(!Decoder)throw Error('VideoDecoder unavailable');
       acquired=new Decoder({
-        output:frame=>{if(externalDecoderCurrent(this.machine,lease))this.output(frame);else frame.close();},
-        error:error=>{if(externalDecoderCurrent(this.machine,lease))this.error(error);},
+        output:frame=>{
+          if(!externalDecoderCurrent(this.machine,lease)){frame.close();return;}
+          let index=durations.findIndex(entry=>entry.timestamp===frame.timestamp);
+          // WebKit may quantize a microsecond PTS through a floating-point clock.
+          // Only use a nearby entry when the match is unambiguous.
+          if(index===-1){const nearby=durations.map((entry,index)=>({entry,index})).filter(({entry})=>Math.abs(entry.timestamp-frame.timestamp)<=1);if(nearby.length===1)index=nearby[0].index;}
+          if(index!==-1){const [entry]=durations.splice(index,1);frameDurations.set(frame,entry.duration);}
+          if(externalDecoderCurrent(this.machine,lease))this.output(frame);else frame.close();
+        },
+        error:error=>{durations.length=0;if(externalDecoderCurrent(this.machine,lease))this.error(error);},
       });
       this.assertCurrent(lease);
       const decoder=acquired;this.handles.set(lease.id,decoder);acquired=null;
@@ -68,9 +83,21 @@ export class WebCodecsVideoDecoder {
     const facts={present:!!decoder,closed:decoder?.state==='closed',queued:decoder?.decodeQueueSize??0};
     const decision=externalDecoderSubmission(this.machine,lease,facts);
     if(decision==='closed')throw Error('Decoder is closed');if(decision==='again')return false;
-    decode.call(decoder,packet);return true;
+    const durations=this.durations.get(lease.id);let entry;
+    if(this.durationWorkaround&&packet.duration!=null){
+      // Older Safari races when decode() writes its native duration map. Omit
+      // that optional field and restore it through externalFrameDuration in this thread.
+      // Keep metadata bounded even if a codec drops input without output.
+      if(durations.length>=256)throw Error('Decoder duration metadata limit');
+      entry={timestamp:packet.timestamp,duration:packet.duration};
+      const data=new Uint8Array(packet.byteLength);packet.copyTo(data);this.assertCurrent(lease);
+      packet=new this.Chunk({type:packet.type,timestamp:entry.timestamp,data});this.assertCurrent(lease);
+      durations.push(entry);
+    }
+    try{decode.call(decoder,packet);}catch(error){if(entry){const index=durations.indexOf(entry);if(index!==-1)durations.splice(index,1);}throw error;}
+    return true;
   }
-  drain(){const lease=this.machine.current,decoder=this.decoder,flush=decoder?.flush;if(!lease||!decoder||!externalDecoderCurrent(this.machine,lease))throw Error('Decoder is closed');return flush.call(decoder);}
+  drain(){const lease=this.machine.current,decoder=this.decoder,flush=decoder?.flush;if(!lease||!decoder||!externalDecoderCurrent(this.machine,lease))throw Error('Decoder is closed');const pending=flush.call(decoder);void Promise.resolve(pending).then(()=>{if(externalDecoderCurrent(this.machine,lease))this.durations.get(lease.id).length=0;},()=>{});return pending;}
   reset(){
     // Closing invalidates browser callbacks; the owner reconfigures after reset.
     this.destroy();

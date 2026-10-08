@@ -6,8 +6,11 @@ export type RemuxBuffering = Readonly<{
     forwardSeconds?: number;
     backwardSeconds?: number;
     forwardLimitBytes?: number;
+    maxForwardLimitBytes?: number;
 }>;
 export type RemuxSchedule = Readonly<{
+    budgetBytes: number | undefined;
+    budgetGrowths: number;
     target: number;
     windowed: boolean;
     presentationFloor: number;
@@ -27,6 +30,10 @@ export declare function initialRemuxSchedule(): RemuxSchedule;
 export declare function resetRemuxSchedule(state: RemuxSchedule, target?: number): RemuxSchedule;
 export declare function remuxBuffering(state: RemuxSchedule, policy: RemuxBuffering | undefined): RemuxSchedule;
 export type RemuxScheduleCommand = Readonly<{
+    type: 'grow-budget';
+    from: number;
+    to: number;
+}> | Readonly<{
     type: 'configure';
     windowed: boolean;
     trackBounds?: Readonly<{
@@ -57,6 +64,7 @@ export declare function transitionRemuxSchedule(state: RemuxSchedule, command: R
     accepted: boolean;
     id?: number;
 }>;
+export declare function remuxByteLimit(state: RemuxSchedule): number;
 export declare function remuxForwardSeconds(state: RemuxSchedule, paused: boolean, playbackRate: number): number;
 export declare function remuxStartupCoverage(target: number, duration: number, ranges: readonly RemuxRange[]): boolean;
 export declare function remuxPlaybackEnded(state: RemuxSchedule, buffer: RemuxBufferState, facts: Readonly<{
@@ -108,6 +116,11 @@ type PumpTerminal = Readonly<{
 } | {
     kind: 'fail';
     error: string;
+    code?: string;
+} | {
+    kind: 'grow-budget';
+    from: number;
+    to: number;
 }>;
 export type RemuxPumpDecision = Readonly<{
     metrics: PumpMetrics;
@@ -130,7 +143,7 @@ export type RemuxPumpDecision = Readonly<{
     }>;
 }>;
 export declare function selectRemuxPump(state: RemuxSchedule, buffer: RemuxBufferState, facts: RemuxPumpFacts): RemuxPumpDecision;
-/** After a gap seek, preserve the original coverage/budget sample but observe
+/** After a gap seek, preserve the original coverage/byte-accounting sample but observe
  * pause/rate/intent/policy again before deciding preparation, failure or refill. */
 export declare function selectRemuxPumpContinuation(state: RemuxSchedule, buffer: RemuxBufferState, facts: RemuxPumpFacts, context: RemuxPumpContinuation): PumpTerminal;
 export declare function selectRemuxWindowResume(state: RemuxSchedule, buffer: RemuxBufferState, facts: Readonly<{

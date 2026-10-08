@@ -3,17 +3,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
-const source=await readFile(new URL('../web/browser-decoder-worker.js',import.meta.url),'utf8');
-function setup(){
+import {WebCodecsVideoDecoder,externalFrameDuration} from '../web/external-video-decoder.js';
+const source=(await readFile(new URL('../web/browser-decoder-worker.js',import.meta.url),'utf8')).replace(/^import .*external-video-decoder.js';$/m,'');
+function evaluate(context){
+ context.externalFrameDuration=externalFrameDuration;
+ context.WebCodecsVideoDecoder=class extends WebCodecsVideoDecoder{constructor(options){super({...options,Decoder:context.VideoDecoder,Chunk:context.EncodedVideoChunk,userAgent:context.userAgent??''});}};
+ vm.createContext(context);vm.runInContext(source,context);
+}
+function setup(userAgent=''){
  const memory=new SharedArrayBuffer(80+8*1024*1024+1920*1080*3/2),header=new Int32Array(memory,0,16),view=new DataView(memory),messages=[];
  let instance,sequence=0;
  class Decoder{
   static async isConfigSupported(){return {supported:true};}
   constructor(callbacks){instance=this;this.callbacks=callbacks;this.state='unconfigured';}
-  configure(){this.state='configured';} decode(){} async flush(){} close(){this.state='closed';}
+  addEventListener(){} configure(){this.state='configured';} decode(packet){this.packet=packet;} async flush(){} close(){this.state='closed';}
  }
- const context={self:{},postMessage:m=>messages.push(m),setInterval:()=>{},performance,VideoDecoder:Decoder,EncodedVideoChunk:class{constructor(config){Object.assign(this,config);}},Int32Array,Uint8Array,DataView,Atomics:new Proxy(Atomics,{get:(target,key)=>key==='waitAsync'?undefined:target[key]})};
- vm.createContext(context);vm.runInContext(source,context);context.self.onmessage({data:{memory,pointer:0}});
+ const context={userAgent,self:{},postMessage:m=>messages.push(m),setInterval:()=>{},performance,VideoDecoder:Decoder,EncodedVideoChunk:class{constructor(config){Object.assign(this,config);this.duration=config.duration??null;this.byteLength=config.data.length;}copyTo(target){target.set(this.data);}},Int32Array,Uint8Array,DataView,Atomics:new Proxy(Atomics,{get:(target,key)=>key==='waitAsync'?undefined:target[key]})};
+ evaluate(context);context.self.onmessage({data:{memory,pointer:0}});
  function begin(operation){header[2]=operation;header[0]=++sequence*4+1;return header[0];}
  async function command(operation){const ticket=begin(operation);await context.pump();assert.equal(header[0],ticket+1);return header[3];}
  async function init(){header[4]=7;header[5]=16;header[6]=16;new Uint8Array(memory,80,7).set([1,100,0,31,255,0,0]);assert.equal(await command(1),0);}
@@ -67,10 +73,21 @@ test('a request published immediately after acknowledgment runs without another 
   Atomics:new Proxy(Atomics,{get:(target,key)=>key==='waitAsync'?(_header,_index,value)=>{
    waited.push(value);return {async:true,value:new Promise(()=>{})};
   }:target[key]})};
- vm.createContext(context);vm.runInContext(source,context);
+ evaluate(context);
  context.self.onmessage({data:{memory,pointer:0}});
  assert.equal(header[0],9);assert.deepEqual(waited,[]);
  assert.equal(typeof nextTask,'function');nextTask();
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(header[0],10);assert.deepEqual(waited,[10]);
+});
+
+// Exercise the production adapter as well as the shared wrapper: duration must
+// survive the Safari workaround all the way back to the native mailbox.
+test('Safari copy-back omits native chunk duration and restores mailbox duration',async()=>{
+ const s=setup('AppleWebKit/605.1.15 Version/26.5.2 Safari/605.1.15');await s.init();
+ s.header[4]=1;s.header[7]=1;s.view.setFloat64(64,1234,true);s.view.setFloat64(72,45678,true);
+ assert.equal(await s.command(2),0);assert.equal(s.decoder().packet.duration,null);
+ const f=frame();f.duration=null;s.decoder().callbacks.output(f);
+ assert.equal(await s.command(4),1);assert.equal(s.view.getFloat64(72,true),45678);assert.equal(f.closed,1);
+ await s.command(5);
 });

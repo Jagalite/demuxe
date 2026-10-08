@@ -84,9 +84,11 @@ export declare namespace Shaka {
             bandwidth: number;
             audio?: {
                 id: number;
+                encrypted?: boolean;
             } | null;
             video?: {
                 id: number;
+                encrypted?: boolean;
                 segmentIndex?: {
                     find(time: number): number | null;
                     get(position: number): {

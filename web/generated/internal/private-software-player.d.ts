@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PreviewSessionOptions, type PreviewSession } from './preview-session.js';
 import type { Backend } from './backend.js';
 import type { RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy } from '../types.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
@@ -34,6 +35,7 @@ export declare class PrivateSoftwarePlayer extends EventTarget implements Backen
     private get attachmentIds();
     private get presentedDraws();
     private presentation?;
+    createPreviewSession(options: PreviewSessionOptions): PreviewSession;
     constructor(canvas: HTMLCanvasElement, options: {
         prefetchedWasm?: () => Promise<ArrayBuffer | undefined> | undefined;
         providerAssets?: ProviderRuntimeAssets;

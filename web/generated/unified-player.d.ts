@@ -12,6 +12,9 @@ export declare class Player extends EventTarget {
     #private;
     get preview(): PlayerPreview;
     private previewSource?;
+    private previewBackend?;
+    private previewKey?;
+    private previewRouteKey;
     readonly ready: Promise<void>;
     private assetBase;
     private readonly qualitySelector?;

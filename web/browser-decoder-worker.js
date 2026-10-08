@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {WebCodecsVideoDecoder,externalFrameDuration} from './external-video-decoder.js';
 // Dedicated service: native decoder pthread waits never block this event loop.
 let memory,pointer,header,view,decoder,configuration,queue=[],generation=0,busy=false;
 let draining=false,flushed=false,failure=null,submitted=0,consumed=0,lastProgress=0;
@@ -10,11 +11,11 @@ const AGAIN=-6,EOF=-541478725,IO=-29;
 const stats={submitted:0,frames:0,receivedFrames:0,closedFrames:0,peakOutstanding:0,peakFrames:0,resets:0,errors:0,copyMs:0};
 const color={bt709:1,bt470bg:5,smpte170m:6,bt2020:9,'bt2020-ncl':9,smpte2084:16,'iec61966-2-1':13};
 function closeFrame(frame){if(closed.has(frame))return;closed.add(frame);frame.close();stats.closedFrames++;}
-function clear(){generation++;if(decoder&&decoder.state!=='closed')decoder.close();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;failure=null;}
+function clear(){generation++;decoder?.destroy();decoder=null;for(const frame of queue)closeFrame(frame);for(const frame of copying)closeFrame(frame);queue=[];draining=flushed=false;submitted=consumed=0;failure=null;}
 function configure(){
  if(copiesInFlight)throw Error('Previous copy still pending; use software');
  const current=generation;
- decoder=new VideoDecoder({error:error=>{if(current===generation){failure=String(error);stats.errors++;postMessage({wakeup:true});}},output:frame=>{
+ decoder=new WebCodecsVideoDecoder({error:error=>{if(current===generation){failure=String(error);stats.errors++;postMessage({wakeup:true});}},output:frame=>{
   stats.receivedFrames++;
   if(current!==generation){closeFrame(frame);return;}
   if(queue.length>=8){closeFrame(frame);failure='Frame queue limit';stats.errors++;return;}
@@ -80,12 +81,12 @@ async function pump(){
      const bytes=new Uint8Array(memory,pointer+packetOffset,size).slice();
      const timestamp=view.getFloat64(64,true),duration=view.getFloat64(72,true);
      if(!Number.isSafeInteger(timestamp)||!Number.isSafeInteger(duration)||duration<0)throw Error(`Invalid timestamps: ${timestamp}, duration ${duration}`);
-     decoder.decode(new EncodedVideoChunk({type:header[7]?'key':'delta',timestamp,...(duration?{duration}:{}),data:bytes}));
-     submitted++;stats.submitted++;stats.peakOutstanding=Math.max(stats.peakOutstanding,submitted-consumed);
+     if(!decoder.submit(new EncodedVideoChunk({type:header[7]?'key':'delta',timestamp,...(duration?{duration}:{}),data:bytes})))result=AGAIN;
+     else{submitted++;stats.submitted++;stats.peakOutstanding=Math.max(stats.peakOutstanding,submitted-consumed);}
     }
    }else if(operation===3){
     draining=true;const epoch=generation;
-    decoder.flush().then(()=>{if(epoch===generation){flushed=true;postMessage({wakeup:true});}},error=>{if(epoch===generation){failure=String(error);postMessage({wakeup:true});}});
+    decoder.drain().then(()=>{if(epoch===generation){flushed=true;postMessage({wakeup:true});}},error=>{if(epoch===generation){failure=String(error);postMessage({wakeup:true});}});
    }else if(operation===4){
     if(faultAfter&&stats.frames>=faultAfter)throw Error('Injected decoder failure');
     if(queue.length){
@@ -105,7 +106,7 @@ async function pump(){
       header[5]=w;header[6]=h;header[8]=+nv12;
       header[9]=color[frame.colorSpace.primaries]??2;header[10]=color[frame.colorSpace.transfer]??2;
       header[11]=color[frame.colorSpace.matrix]??2;header[12]=+!!frame.colorSpace.fullRange;
-      view.setFloat64(64,frame.timestamp,true);view.setFloat64(72,frame.duration??0,true);
+      view.setFloat64(64,frame.timestamp,true);view.setFloat64(72,externalFrameDuration(frame),true);
       consumed++;stats.frames++;lastProgress=performance.now();result=1;
      }finally{closeFrame(frame);}
     }else if(draining)result=flushed?EOF:0;

@@ -5,6 +5,7 @@ export interface Backend extends EventTarget {
   setBuffering?(policy:import('../types.js').BufferingPolicy):Promise<void>;
   setWatchdogs?(policy:import('../types.js').WatchdogPolicy):void;
   nativeProgressSample?(allowBufferedWaiting?:boolean):import('./watchdogs.js').NativeProgressSample;
+  createPreviewSession?(options:import('./preview-session.js').PreviewSessionOptions):import('./preview-session.js').PreviewSession|null;
   previewFrame?(request:import('../preview/controller.js').PreviewContext):Promise<import('../preview/controller.js').PreviewResult|null>;
   streamingState?():import('../types.js').StreamingState;
   setAudioOutputDevice?(id:string):Promise<void>;

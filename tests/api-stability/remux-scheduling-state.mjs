@@ -112,3 +112,102 @@ test('MSE finalizes multiplexed track duration without an unsafe explicit shrink
  p.media.endOfStream=()=>{requests.push('eof');duration=13.026;};p.pump();
  assert.ok(requests.includes('eof'));assert.equal(p.duration,13.026-p.timelineBias);
 });
+
+test('preparation reports a protected-GOP budget impasse even while paused',()=>{
+ const MiB=1024*1024;
+ for(const windowed of [false,true])for(const paused of [false,true]){
+  const state=schedule({target:10,windowed,raps:[8],buffering:{forwardLimitBytes:8*MiB}}),retained=buffer({segments:[{bytes:10339411}]}),facts=pumpFacts({targetReady:false,playing:!paused,paused,position:0,ranges:[[8,9.5146666667]]});
+  const exhausted=selectRemuxPump(state,retained,facts).action.next;
+  assert.equal(exhausted.kind,'fail');assert.match(exhausted.error,/cannot prepare the target.*coded-data budget/);
+  assert.equal(selectRemuxPump(state,buffer({segments:[{bytes:7*MiB}]}),facts).action.next.kind,'pull');
+  assert.equal(selectRemuxPump(state,retained,{...facts,ranges:[[8,10.1]]}).action.next.kind,'wait','covered target can still settle without another pull');
+  assert.equal(selectRemuxPump(state,{...retained,pending:[{id:1,lane:0,bytes:1}]},facts).action.kind,'pending','deliver accepted media before deciding failure');
+  assert.equal(selectRemuxPump(state,{...retained,eof:true},facts).action.next.kind,'eof','terminal source still drains');
+ }
+});
+
+test('actual preparation budget failure terminates workers and records the startup cause',t=>{
+ const {p,video,requests}=shell(t);video.paused=true;
+ p.transitionSchedule({type:'seek',target:10});p.setBuffering({forwardLimitBytes:8*1024*1024});
+ p.lifecycle=Object.freeze({...p.lifecycle,targetReady:false,buffer:buffer({segments:[{bytes:10339411}]})});
+ p.ranges=()=>[[8,9.5146666667]];let terminated=0;p.worker.terminate=()=>terminated++;
+ p.pump();assert.match(p.failureError.message,/cannot prepare the target.*coded-data budget/);
+ assert.equal(p.lifecycle.failedGeneration,p.generation);assert.equal(terminated,1);
+ assert.equal(requests.some(request=>request.type==='next'),false);
+});
+
+test('protected GOP budget grows in bounded steps and rejects stale or forged growth',()=>{
+ const MiB=1024*1024;
+ let state=remuxBuffering(schedule({target:10}),{forwardLimitBytes:8*MiB,maxForwardLimitBytes:64*MiB});
+ const facts=pumpFacts({targetReady:false,paused:true,ranges:[[8,9]],position:10});
+ for(const [from,to] of [[8,16],[16,32],[32,64]]){
+  const action=selectRemuxPump(state,buffer({segments:[{bytes:from*MiB}]}),facts).action.next;
+  assert.deepEqual(action,{kind:'grow-budget',from:from*MiB,to:to*MiB});
+  assert.equal(transitionRemuxSchedule(state,{type:'grow-budget',from:from*MiB,to:128*MiB}).accepted,false);
+  const previous=state;state=transitionRemuxSchedule(state,{type:'grow-budget',...action}).state;
+  assert.equal(state.budgetBytes,to*MiB);assert.equal(previous.budgetBytes,from===8?undefined:from*MiB);
+  assert.equal(transitionRemuxSchedule(state,{type:'grow-budget',...action}).accepted,false);
+ }
+ assert.equal(state.budgetGrowths,3);
+ const exhausted=selectRemuxPump(state,buffer({segments:[{bytes:64*MiB}]}),facts).action.next;
+ assert.equal(exhausted.kind,'fail');assert.equal(exhausted.code,'REMUX_BUFFER_LIMIT');
+ const reset=remuxBuffering(state,{forwardLimitBytes:8*MiB,maxForwardLimitBytes:8*MiB});
+ assert.equal(reset.budgetBytes,undefined);assert.equal(reset.budgetGrowths,0);
+ assert.equal(selectRemuxPump(reset,buffer({segments:[{bytes:8*MiB}]}),facts).action.next.kind,'fail');
+});
+test('adaptive budget honors non-power-of-two cap and normal buffering never grows',()=>{
+ const MiB=1024*1024,state=remuxBuffering(schedule(),{forwardLimitBytes:32*MiB,maxForwardLimitBytes:40*MiB});
+ assert.equal(selectRemuxPump(state,buffer({segments:[{bytes:32*MiB}]}),pumpFacts({ranges:[[0,10]]})).action.next.to,40*MiB);
+ assert.equal(selectRemuxPump(state,buffer({segments:[{bytes:32*MiB}]}),pumpFacts({ranges:[[0,15]]})).action.next.kind,'wait');
+ assert.equal(selectRemuxPump(state,buffer({segments:[{bytes:32*MiB}],eof:true}),pumpFacts()).action.next.kind,'eof');
+ assert.equal(selectRemuxPump(state,buffer({segments:[{bytes:32*MiB}],pending:[{bytes:1}]}),pumpFacts()).action.kind,'pending');
+});
+test('adaptive runtime grows without worker restart and rejects obsolete generations',t=>{
+ const {p,requests}=shell(t),MiB=1024*1024;
+ p.setBuffering({forwardLimitBytes:8*MiB,maxForwardLimitBytes:64*MiB});
+ p.transitionSchedule({type:'seek',target:10});p.ranges=()=>[[8,9]];
+ p.lifecycle=Object.freeze({...p.lifecycle,buffer:buffer({segments:[{bytes:8*MiB}]})});
+ const generation=p.generation;p.pump();
+ assert.equal(p.bufferingDiagnostics.codedBudgetBytes,16*MiB);assert.equal(p.bufferingDiagnostics.budgetGrowths,1);
+ assert.equal(p.generation,generation);assert.equal(requests.length,0);
+ p.pump();assert.equal(requests.filter(r=>r.type==='next').length,1);
+ assert.equal(p.transitionSchedule({type:'grow-budget',from:16*MiB,to:32*MiB},generation-1).accepted,false);
+ const restart=p.transitionLifecycle({type:'restart',target:12,duration:40});
+ p.transitionLifecycle({type:'begin',restartId:restart.restartId});
+ assert.equal(p.schedule.budgetBytes,16*MiB);assert.equal(p.schedule.budgetGrowths,1);
+ p.transitionLifecycle({type:'open',sourceChanged:true});
+ assert.equal(p.schedule.budgetBytes,undefined);assert.equal(p.schedule.budgetGrowths,0);
+});
+test('protected-GOP refill grows before starvation and handles clock rounding at exhaustion',()=>{
+ const MiB=1024*1024;
+ const state=remuxBuffering(schedule(),{forwardLimitBytes:8*MiB,maxForwardLimitBytes:64*MiB});
+ const coded=buffer({segments:[{bytes:8*MiB}]});
+ assert.equal(selectRemuxPump(state,coded,pumpFacts({position:2,ranges:[[0,2.517333]]})).action.next.kind,'grow-budget');
+ const fixed=remuxBuffering(state,{forwardLimitBytes:8*MiB,maxForwardLimitBytes:8*MiB});
+ assert.equal(selectRemuxPump(fixed,coded,pumpFacts({position:2,ranges:[[0,2.517333]]})).action.next.kind,'wait');
+ assert.equal(selectRemuxPump(fixed,coded,pumpFacts({position:1.449267,ranges:[[0,1.514666]],readyState:2})).action.next.code,'REMUX_BUFFER_LIMIT');
+ assert.equal(selectRemuxPump(fixed,coded,pumpFacts({position:1.449267,ranges:[[0,1.514666]],readyState:3})).action.next.kind,'wait');
+ assert.equal(selectRemuxPump(fixed,coded,pumpFacts({position:2.517332,ranges:[[0,2.517333]],readyState:2})).action.next.code,'REMUX_BUFFER_LIMIT');
+});
+test('budget exhaustion does not reject a playable tail before the next safe RAP',()=>{
+ const MiB=1024*1024,state=remuxBuffering(schedule({raps:[0,2]}),{forwardLimitBytes:8*MiB,maxForwardLimitBytes:8*MiB}),coded=buffer({segments:[{bytes:8*MiB}]});
+ assert.equal(selectRemuxPump(state,coded,pumpFacts({position:1.99,ranges:[[0,2]],readyState:4})).action.next.kind,'wait');
+ assert.equal(selectRemuxPump(state,coded,pumpFacts({position:2,ranges:[[0,2]],readyState:4})).action.kind,'remove');
+});
+test('gap continuation uses the current byte policy with the captured byte accounting',async()=>{
+ const {selectRemuxPumpContinuation}=await import('../../web/generated/internal/machine/remux-scheduling.js');
+ const facts=pumpFacts({position:10,ranges:[[0,10]],readyState:2});
+ const context={now:10,ranges:facts.ranges,bytes:9,byteLimit:8};
+ const raised=remuxBuffering(schedule(),{forwardLimitBytes:16});
+ assert.equal(selectRemuxPumpContinuation(raised,buffer(),facts,context).kind,'pull');
+ const lowered=remuxBuffering(schedule(),{forwardLimitBytes:8});
+ assert.equal(selectRemuxPumpContinuation(lowered,buffer(),facts,{...context,byteLimit:16}).code,'REMUX_BUFFER_LIMIT');
+});
+test('actual gap seek can raise a fixed budget without the old pump failing',t=>{
+ const {p,video,requests}=shell(t),errors=[],MiB=1024*1024;
+ p.transitionLifecycle({type:'accept',generation:p.generation});video.paused=false;video.readyState=2;
+ p.setBuffering({forwardLimitBytes:8*MiB});p.ranges=()=>[[0,1],[1.2,1.4]];
+ p.lifecycle=Object.freeze({...p.lifecycle,buffer:buffer({segments:[{bytes:9*MiB}]})});p.fail=error=>errors.push(error);
+ let position=2;Object.defineProperty(video,'currentTime',{get:()=>position,set:value=>{position=value;p.setBuffering({forwardLimitBytes:16*MiB});}});
+ p.pump();assert.deepEqual(errors,[]);assert.equal(requests.filter(r=>r.type==='next').length,1);
+});

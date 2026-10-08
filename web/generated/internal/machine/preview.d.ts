@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { type PreviewInteractionState } from './preview-interaction.js';
 import type { PreviewOptionsData, PreviewStrategyData } from '../../types.js';
-export type PreviewSettings = Readonly<Required<Omit<PreviewOptionsData, 'pregenerate' | 'strategy'>>>;
+export type PreviewSettings = Readonly<Required<Omit<PreviewOptionsData, 'pregenerate' | 'strategy' | 'duringPlayback'>>>;
 export type PreviewRequestData = Readonly<{
     time: number;
     width?: number;
@@ -145,7 +145,7 @@ export type PreviewControlEvent = {
     kind: 'settle';
     failed: boolean;
 };
-export declare function createPreviewControl(settings?: Omit<PreviewOptionsData, 'pregenerate' | 'strategy'>): PreviewControlState;
+export declare function createPreviewControl(settings?: Omit<PreviewOptionsData, 'pregenerate' | 'strategy' | 'duringPlayback'>): PreviewControlState;
 /** Data-only control updates. Resource cancellation and observer delivery use the
  * committed result; this authority never holds an image, provider or callback. */
 export declare function transitionPreviewControl(state: PreviewControlState, event: PreviewControlEvent): PreviewControlState;

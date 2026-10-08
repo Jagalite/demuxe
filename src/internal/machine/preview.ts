@@ -3,7 +3,7 @@ import {createPreviewInteraction,observePreviewInteraction,type PreviewInteracti
 import {demuxeStoryboard} from './preview-demuxe.js';
 import type {PreviewOptionsData,PreviewStrategyData} from '../../types.js';
 
-export type PreviewSettings=Readonly<Required<Omit<PreviewOptionsData,'pregenerate'|'strategy'>>>;
+export type PreviewSettings=Readonly<Required<Omit<PreviewOptionsData,'pregenerate'|'strategy'|'duringPlayback'>>>;
 export type PreviewRequestData=Readonly<{time:number;width?:number;height?:number;exact?:boolean;maxDistance?:number;cacheOnly?:boolean}>;
 export type PreviewJobState=Readonly<{id:number;key:string;time:number;width:number;height?:number;exact:boolean;sourceId:string;background:boolean;ready:boolean;aborted:boolean;requiresDecoder?:boolean;selectionMs:number}>;
 export type PreviewCacheEntry=Readonly<{key:string;time:number;bytes:number;background:boolean}>;
@@ -26,7 +26,7 @@ export type PreviewControlEvent=
   |{kind:'provider';id:number;requiresDecoder:boolean|undefined}|{kind:'selection';id:number;milliseconds:number}
   |{kind:'failure';provider:string;errorKind:string}|{kind:'caller';jobId:number;at?:number}|{kind:'settle';failed:boolean};
 
-export function createPreviewControl(settings:Omit<PreviewOptionsData,'pregenerate'|'strategy'>={}):PreviewControlState {
+export function createPreviewControl(settings:Omit<PreviewOptionsData,'pregenerate'|'strategy'|'duringPlayback'>={}):PreviewControlState {
   const options={enabled:true,bucketSeconds:1,debounceMs:50,width:160,maxCacheBytes:4*1024*1024,maxEntries:48,timeoutMs:10000,...settings};
   for(const [key,value] of Object.entries(options))if(key!=='enabled'&&(!Number.isFinite(value)||Number(value)<0))throw new RangeError(`Invalid preview ${key}`);
   if(options.width<1||options.width>2048||!Number.isInteger(options.width)||options.timeoutMs<1||options.timeoutMs>2147483647||options.debounceMs>2147483647||!Number.isInteger(options.maxEntries))throw new RangeError('Invalid preview limits');

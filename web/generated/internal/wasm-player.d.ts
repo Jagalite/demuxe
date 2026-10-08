@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PreviewSessionOptions, type PreviewSession } from './preview-session.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
 import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { AudioOutput, FontAsset, ResourceLimits, SubtitleAsset, MediaInputOptions, StreamingOptions } from '../types.js';
@@ -104,6 +105,7 @@ export declare class WasmPlayer extends EventTarget {
     browserCodecsAbsent: boolean;
     properties: Map<string, unknown>;
     readonly ready: Promise<void>;
+    readonly createPreviewSession: (options: PreviewSessionOptions) => PreviewSession;
     constructor(canvas: HTMLCanvasElement, { providerAssets, prepared, buffering, disableBrowserCodecs, measureOutput, mode, softwarePresenter, audioOutput, audioFallback, resourceLimits, fonts, assetBase, decodeQuality, adaptiveFrameDrop, videoTrack, webgpuDecodeIntent }?: {
         providerAssets?: ProviderRuntimeAssets;
         prepared?: {
@@ -178,6 +180,7 @@ export declare class WasmPlayer extends EventTarget {
         control: "hint" | "profile";
         cache?: boolean;
         forwardLimitBytes?: number;
+        maxForwardLimitBytes?: number;
         backwardLimitBytes?: number;
         forwardSeconds?: number;
         backwardSeconds?: number;

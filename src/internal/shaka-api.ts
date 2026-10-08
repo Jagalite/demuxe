@@ -32,7 +32,7 @@ export declare namespace Shaka {
       abr:Record<string,unknown>;restrictions:Record<string,unknown>;
     };
     type ImageStream = {id:number;encrypted:boolean;segmentIndex:object|null;mimeType:string;createSegmentIndex():Promise<void>};
-    type Variant = {id:number;bandwidth:number;audio?:{id:number}|null;video?:{id:number;segmentIndex?:{find(time:number):number|null;get(position:number):{endTime:number}|null}|null}|null};
+    type Variant = {id:number;bandwidth:number;audio?:{id:number;encrypted?:boolean}|null;video?:{id:number;encrypted?:boolean;segmentIndex?:{find(time:number):number|null;get(position:number):{endTime:number}|null}|null}|null};
     type SwitchCallback = (variant:Variant,clearBuffer?:boolean,safeMargin?:number)=>void;
     type Thumbnail = {uris:string[];startByte:number;endByte:number|null;mimeType:string|null;positionX:number;positionY:number;width:number;height:number;startTime:number};
   }

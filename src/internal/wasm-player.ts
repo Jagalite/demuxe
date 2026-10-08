@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {independentPreviewSession,previewBuffering,type PreviewSessionOptions,type PreviewSession} from './preview-session.js';
 import {beginWasmHandshake,observeWasmHandshake} from './machine/wasm-lifecycle.js';
 import type {ProviderRuntimeAssets} from './provider-runtime.js';
 import {runtimeWorker} from './runtime-worker.js';
@@ -59,8 +60,15 @@ export class WasmPlayer extends EventTarget {
   properties = new Map<string, unknown>();
   readonly ready: Promise<void>;
 
+  readonly createPreviewSession:(options:PreviewSessionOptions)=>PreviewSession;
   constructor(canvas:HTMLCanvasElement, {providerAssets,prepared,buffering=bufferingPolicy(),disableBrowserCodecs=false,measureOutput=false,mode='software',softwarePresenter='auto',audioOutput='stereo',audioFallback='stereo',resourceLimits={},fonts=[],assetBase=new URL('../../../',import.meta.url),decodeQuality='exact',adaptiveFrameDrop=false,videoTrack,webgpuDecodeIntent}: {providerAssets?:ProviderRuntimeAssets;prepared?:{module?:WebAssembly.Module;font?:ArrayBuffer};buffering?:BufferingPolicy;assetBase?:URL;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';resourceLimits?:ResourceLimits;fonts?:FontAsset[];disableBrowserCodecs?:boolean;measureOutput?:boolean;mode?:'hybrid'|'software'|'selective-audio';softwarePresenter?:'auto'|'rgb'|'experimental-yuv';decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;codecString?:string;webCodecsSupported?:boolean;width?:number;height?:number};webgpuDecodeIntent?:Partial<ExternalDecodeIntent>}={}) {
-    super();this.lifecycle=applyWasmSetting(this.lifecycle,{kind:'buffer-policy',policy:buffering}).state;this.audioOnly=mode==='selective-audio';
+    super();
+    this.createPreviewSession=options=>{
+      const surface=options.document.createElement('canvas');surface.width=160;surface.height=90;
+      const child=new WasmPlayer(surface,{providerAssets,prepared:prepared?.module?{module:prepared.module}:undefined,assetBase,resourceLimits,disableBrowserCodecs,mode,videoTrack,webgpuDecodeIntent,buffering:previewBuffering()});
+      return independentPreviewSession(child,surface,`${mode}-pthread`,{...options,sourceDimensions:videoTrack});
+    };
+    this.lifecycle=applyWasmSetting(this.lifecycle,{kind:'buffer-policy',policy:buffering}).state;this.audioOnly=mode==='selective-audio';
     if(!crossOriginIsolated) throw new Error('This player requires a secure, cross-origin isolated page.');
     this.audioContext = new AudioContext({latencyHint:'interactive'});
     this.requestedOutput=audioOutput;this.deviceChannels=this.audioContext.destination.maxChannelCount;
@@ -127,7 +135,7 @@ export class WasmPlayer extends EventTarget {
       };
       void (async()=>{
         const [font]=await Promise.all([
-          prepared?.font?Promise.resolve(prepared.font):(async()=>{const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});if(!response.ok)throw Error('Could not load the bundled subtitle font');return response.arrayBuffer();})(),
+          prepared?.font?Promise.resolve(prepared.font):providerAssets?providerAssets.bytes('fixtures/DejaVuSans.ttf'):(async()=>{const response=await fetch(new URL('fixtures/DejaVuSans.ttf',assetBase),{signal:this.loading.signal});if(!response.ok)throw Error('Could not load the bundled subtitle font');return response.arrayBuffer();})(),
           this.audioContext.audioWorklet.addModule(new URL(this.audioOnly?'web/selective-sync-worklet.js':'web/audio-worklet.js',assetBase)),
         ]);
         if(!wasmAlive(this.lifecycle)) throw this.unavailableError();

@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: Apache-2.0
+import {mkdir,readFile,writeFile,readdir} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
+const root=resolve('build/preview-route-alignment');
+await mkdir(root+'/fixtures',{recursive:true});
+execFileSync('node',['node_modules/typescript/bin/tsc','--outDir',root+'/generated'],{stdio:'inherit'});
+const sources=[];async function walk(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const file=dir+'/'+entry.name;if(entry.isDirectory())await walk(file);else if(file.endsWith('.ts'))sources.push({path:file,sha256:createHash('sha256').update(await readFile(file)).digest('hex')});}}await walk('src');
+await writeFile(root+'/source-identity.json',JSON.stringify({compiledAt:new Date().toISOString(),head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),scope:'Current working source compiled into experiment-only output; not a release archive',sources},null,2)+'\n');
+const ff=(...args)=>execFileSync('ffmpeg',['-nostdin','-hide_banner','-loglevel','error','-y',...args],{stdio:'inherit'});
+const video="testsrc2=size=640x360:rate=24,drawbox=x=0:y=0:w=160:h=160:color=red:t=fill:enable='lt(t,8)',drawbox=x=0:y=0:w=160:h=160:color=lime:t=fill:enable='between(t,8,15.999)',drawbox=x=0:y=0:w=160:h=160:color=blue:t=fill:enable='gte(t,16)'";
+ff('-f','lavfi','-i',video,'-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-t','24','-c:v','libx264','-preset','ultrafast','-g','24','-pix_fmt','yuv420p','-c:a','aac','-ac','2','-movflags','+faststart',root+'/fixtures/movie.mp4');
+ff('-i',root+'/fixtures/movie.mp4','-c','copy',root+'/fixtures/movie.mkv');
+ff('-i',root+'/fixtures/movie.mp4','-c:v','ffv1','-c:a','pcm_s16le',root+'/fixtures/software.mkv');
+await mkdir(root+'/fixtures/dash',{recursive:true});
+ff('-i',root+'/fixtures/movie.mp4','-map','0:v:0','-c','copy','-an','-f','dash','-seg_duration','2',root+'/fixtures/dash/main.mpd');
+ff('-i',root+'/fixtures/movie.mp4','-vf','fps=1/2,scale=160:90',root+'/fixtures/dash/thumb%02d.jpg');
+const mpd=await readFile(root+'/fixtures/dash/main.mpd','utf8');
+await writeFile(root+'/fixtures/dash/images.mpd',mpd.replace('</Period>','<AdaptationSet id="99" contentType="image" mimeType="image/jpeg"><Representation id="thumb" bandwidth="10000" width="160" height="90"><EssentialProperty schemeIdUri="http://dashif.org/guidelines/thumbnail_tile" value="1x1"/><SegmentTemplate timescale="1" duration="2" media="thumb$Number%02d$.jpg" startNumber="1"/></Representation></AdaptationSet></Period>'));
+console.log(root);

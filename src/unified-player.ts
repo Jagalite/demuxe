@@ -63,9 +63,8 @@ import {backendPlan, type Backend, type Session} from './internal/backend.js';
 
 import {PreviewController} from './preview/controller.js';
 import {createPlayerPreview,type PlayerPreview} from './preview/player-preview.js';
-import {SoftwarePreviewProvider} from './preview/software.js';
-import {LocalVideoPreviewProvider,LocalRemuxPreviewProvider} from './preview/providers.js';
-import {NativePlayer as PreviewNativePlayer} from './internal/native-player.js';
+import {SessionPreviewProvider} from './preview/session-provider.js';
+import {previewMayRunDuringPlayback} from './internal/machine/preview-session.js';
 type Source = ({kind: 'local'; file: File | ArrayBuffer; input?: MediaInputOptions} | {kind: 'remote'; options: RemoteSource & {identity?: {size: string; etag?: string}}}) & {trackPolicy?:TrackPolicy};
 class SeekPresentationBoundary extends PlayerError {
   constructor(target:number,boundary:number){super('INVALID_ARGUMENT',`Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`);}
@@ -100,6 +99,13 @@ export class Player extends EventTarget {
   readonly #preview:PlayerPreview;
   get preview():PlayerPreview {return this.#preview;}
   private previewSource?:Blob;
+  private previewBackend?:Backend;
+  private previewKey?:string;
+  private previewRouteKey(){
+    const inventory=this.current?.backend.properties.get('track-list');
+    const selected=Array.isArray(inventory)?inventory.find(track=>track?.type==='video'&&track.selected)?.id:undefined;
+    return JSON.stringify([this.sourceSerial,this.mode,backendPlan(this.current?.backend),this.qualityPolicy,this.current?.backend.properties.get('vid'),selected,this.buffering.memoryBudget]);
+  }
   readonly ready = Promise.resolve();
   private assetBase: URL;
   private readonly qualitySelector?:import('./types.js').QualitySelector;
@@ -533,20 +539,18 @@ export class Player extends EventTarget {
     if(options.runtime&&this.assetBase.href!==options.runtime.assetBase)throw new PlayerError('INVALID_ARGUMENT','Player assetBase must match its shared runtime');
     if(options.runtime||providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,options.runtime?.qualifiedProviders??qualifiedProviderIdentities,providerPreferences,options.runtime);
     if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement) throw new PlayerError('INVALID_ARGUMENT','Pass a container element; Player owns its video/canvas surface');
+    const previewPlaybackPolicy=options.preview===false?'auto':options.preview?.duringPlayback??'auto';
     this.#previewController=new PreviewController([
       {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
         getFrame:request=>this.current?.backend.previewFrame?.(request)??Promise.resolve(null)},
-      new LocalVideoPreviewProvider(()=>this.busy||this.queued>0||this.previewBuffering()?undefined:this.previewSource,container.ownerDocument,options.resourceLimits?.maxDecodePixels),
-      new LocalRemuxPreviewProvider(()=>{
-        if(this.busy||this.queued>0||this.previewBuffering()||!['remux','remux-mpv'].includes(backendPlan(this.current?.backend)??''))return undefined;
-        return this.previewSource;
-      },container.ownerDocument,video=>new PreviewNativePlayer(video,'always',this.assetBase,false,undefined,undefined,false,[],'native-remux',bufferingPolicy({preload:'auto',profile:'low-latency',memoryBudget:8*1024*1024}),2500,undefined,this.remuxRuntime,this.providerRuntime,{providerPreferences:this.remuxSelection.providerPreferences}),options.resourceLimits?.maxDecodePixels),
-      new SoftwarePreviewProvider(()=>{
-        if(this.busy||this.queued>0||this.previewBuffering())return undefined;
-        if(this.previewSource)return {file:this.previewSource,input:this.source?.kind==='local'?this.source.input:undefined};
-        if(this.source?.kind==='remote'&&!this.source.options.streaming?.live&&this.stateSnapshot.streamType!=='live')return {remote:this.source.options};
-        return undefined;
-      },container.ownerDocument,this.assetBase,options.resourceLimits),
+      new SessionPreviewProvider(()=>{
+        if(this.busy||this.queued>0||this.previewBuffering()||!this.current||this.stateSnapshot.streamType==='live')return undefined;
+        const source=this.previewSource?{file:this.previewSource,input:this.source?.kind==='local'?this.source.input:undefined}:this.source?.kind==='remote'&&!this.source.options.streaming?.live?{remote:this.source.options}:undefined;
+        return source?{backend:this.current.backend,source,key:this.previewRouteKey()}:undefined;
+      },container.ownerDocument,()=>{
+        const video=this.stateSnapshot.mediaInfo;
+        return previewMayRunDuringPlayback(previewPlaybackPolicy,this.mode==='software',video.displayWidth??undefined,video.displayHeight??undefined);
+      },options.resourceLimits?.maxDecodePixels),
     ],options.preview===false?{enabled:false}:options.preview);
     this.#preview=createPlayerPreview(this.#previewController);
     this.currentMode = modeValue(options.mode ?? 'native');
@@ -709,6 +713,11 @@ export class Player extends EventTarget {
     const prepared=this.dispatchControl({type:'publication.prepare',id:serial,captureRevision:acceptedControl,input});
     if(!prepared.accepted){this.schedulePublish();return;}
     const projection=prepared.publication!,preview=projection.preview;
+    const previewKey=this.previewRouteKey();
+    if(this.previewBackend!==session?.backend||this.previewKey!==previewKey){
+      this.previewBackend=session?.backend;this.previewKey=previewKey;this.#previewController.clear();
+      if(!current()){this.schedulePublish();return;}
+    }
     for(const apply of [()=>this.#previewController.setPlaybackActive(preview.playbackActive),()=>this.#previewController.setSuspended(preview.suspended||previewHidden),()=>this.#previewController.setDuration(preview.duration),()=>this.#previewController.setPlaybackPosition(preview.position)]){
       apply();if(!current()){this.schedulePublish();return;}
     }

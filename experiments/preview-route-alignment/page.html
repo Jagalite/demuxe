@@ -1,0 +1,4 @@
+<!doctype html><meta charset="utf-8"><title>Demuxe preview route experiment</title>
+<style>body{font:16px system-ui;background:#17191c;color:white}#surface{width:640px;height:360px}#previews{display:flex;gap:12px}canvas,video{max-width:640px}pre{white-space:pre-wrap}</style>
+<h1>Preview route experiment</h1><button id="run">Run matrix</button><div id="surface"></div><div id="previews"></div><pre id="status">Ready</pre>
+<script type="module">import {runCase} from '/experiment/experiment.js';import {runMatrix,matrix} from '/experiment/matrix.js';Object.assign(window,{runCase,runMatrix,matrix});document.querySelector('#run').onclick=async event=>{event.target.disabled=true;try{await runMatrix();}finally{event.target.disabled=false;}};</script>

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { independentPreviewSession, previewBuffering } from './preview-session.js';
 import { beginWasmHandshake, observeWasmHandshake } from './machine/wasm-lifecycle.js';
 import { runtimeWorker } from './runtime-worker.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
@@ -50,8 +51,16 @@ export class WasmPlayer extends EventTarget {
     browserCodecsAbsent = false;
     properties = new Map();
     ready;
+    createPreviewSession;
     constructor(canvas, { providerAssets, prepared, buffering = bufferingPolicy(), disableBrowserCodecs = false, measureOutput = false, mode = 'software', softwarePresenter = 'auto', audioOutput = 'stereo', audioFallback = 'stereo', resourceLimits = {}, fonts = [], assetBase = new URL('../../../', import.meta.url), decodeQuality = 'exact', adaptiveFrameDrop = false, videoTrack, webgpuDecodeIntent } = {}) {
         super();
+        this.createPreviewSession = options => {
+            const surface = options.document.createElement('canvas');
+            surface.width = 160;
+            surface.height = 90;
+            const child = new WasmPlayer(surface, { providerAssets, prepared: prepared?.module ? { module: prepared.module } : undefined, assetBase, resourceLimits, disableBrowserCodecs, mode, videoTrack, webgpuDecodeIntent, buffering: previewBuffering() });
+            return independentPreviewSession(child, surface, `${mode}-pthread`, { ...options, sourceDimensions: videoTrack });
+        };
         this.lifecycle = applyWasmSetting(this.lifecycle, { kind: 'buffer-policy', policy: buffering }).state;
         this.audioOnly = mode === 'selective-audio';
         if (!crossOriginIsolated)
@@ -205,7 +214,7 @@ export class WasmPlayer extends EventTarget {
             };
             void (async () => {
                 const [font] = await Promise.all([
-                    prepared?.font ? Promise.resolve(prepared.font) : (async () => { const response = await fetch(new URL('fixtures/DejaVuSans.ttf', assetBase), { signal: this.loading.signal }); if (!response.ok)
+                    prepared?.font ? Promise.resolve(prepared.font) : providerAssets ? providerAssets.bytes('fixtures/DejaVuSans.ttf') : (async () => { const response = await fetch(new URL('fixtures/DejaVuSans.ttf', assetBase), { signal: this.loading.signal }); if (!response.ok)
                         throw Error('Could not load the bundled subtitle font'); return response.arrayBuffer(); })(),
                     this.audioContext.audioWorklet.addModule(new URL(this.audioOnly ? 'web/selective-sync-worklet.js' : 'web/audio-worklet.js', assetBase)),
                 ]);

@@ -364,7 +364,8 @@ export class RemuxPlayer {
    const continuationFacts=action.gap?this.pumpFacts():null;
    if(!this.generationCurrent(generation))return;
    const next=continuationFacts?selectRemuxPumpContinuation(this.schedule,this.bufferState,continuationFacts,action.continuation):action.next;
-   if(next.kind==='fail'){this.fail(next.error,undefined,generation);return;}
+   if(next.kind==='grow-budget'){this.transitionSchedule({type:'grow-budget',from:next.from,to:next.to},generation);return;}
+   if(next.kind==='fail'){this.fail(next.error,next.code,generation);return;}
    if(next.kind==='eof'){
     // SourceBuffer.buffered intersects multiplexed tracks; it cannot bound the
     // highest coded timestamp. Let MSE finalize duration from its track buffers.
@@ -438,7 +439,7 @@ export class RemuxPlayer {
  get playbackEnded(){return remuxPlaybackEnded(this.schedule,this.bufferState,{ended:this.video.ended,position:this.video.currentTime,duration:this.duration,timelineBias:this.timelineBias});}
  async play(){if(!this.setPlaybackIntent(true))throw new DOMException('Destroyed','AbortError');if(this.starting)return;if(this.windowed){this.pump();if(this.video.ended&&!this.playbackEnded){this.resumeWindow();return;}}return this.video.play();}
  pause(){this.setPlaybackIntent(false);this.video.pause();}
- get bufferingDiagnostics(){return {effectiveForwardSeconds:this.forwardTargetSeconds(),playbackRate:this.video.playbackRate,paused:this.video.paused,waitingForMedia:!!this.waitingForMedia};}
+ get bufferingDiagnostics(){return {codedBudgetBytes:this.schedule.budgetBytes??this.buffering?.forwardLimitBytes??12*1024*1024,maxCodedBudgetBytes:this.buffering?.maxForwardLimitBytes??this.buffering?.forwardLimitBytes??12*1024*1024,budgetGrowths:this.schedule.budgetGrowths,effectiveForwardSeconds:this.forwardTargetSeconds(),playbackRate:this.video.playbackRate,paused:this.video.paused,waitingForMedia:!!this.waitingForMedia};}
  snapshot(){return {delivery:{mode:this.fragmentDelivery,queuedParts:this.delivery?.length??0,queuedBytes:this.delivery.reduce((sum,part)=>sum+part.bytes,0),pulling:this.pulling,busy:this.busy,pending:!!this.pending,updating:this.sbs?.map(s=>s.updating)},buffering:this.bufferingDiagnostics,capability:{...this.capability,...this.bufferState.initAccepted?{initAccepted:true}:{},...this.bufferState.mediaAccepted?{mediaAccepted:true}:{}},stats:structuredClone(this.stats),source:{...this.sourceStats},remux:{...this.remuxStats},windowed:this.windowed,presentationFloor:this.presentationFloor,trackBounds:this.trackBounds,ranges:this.ranges(),timelineBias:this.timelineBias,position:Math.max(0,this.video.currentTime-this.timelineBias),quality:this.video.getVideoPlaybackQuality(),readyState:this.video.readyState,logs:this.logs,videoError:this.video.error?.message};}
  async destroy(){if(!this.transitionLifecycle({type:'destroy'}).accepted)return;clearInterval(this.timer);this.stopWorkers();this.video.pause();this.video.removeAttribute('src');this.video.load();if(this.objectURL)URL.revokeObjectURL(this.objectURL);this.objectURL=null;}
 }

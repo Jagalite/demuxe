@@ -26,8 +26,10 @@ export interface PreviewProvider {
   readonly id:string;readonly priority:number;
   /** Creates or seeks an independent decoder; yield this work to playback. */
   readonly requiresDecoder?:boolean;
-  /** Bounded independent native decoding may run alongside playback. */
+  /** Independent decoding is admitted by the provider playback policy. */
   readonly allowDuringPlayback?:boolean;
+  /** Release independent resources; the provider may be used again later. */
+  release?():void|Promise<void>;
   canHandle(request:PreviewContext):boolean|Promise<boolean>;
   getFrame(request:PreviewContext):Promise<PreviewResult|null>;
 }
@@ -41,6 +43,7 @@ type Caller={job:Job;request:PreviewRequest;start:number;cacheMs:number;onUpdate
  * authority contains only data and cannot issue playback or source effects. */
 export class PreviewController {
   private providers:PreviewProvider[]=[];
+  private releasingProviders=false;
   private cleanups=new Set<Promise<void>>();
   private destruction?:Promise<void>;
   private pregenerator?:PreviewPregenerator;
@@ -50,7 +53,8 @@ export class PreviewController {
   private callers=new Map<number,Caller>();
   private state:PreviewControlState;
   constructor(providers:readonly PreviewProvider[]=[],options:PreviewOptions={}){
-    const {pregenerate,strategy,...settings}=options;
+    const {pregenerate,strategy,duringPlayback,...settings}=options;
+    if(duringPlayback!==undefined&&!['auto','allow','defer'].includes(duringPlayback))throw new TypeError('Invalid preview duringPlayback policy');
     if(pregenerate!==undefined&&strategy!==undefined)throw new TypeError('Choose preview strategy or pregenerate, not both');
     this.state=createPreviewControl(settings);this.setProviders(providers);
     if(strategy!==undefined)this.setStrategy(strategy);
@@ -132,7 +136,7 @@ export class PreviewController {
     if(errors.length)throw errors.length===1?errors[0]:new AggregateError(errors,'Preview cancellation failed');
   }
   /** Playback pressure cancels generation, but resident thumbnails remain usable. */
-  setSuspended(value:boolean){this.dispatch({kind:'suspended',value});this.pregenerator?.setEnabled(this.state.allowed&&!value);if(value)this.cancelWork();}
+  setSuspended(value:boolean){this.dispatch({kind:'suspended',value});this.pregenerator?.setEnabled(this.state.allowed&&!value);if(value){this.cancelWork();this.releaseProviders();}}
   /** Suppress expensive decoder providers while allowing independent native previews. */
   setPlaybackActive(value:boolean){
     this.dispatch({kind:'playback',value});
@@ -164,7 +168,12 @@ export class PreviewController {
     return next.removed;
   }
   private releaseEvictedImages(){const retained=new Set(this.state.cache.map(entry=>entry.key));for(const key of this.images.keys())if(!retained.has(key))this.images.delete(key);}
-  clear(){this.cancelWork();this.dispatch({kind:'clear-cache'});this.images.clear();this.pregenerator?.reset();}
+  private releaseProviders(){
+    if(this.releasingProviders)return;this.releasingProviders=true;
+    try{for(const provider of [...this.providers]){try{const completion=provider.release?.();if(completion)this.trackCleanup(completion);}catch{}}}
+    finally{this.releasingProviders=false;}
+  }
+  clear(){this.cancelWork();this.releaseProviders();this.dispatch({kind:'clear-cache'});this.images.clear();this.pregenerator?.reset();}
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;
     let resolve!:()=>void,reject!:(error:unknown)=>void;this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});

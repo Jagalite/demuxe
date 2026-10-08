@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { independentPreviewSession, previewBuffering } from './preview-session.js';
 import { loadProviderModule } from './provider-modules.js';
 import { executionRecipe } from './execution-recipes.js';
 import { bufferingPolicy, resolveBuffering } from './buffering.js';
@@ -543,6 +544,14 @@ export class NativePlayer extends EventTarget {
             this.emit('mpv', { event: 'property-change', name, data, ...name === 'pause' ? { ended: values['eof-reached'] === true } : {} });
         }
     }
+    createPreviewSession(options) {
+        const video = options.document.createElement('video');
+        video.muted = true;
+        video.playsInline = true;
+        const remux = !['direct', 'direct-mpv'].includes(this.planId ?? '');
+        const child = new NativePlayer(video, remux ? 'always' : 'never', this.assetBase, false, undefined, undefined, false, [], remux ? 'native-remux' : 'native-direct', previewBuffering(remux ? (this.buffering.memoryBudget ?? 64 * 1024 * 1024) : undefined), 8000, undefined, this.remuxRuntime, this.providerRuntime, { providerPreferences: this.startup?.providerPreferences });
+        return independentPreviewSession(child, video, remux ? 'native-remux' : 'native-direct', options);
+    }
     get planId() { return this.mpvSubtitlePlan && this.mpvSubs && this.adapted && this.audioAdaptation === 'flac24' ? 'native-transcode-mpv' : this.mpvAudio ? this.requestedPlan : this.mpvSubtitlePlan && this.mpvSubs ? (this.remux ? 'remux-mpv' : 'direct-mpv') : this.projection ? (this.adapted ? 'adapted-flac24' : 'remux') : this.remux ? (this.adapted ? `adapted-${this.audioAdaptation}` : 'remux') : 'direct'; }
     get bufferingUpdateSupported() { return !this.remux || !!this.remux.setBuffering; }
     async setBuffering(policy) {
@@ -560,10 +569,14 @@ export class NativePlayer extends EventTarget {
             this.changeControl(request, { type: 'buffering', value: policy });
         });
     }
-    get bufferingDiagnostics() {
-        return { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: this.remux?.bufferingDiagnostics ?? { elementPreload: this.video.preload } };
+    resolvedBufferingDiagnostics(settings) {
+        const resolved = resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), bytes = settings?.codedBudgetBytes;
+        return { ...resolved, ...this.remux && typeof bytes === 'number' && Number.isSafeInteger(bytes) && bytes > 0 ? { forwardLimitBytes: bytes } : {}, settings: settings ?? { elementPreload: this.video.preload } };
     }
-    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: { ...resolveBuffering(this.buffering, this.remux ? 'remux' : 'browser'), settings: remux?.buffering ?? { elementPreload: this.video.preload } }, capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.mpvSubs?.tracks.some(t => t.external) ? { component: 'mpv-subtitle-service', scope: 'external', destination: 'container-only', ...this.mpvSubs.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
+    get bufferingDiagnostics() {
+        return this.resolvedBufferingDiagnostics(this.remux?.bufferingDiagnostics);
+    }
+    get diagnostics() { const q = this.video.getVideoPlaybackQuality(), remux = this.remux?.snapshot(); return { buffering: this.resolvedBufferingDiagnostics(remux?.buffering), capability: { ...this.capability, ...(remux?.capability ?? {}) }, path: 'native', projection: this.projection?.diagnostics, mpvAudio: this.mpvAudio?.diagnostics, mpvSubtitles: this.mpvSubs ? { route: this.mpvAudio ? 'native-video + mpv-audio + mpv-subtitles' : this.remux ? 'native-remux + mpv-subtitles' : 'native-direct + mpv-subtitles', ...this.mpvSubs.stats, ...this.mpvSubs.service } : undefined, plan: this.planId, subtitleOverlay: this.mpvSubs?.tracks.some(t => t.external) ? { component: 'mpv-subtitle-service', scope: 'external', destination: 'container-only', ...this.mpvSubs.stats } : undefined, audioProcessing: this.mpvAudio ? { component: 'mpv-pcm-worklet', gain: this.gainValue } : { component: this.gainContext ? 'web-audio-gain' : 'media-element', gain: this.gainValue, contextState: this.gainContext?.state, baseLatency: this.gainContext?.baseLatency }, directFailure: this.directFailure, remux, seekPresentation: { bufferedRetries: this.seekPresentationRetries }, position: this.sourceTime(), rendered: q.totalVideoFrames, dropped: q.droppedVideoFrames, readyState: this.video.readyState }; }
     async load(url, request) {
         const epoch = this.native.epoch, current = () => { this.assertActive(); if (this.native.epoch !== epoch)
             throw new Error('Native load was retired'); if (request)

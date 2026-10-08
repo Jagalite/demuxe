@@ -118,11 +118,12 @@ then restore the profile on play. Remux similarly limits paused preparation.
 These are not zero-transfer guarantees or exact byte/time caps.
 
 Optional `memoryBudget` is an integer coded-data budget ceiling in bytes, 8–64 MiB.
-It can reduce a profile allocation; a larger ceiling does not enlarge that profile. It is
+For mpv it can reduce a profile allocation; a larger ceiling does not enlarge that profile. It is
 not a whole-player, Wasm heap, browser decoder, or network-cache memory limit.
-mpv divides it between forward packets and bounded history; Remux caps its coded
-data accounting at the smaller of this value and 12 MiB, plus an in-flight
-fragment. Browser/Shaka cannot enforce byte budgets and disclose that limitation.
+mpv divides it between forward packets and bounded history. Remux starts at 8 MiB
+and doubles only when a protected GOP blocks preparation or refill, up to this ceiling
+(default 64 MiB), plus an in-flight fragment. Its single thumbnail child inherits the
+same ceiling, so combined coded targets are at most twice the cap. Browser/Shaka cannot enforce byte budgets and disclose that limitation.
 Normal users should omit it. Engine-specific expert overrides are deferred.
 
 | Backend | low-latency | balanced | resilient |
@@ -237,6 +238,9 @@ is pending. Autoplay denial is AUTOPLAY_BLOCKED and never triggers codec fallbac
 pause resolves at observed pause. seek resolves after output settles; it does not
 interrupt active packet reads. There are at most 32 pending core operations.
 Controls preview scrubbing locally and submit a seek on release.
+Built-in thumbnails use an independent session of the accepted playback engine.
+See [preview routing](PREVIEW-ROUTING.md) for playback policy, cancellation,
+authorization and resource limits.
 
 close aborts older queued/in-flight operations, disposes media-specific resources
 and attachments, and leaves a reusable idle instance. It retains configured

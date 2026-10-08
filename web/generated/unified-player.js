@@ -51,9 +51,8 @@ import { nativeRejection, nativeManifestRejection, losslessAdaptationRejection, 
 import { backendPlan } from './internal/backend.js';
 import { PreviewController } from './preview/controller.js';
 import { createPlayerPreview } from './preview/player-preview.js';
-import { SoftwarePreviewProvider } from './preview/software.js';
-import { LocalVideoPreviewProvider, LocalRemuxPreviewProvider } from './preview/providers.js';
-import { NativePlayer as PreviewNativePlayer } from './internal/native-player.js';
+import { SessionPreviewProvider } from './preview/session-provider.js';
+import { previewMayRunDuringPlayback } from './internal/machine/preview-session.js';
 class SeekPresentationBoundary extends PlayerError {
     constructor(target, boundary) { super('INVALID_ARGUMENT', `Seek target ${target} is beyond the backend's audiovisual presentation end (${boundary}); subtitle-only seeking is not available on this plan`); }
 }
@@ -87,6 +86,13 @@ export class Player extends EventTarget {
     #preview;
     get preview() { return this.#preview; }
     previewSource;
+    previewBackend;
+    previewKey;
+    previewRouteKey() {
+        const inventory = this.current?.backend.properties.get('track-list');
+        const selected = Array.isArray(inventory) ? inventory.find(track => track?.type === 'video' && track.selected)?.id : undefined;
+        return JSON.stringify([this.sourceSerial, this.mode, backendPlan(this.current?.backend), this.qualityPolicy, this.current?.backend.properties.get('vid'), selected, this.buffering.memoryBudget]);
+    }
     ready = Promise.resolve();
     assetBase;
     qualitySelector;
@@ -790,24 +796,19 @@ export class Player extends EventTarget {
             this.providerRuntime = new ProviderRuntime(this.assetBase, options.runtime?.qualifiedProviders ?? qualifiedProviderIdentities, providerPreferences, options.runtime);
         if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement)
             throw new PlayerError('INVALID_ARGUMENT', 'Pass a container element; Player owns its video/canvas surface');
+        const previewPlaybackPolicy = options.preview === false ? 'auto' : options.preview?.duringPlayback ?? 'auto';
         this.#previewController = new PreviewController([
             { id: 'shaka', priority: 20, canHandle: () => !!this.current?.backend.previewFrame,
                 getFrame: request => this.current?.backend.previewFrame?.(request) ?? Promise.resolve(null) },
-            new LocalVideoPreviewProvider(() => this.busy || this.queued > 0 || this.previewBuffering() ? undefined : this.previewSource, container.ownerDocument, options.resourceLimits?.maxDecodePixels),
-            new LocalRemuxPreviewProvider(() => {
-                if (this.busy || this.queued > 0 || this.previewBuffering() || !['remux', 'remux-mpv'].includes(backendPlan(this.current?.backend) ?? ''))
+            new SessionPreviewProvider(() => {
+                if (this.busy || this.queued > 0 || this.previewBuffering() || !this.current || this.stateSnapshot.streamType === 'live')
                     return undefined;
-                return this.previewSource;
-            }, container.ownerDocument, video => new PreviewNativePlayer(video, 'always', this.assetBase, false, undefined, undefined, false, [], 'native-remux', bufferingPolicy({ preload: 'auto', profile: 'low-latency', memoryBudget: 8 * 1024 * 1024 }), 2500, undefined, this.remuxRuntime, this.providerRuntime, { providerPreferences: this.remuxSelection.providerPreferences }), options.resourceLimits?.maxDecodePixels),
-            new SoftwarePreviewProvider(() => {
-                if (this.busy || this.queued > 0 || this.previewBuffering())
-                    return undefined;
-                if (this.previewSource)
-                    return { file: this.previewSource, input: this.source?.kind === 'local' ? this.source.input : undefined };
-                if (this.source?.kind === 'remote' && !this.source.options.streaming?.live && this.stateSnapshot.streamType !== 'live')
-                    return { remote: this.source.options };
-                return undefined;
-            }, container.ownerDocument, this.assetBase, options.resourceLimits),
+                const source = this.previewSource ? { file: this.previewSource, input: this.source?.kind === 'local' ? this.source.input : undefined } : this.source?.kind === 'remote' && !this.source.options.streaming?.live ? { remote: this.source.options } : undefined;
+                return source ? { backend: this.current.backend, source, key: this.previewRouteKey() } : undefined;
+            }, container.ownerDocument, () => {
+                const video = this.stateSnapshot.mediaInfo;
+                return previewMayRunDuringPlayback(previewPlaybackPolicy, this.mode === 'software', video.displayWidth ?? undefined, video.displayHeight ?? undefined);
+            }, options.resourceLimits?.maxDecodePixels),
         ], options.preview === false ? { enabled: false } : options.preview);
         this.#preview = createPlayerPreview(this.#previewController);
         this.currentMode = modeValue(options.mode ?? 'native');
@@ -1106,6 +1107,16 @@ export class Player extends EventTarget {
             return;
         }
         const projection = prepared.publication, preview = projection.preview;
+        const previewKey = this.previewRouteKey();
+        if (this.previewBackend !== session?.backend || this.previewKey !== previewKey) {
+            this.previewBackend = session?.backend;
+            this.previewKey = previewKey;
+            this.#previewController.clear();
+            if (!current()) {
+                this.schedulePublish();
+                return;
+            }
+        }
         for (const apply of [() => this.#previewController.setPlaybackActive(preview.playbackActive), () => this.#previewController.setSuspended(preview.suspended || previewHidden), () => this.#previewController.setDuration(preview.duration), () => this.#previewController.setPlaybackPosition(preview.position)]) {
             apply();
             if (!current()) {

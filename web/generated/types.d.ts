@@ -61,6 +61,8 @@ export type ResourceLimits = {
 export type PreloadPolicy = 'none' | 'metadata' | 'auto';
 export type BufferingProfile = 'low-latency' | 'balanced' | 'resilient';
 /** memoryBudget is a coded-data budget ceiling in bytes (8–64 MiB), not total player memory.
+ * Remux starts at 8 MiB and grows on protected-GOP pressure up to this cap (default 64 MiB).
+ * Its single preview child has the same cap; their combined coded targets are at most twice the cap.
  * Browser and Shaka cannot enforce it; consult diagnostics. */
 export type BufferingOptions = {
     preload?: PreloadPolicy;
@@ -98,6 +100,7 @@ export type BufferingResolution = {
     control: 'hint' | 'profile';
     cache?: boolean;
     forwardLimitBytes?: number;
+    maxForwardLimitBytes?: number;
     backwardLimitBytes?: number;
     forwardSeconds?: number;
     backwardSeconds?: number;
@@ -196,7 +199,11 @@ export type PreviewStrategy = Exclude<PreviewStrategyData, {
     type: 'custom';
     sample: PreviewSampler;
 };
+/** Built-in generated previews follow the accepted engine. auto permits native,
+ * Hybrid and known <=720p software sources during playback; allow overrides the
+ * software size gate; defer permits only authored/cached images while playing. */
 export type PreviewOptionsData = {
+    duringPlayback?: 'auto' | 'allow' | 'defer';
     strategy?: PreviewStrategyData;
     pregenerate?: PreviewPregeneration;
     enabled?: boolean;

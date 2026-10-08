@@ -74,7 +74,7 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
   const remux=Object.assign(Object.create(RemuxPlayer.prototype),{video,forwardTargetSeconds:()=>30,lifecycle:Object.freeze({...initialRemuxLifecycle(),output:Object.freeze({...initialRemuxLifecycle().output,waiting:true})}),
     ranges(){throw Error('ranges collected');}});
   Object.defineProperty(remux,'stats',{get(){throw Error('statistics cloned');}});
-  const expected={effectiveForwardSeconds:30,playbackRate:1,paused:false,waitingForMedia:true};
+  const expected={codedBudgetBytes:12*1024*1024,maxCodedBudgetBytes:12*1024*1024,budgetGrowths:0,effectiveForwardSeconds:30,playbackRate:1,paused:false,waitingForMedia:true};
   const worker=new WorkerRemuxController(video,{},()=>undefined),owner=worker.transition({type:'boot'}).owner;worker.accept({snapshot:{buffering:expected}},owner);worker.local=ownership==='worker-fallback'?remux:undefined;
   const player=Object.assign(Object.create(NativePlayer.prototype),{video,native:initialNativeBackend(),remux:ownership==='window'?remux:worker});
   assert.equal(player.bufferingDiagnostics.backend,'remux');
@@ -86,4 +86,11 @@ for(const ownership of ['window','worker','worker-fallback'])test(`${ownership} 
     worker.accept({snapshot:{buffering:{...expected,playbackRate:2}}},owner);
     assert.equal(player.bufferingDiagnostics.settings.playbackRate,2);
   }
+});
+test('effective native diagnostics report the grown coded target consistently',()=>{
+ const settings={codedBudgetBytes:32*1024*1024,maxCodedBudgetBytes:64*1024*1024,budgetGrowths:2};
+ const player=Object.assign(Object.create(NativePlayer.prototype),{native:initialNativeBackend(),video:{preload:'auto',currentTime:1,readyState:4,getVideoPlaybackQuality:()=>({totalVideoFrames:1,droppedVideoFrames:0})},remux:{bufferingDiagnostics:settings,snapshot:()=>({buffering:settings})}});
+ assert.equal(player.bufferingDiagnostics.forwardLimitBytes,32*1024*1024);
+ assert.equal(player.bufferingDiagnostics.maxForwardLimitBytes,64*1024*1024);
+ assert.equal(player.diagnostics.buffering.forwardLimitBytes,32*1024*1024);
 });

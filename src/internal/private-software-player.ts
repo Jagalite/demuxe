@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {independentPreviewSession,previewBuffering,type PreviewSessionOptions,type PreviewSession} from './preview-session.js';
 import type {Backend} from './backend.js';
 import type {RemoteSource, MediaInputOptions, TrackType, ResourceLimits, FontAsset, SubtitleAsset, AudioOutput, BufferingPolicy} from '../types.js';
 import type {ProviderRuntimeAssets} from './provider-runtime.js';
@@ -39,6 +40,11 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
   private get attachmentIds(){return this.policy.attachments.map(item=>item.attachmentId);}
   private get presentedDraws(){return this.policy.presentedDraws;}
   private presentation?:CanvasRenderingContext2D;
+  createPreviewSession(options:PreviewSessionOptions):PreviewSession {
+    const canvas=options.document.createElement('canvas');canvas.width=160;canvas.height=90;
+    const child=new PrivateSoftwarePlayer(canvas,{runtime:this.options.runtime,mode:this.options.mode,providerAssets:this.options.providerAssets,assetBase:this.options.assetBase,resourceLimits:this.options.resourceLimits,videoTrack:this.options.videoTrack,buffering:previewBuffering()});
+    return independentPreviewSession(child,canvas,`${this.options.mode??'software'}-${this.options.runtime}`,{...options,sourceDimensions:this.options.videoTrack});
+  }
   constructor(canvas:HTMLCanvasElement, private options:{prefetchedWasm?:()=>Promise<ArrayBuffer|undefined>|undefined;providerAssets?:ProviderRuntimeAssets;runtime:'jspi'|'asyncify';mode?:'software'|'hybrid';channels?:2|6|8;audioOutput?:AudioOutput;audioFallback?:'stereo'|'reject';buffering?:BufferingPolicy;decodeQuality?:DecodeQuality;adaptiveFrameDrop?:boolean;videoTrack?:{codec:string;width?:number;height?:number};assetBase:URL;duration?:number;resourceLimits?:ResourceLimits;fonts?:FontAsset[]}) {
     super();this.policy=initialPrivateSoftware(options.buffering);
     this.planId=options.mode==='hybrid'?'hybrid-private':'software-private';

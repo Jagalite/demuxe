@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+import { type PreviewSessionOptions, type PreviewSession } from './preview-session.js';
 import type { ProviderRuntimeAssets } from './provider-runtime.js';
-import type { BufferingPolicy } from '../types.js';
+import type { BufferingPolicy, BufferingResolution } from '../types.js';
 import type { CapabilityEvidence } from './runtime-capability.js';
 import type { RemoteSource, TextTrackSource, TrackType, SubtitleAsset, FontAsset } from '../types.js';
 import type { Backend } from './backend.js';
@@ -104,42 +105,14 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private wait;
     private textTrackId;
     private refresh;
+    createPreviewSession(options: PreviewSessionOptions): PreviewSession;
     get planId(): string | undefined;
     get bufferingUpdateSupported(): boolean;
     setBuffering(policy: BufferingPolicy): Promise<void>;
-    get bufferingDiagnostics(): {
-        settings: Record<string, unknown>;
-        requestedAheadSeconds?: number;
-        requestedBehindSeconds?: number;
-        requestedMemoryBudget?: number;
-        requestedProfile: import("../types.js").BufferingProfile;
-        preload: import("../types.js").PreloadPolicy;
-        backend: "browser" | "shaka" | "remux" | "mpv";
-        control: "hint" | "profile";
-        cache?: boolean;
-        forwardLimitBytes?: number;
-        backwardLimitBytes?: number;
-        forwardSeconds?: number;
-        backwardSeconds?: number;
-        notes: string[];
-    };
+    private resolvedBufferingDiagnostics;
+    get bufferingDiagnostics(): BufferingResolution;
     get diagnostics(): {
-        buffering: {
-            settings: Record<string, unknown>;
-            requestedAheadSeconds?: number;
-            requestedBehindSeconds?: number;
-            requestedMemoryBudget?: number;
-            requestedProfile: import("../types.js").BufferingProfile;
-            preload: import("../types.js").PreloadPolicy;
-            backend: "browser" | "shaka" | "remux" | "mpv";
-            control: "hint" | "profile";
-            cache?: boolean;
-            forwardLimitBytes?: number;
-            backwardLimitBytes?: number;
-            forwardSeconds?: number;
-            backwardSeconds?: number;
-            notes: string[];
-        };
+        buffering: BufferingResolution;
         capability: {
             audioEvidenceStrength?: "unknown" | "presence" | "decoded" | "consumed";
             audioObservation?: Readonly<NonNullable<CapabilityEvidence["audioObservation"]>>;

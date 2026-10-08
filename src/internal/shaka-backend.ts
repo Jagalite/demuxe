@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {independentPreviewSession,previewBuffering,type PreviewSessionOptions,type PreviewSession} from './preview-session.js';
 import {beginShakaQuality,stepShakaQuality,commitShakaQuality,verifyShakaQuality} from './machine/shaka-backend.js';
 import {beginAttempts,observeAttempt} from './machine/async-policy.js';
 import {bufferingPolicy, resolveBuffering, shakaBufferingOptions} from './buffering.js';
@@ -79,6 +80,13 @@ export class ShakaBackend extends EventTarget implements Backend {
       this.native.addEventListener(type,listener);this.listeners.push(()=>this.native.removeEventListener(type,listener));
     }
     this.refresh();
+  }
+  createPreviewSession(options:PreviewSessionOptions):PreviewSession|null {
+    if(!this.player||this.player.isDynamic()||this.player.getManifest()?.variants?.some(v=>v.video?.encrypted||v.audio?.encrypted))return null;
+    const video=options.document.createElement('video');video.muted=true;video.playsInline=true;
+    const session=independentPreviewSession(new ShakaBackend(video,this.assetBase,previewBuffering(),this.providerAssets),video,'shaka-generated',options);
+    const active=this.player.getVariantTracks().find(track=>track.active),representation=active?.originalVideoId??active?.originalAudioId;
+    return {...session,open:(source,signal)=>session.open('remote' in source&&representation?{remote:{...source.remote,streaming:{...source.remote.streaming,representation}}}:source,signal)};
   }
   /** Shaka owns image-track indexing. Return its authored reference without
    * downloading a sprite through playback's network/error/ABR machinery. */

@@ -28,7 +28,7 @@ export function transitionRemuxLifecycle(state, command) {
     if (state.stopped)
         return result(state, { error: 'Remux player is destroyed' });
     if (command.type === 'open')
-        return result({ ...state, ...retired(), negotiation: Object.freeze({ ...retireRemuxNegotiation(state.negotiation), duration: command.sourceChanged ? undefined : state.negotiation.duration }), sourceId: state.sourceId + 1, restartId: state.restartId + 1, active: false, starting: false, targetReady: false, recoveryAttempts: 0, recovery: null }, { accepted: true });
+        return result({ ...state, ...retired(), schedule: remuxBuffering(retiredSchedule(), state.schedule.buffering), negotiation: Object.freeze({ ...retireRemuxNegotiation(state.negotiation), duration: command.sourceChanged ? undefined : state.negotiation.duration }), sourceId: state.sourceId + 1, restartId: state.restartId + 1, active: false, starting: false, targetReady: false, recoveryAttempts: 0, recovery: null }, { accepted: true });
     if (command.type === 'buffering')
         return result({ ...state, schedule: remuxBuffering(state.schedule, command.policy) }, { accepted: true });
     if (command.type === 'intent')

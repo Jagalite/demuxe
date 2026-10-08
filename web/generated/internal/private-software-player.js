@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { independentPreviewSession, previewBuffering } from './preview-session.js';
 import { bufferingPolicy, mpvBufferingOptions, resolveBuffering } from './buffering.js';
 import { runtimeWorker } from './runtime-worker.js';
 import { PlayerError, playerError } from './errors.js';
@@ -35,6 +36,13 @@ export class PrivateSoftwarePlayer extends EventTarget {
     get attachmentIds() { return this.policy.attachments.map(item => item.attachmentId); }
     get presentedDraws() { return this.policy.presentedDraws; }
     presentation;
+    createPreviewSession(options) {
+        const canvas = options.document.createElement('canvas');
+        canvas.width = 160;
+        canvas.height = 90;
+        const child = new PrivateSoftwarePlayer(canvas, { runtime: this.options.runtime, mode: this.options.mode, providerAssets: this.options.providerAssets, assetBase: this.options.assetBase, resourceLimits: this.options.resourceLimits, videoTrack: this.options.videoTrack, buffering: previewBuffering() });
+        return independentPreviewSession(child, canvas, `${this.options.mode ?? 'software'}-${this.options.runtime}`, { ...options, sourceDimensions: this.options.videoTrack });
+    }
     constructor(canvas, options) {
         super();
         this.options = options;

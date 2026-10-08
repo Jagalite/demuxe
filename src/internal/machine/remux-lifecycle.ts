@@ -56,7 +56,7 @@ export function transitionRemuxLifecycle(state:RemuxLifecycle,command:RemuxLifec
  const result=(next:RemuxLifecycle,extra:Omit<RemuxLifecycleDecision,'state'>={})=>Object.freeze({state:next===state?state:Object.freeze({...next}),...extra});
  if(command.type==='destroy')return state.stopped?result(state):result({...state,...retired(),stopped:true,active:false,starting:false,targetReady:false,generation:state.generation+1,recovery:null},{accepted:true});
  if(state.stopped)return result(state,{error:'Remux player is destroyed'});
- if(command.type==='open')return result({...state,...retired(),negotiation:Object.freeze({...retireRemuxNegotiation(state.negotiation),duration:command.sourceChanged?undefined:state.negotiation.duration}),sourceId:state.sourceId+1,restartId:state.restartId+1,active:false,starting:false,targetReady:false,recoveryAttempts:0,recovery:null},{accepted:true});
+ if(command.type==='open')return result({...state,...retired(),schedule:remuxBuffering(retiredSchedule(),state.schedule.buffering),negotiation:Object.freeze({...retireRemuxNegotiation(state.negotiation),duration:command.sourceChanged?undefined:state.negotiation.duration}),sourceId:state.sourceId+1,restartId:state.restartId+1,active:false,starting:false,targetReady:false,recoveryAttempts:0,recovery:null},{accepted:true});
  if(command.type==='buffering')return result({...state,schedule:remuxBuffering(state.schedule,command.policy)},{accepted:true});
  if(command.type==='intent')return result({...state,playing:command.playing},{accepted:true});
  if(command.type==='restart'){

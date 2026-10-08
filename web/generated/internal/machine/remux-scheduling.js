@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialRemuxSchedule() { return Object.freeze({ target: 0, windowed: false, presentationFloor: 0, primeVideo: false, trackBounds: null, raps: Object.freeze([]), lastEviction: -Infinity, lastEvictions: Object.freeze([]), buffering: undefined, resumeSerial: 0, resume: null }); }
-export function resetRemuxSchedule(state, target = state.target) { return Object.freeze({ ...initialRemuxSchedule(), target, buffering: state.buffering, resumeSerial: state.resumeSerial }); }
-export function remuxBuffering(state, policy) { return Object.freeze({ ...state, buffering: policy ? Object.freeze({ preload: policy.preload, forwardSeconds: policy.forwardSeconds, backwardSeconds: policy.backwardSeconds, forwardLimitBytes: policy.forwardLimitBytes }) : undefined }); }
+export function initialRemuxSchedule() { return Object.freeze({ budgetBytes: undefined, budgetGrowths: 0, target: 0, windowed: false, presentationFloor: 0, primeVideo: false, trackBounds: null, raps: Object.freeze([]), lastEviction: -Infinity, lastEvictions: Object.freeze([]), buffering: undefined, resumeSerial: 0, resume: null }); }
+export function resetRemuxSchedule(state, target = state.target) { return Object.freeze({ ...initialRemuxSchedule(), target, buffering: state.buffering, budgetBytes: state.budgetBytes, budgetGrowths: state.budgetGrowths, resumeSerial: state.resumeSerial }); }
+export function remuxBuffering(state, policy) { return Object.freeze({ ...state, budgetBytes: undefined, budgetGrowths: 0, buffering: policy ? Object.freeze({ preload: policy.preload, forwardSeconds: policy.forwardSeconds, backwardSeconds: policy.backwardSeconds, forwardLimitBytes: policy.forwardLimitBytes, maxForwardLimitBytes: policy.maxForwardLimitBytes }) : undefined }); }
 export function transitionRemuxSchedule(state, command) {
     const result = (next, accepted = true, id) => Object.freeze({ state: next === state ? state : Object.freeze({ ...next }), accepted, ...id === undefined ? {} : { id } });
+    if (command.type === 'grow-budget') {
+        const current = remuxByteLimit(state), next = nextRemuxByteLimit(state);
+        return command.from === current && next !== undefined && command.to === next ? result({ ...state, budgetBytes: next, budgetGrowths: state.budgetGrowths + 1 }) : result(state, false);
+    }
     if (command.type === 'configure') {
         const trackBounds = command.trackBounds ? Object.freeze({ videoEnd: command.trackBounds.videoEnd, audioEnd: command.trackBounds.audioEnd }) : null;
         return result({ ...state, windowed: command.windowed, trackBounds, presentationFloor: command.windowed && trackBounds && state.target >= Math.min(trackBounds.videoEnd, trackBounds.audioEnd) ? Math.max(0, state.target - .5) : 0, primeVideo: !!(command.windowed && trackBounds && state.target >= trackBounds.videoEnd && trackBounds.videoEnd < trackBounds.audioEnd) });
@@ -23,6 +27,13 @@ export function transitionRemuxSchedule(state, command) {
     const id = state.resumeSerial + 1;
     return result({ ...state, resumeSerial: id, resume: id }, true, id);
 }
+export function remuxByteLimit(state) { return state.budgetBytes ?? state.buffering?.forwardLimitBytes ?? 12 * 1024 * 1024; }
+function nextRemuxByteLimit(state) {
+    const current = remuxByteLimit(state), cap = state.buffering?.maxForwardLimitBytes;
+    if (!Number.isSafeInteger(current) || current <= 0 || cap === undefined || !Number.isSafeInteger(cap) || cap <= current || cap > 64 * 1024 * 1024)
+        return undefined;
+    return Math.min(current * 2, cap);
+}
 export function remuxForwardSeconds(state, paused, playbackRate) { return (paused && state.buffering?.preload !== 'auto' && state.buffering ? 1 : (state.buffering?.forwardSeconds ?? 5)) * (paused ? 1 : Math.max(1, playbackRate || 1)); }
 export function remuxStartupCoverage(target, duration, ranges) {
     const margin = Math.min(.02, Math.max(0, duration - target) / 2);
@@ -40,7 +51,7 @@ export function selectRemuxPumpHead(state, buffer, facts) {
 }
 export function selectRemuxPump(state, buffer, facts) {
     const now = facts.targetReady ? Math.max(facts.position, state.target) : state.target, ranges = facts.ranges;
-    const bytes = buffer.segments.reduce((sum, segment) => sum + segment.bytes, 0), metrics = Object.freeze({ seconds: ranges.reduce((sum, [a, b]) => sum + b - a, 0), bytes }), byteLimit = state.buffering?.forwardLimitBytes ?? 12 * 1024 * 1024;
+    const bytes = buffer.segments.reduce((sum, segment) => sum + segment.bytes, 0), metrics = Object.freeze({ seconds: ranges.reduce((sum, [a, b]) => sum + b - a, 0), bytes }), byteLimit = remuxByteLimit(state);
     const result = (action) => Object.freeze({ metrics, action: Object.freeze({ ...action }) });
     const pressured = bytes >= byteLimit, historyLimit = now - (pressured ? 0 : (state.buffering?.backwardSeconds ?? 3)), retainedRap = state.raps.filter(time => time <= historyLimit).at(-1);
     if (state.windowed && facts.targetReady && state.trackBounds) {
@@ -60,10 +71,10 @@ export function selectRemuxPump(state, buffer, facts) {
     const continuation = Object.freeze({ now, ranges: Object.freeze(ranges.map(([a, b]) => Object.freeze([a, b]))), bytes, byteLimit });
     return result({ kind: 'finish', clearPending: buffer.pending !== null, gap, continuation, next: selectRemuxPumpContinuation(state, buffer.pending ? Object.freeze({ ...buffer, pending: null }) : buffer, facts, continuation) });
 }
-/** After a gap seek, preserve the original coverage/budget sample but observe
+/** After a gap seek, preserve the original coverage/byte-accounting sample but observe
  * pause/rate/intent/policy again before deciding preparation, failure or refill. */
 export function selectRemuxPumpContinuation(state, buffer, facts, context) {
-    const { now, ranges, bytes, byteLimit } = context, pressured = bytes >= byteLimit;
+    const { now, ranges, bytes } = context, byteLimit = remuxByteLimit(state), pressured = bytes >= byteLimit;
     const result = (next) => Object.freeze({ ...next });
     const ahead = (ranges.find(([a, b]) => a <= now + .5 && now <= b)?.[1] ?? NaN) - now || 0;
     if (ahead < 5 && (ranges.at(-1)?.[1] ?? NaN) > now + 12)
@@ -75,8 +86,24 @@ export function selectRemuxPumpContinuation(state, buffer, facts, context) {
         return result({ kind: 'fail', error: 'Adapted track timelines cannot progress within the preparation budget; use Hybrid' });
     if (state.windowed && !facts.targetReady && !state.primeVideo && remuxStartupCoverage(state.target, facts.duration, facts.ranges))
         return result({ kind: 'wait' });
-    if (!buffer.eof && facts.targetReady && pressured && ahead <= 0 && (state.windowed ? facts.playing : !facts.paused))
-        return result({ kind: 'fail', error: 'Remux cannot refill within the coded-data budget while preserving the current GOP' });
+    const budgetBlocked = (error) => {
+        const next = nextRemuxByteLimit(state);
+        return next === undefined ? result({ kind: 'fail', error, code: 'REMUX_BUFFER_LIMIT' }) : result({ kind: 'grow-budget', from: remuxByteLimit(state), to: next });
+    };
+    // A paused startup/seek cannot consume or evict its protected decode interval.
+    // Once its byte ceiling is reached without target coverage, waiting cannot
+    // make progress. Report the resource limit before an outer caller times out.
+    if (!facts.targetReady && pressured && !remuxStartupCoverage(state.target, facts.duration, facts.ranges))
+        return budgetBlocked('Remux cannot prepare the target within the coded-data budget while preserving the current GOP');
+    // Grow before starvation: media clocks may stop a microsecond before the
+    // buffered end, so an exact zero test can wait forever. Eviction has already
+    // had priority; only the retained GOP is preventing refill here.
+    if (!buffer.eof && facts.targetReady && pressured && (state.windowed ? facts.playing : !facts.paused)) {
+        if (ahead < remuxForwardSeconds(state, facts.paused, facts.playbackRate) && nextRemuxByteLimit(state) !== undefined)
+            return budgetBlocked('Remux cannot refill within the coded-data budget while preserving the current GOP');
+        if (ahead <= 0 || facts.readyState < 3 && ahead < .25)
+            return budgetBlocked('Remux cannot refill within the coded-data budget while preserving the current GOP');
+    }
     const forward = remuxForwardSeconds(state, facts.paused, facts.playbackRate);
     return result({ kind: !buffer.eof && ahead < forward && preparedAhead < forward && bytes < byteLimit ? 'pull' : 'wait' });
 }

@@ -79,8 +79,10 @@ export interface PreviewProvider {
     readonly priority: number;
     /** Creates or seeks an independent decoder; yield this work to playback. */
     readonly requiresDecoder?: boolean;
-    /** Bounded independent native decoding may run alongside playback. */
+    /** Independent decoding is admitted by the provider playback policy. */
     readonly allowDuringPlayback?: boolean;
+    /** Release independent resources; the provider may be used again later. */
+    release?(): void | Promise<void>;
     canHandle(request: PreviewContext): boolean | Promise<boolean>;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
 }
@@ -88,6 +90,7 @@ export interface PreviewProvider {
  * authority contains only data and cannot issue playback or source effects. */
 export declare class PreviewController {
     private providers;
+    private releasingProviders;
     private cleanups;
     private destruction?;
     private pregenerator?;
@@ -156,6 +159,7 @@ export declare class PreviewController {
         end: number;
     }): number;
     private releaseEvictedImages;
+    private releaseProviders;
     clear(): void;
     destroy(): Promise<void>;
     /** Explicit optional prefetch. Busy lanes decline; a hover always supersedes it. */

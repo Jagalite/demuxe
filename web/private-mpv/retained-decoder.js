@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import {videoCodecConfig,vp9PacketConfig} from '../video-codec-config.js';
-import {WebCodecsVideoDecoder} from '../external-video-decoder.js';
+import {WebCodecsVideoDecoder,externalFrameDuration} from '../external-video-decoder.js';
 import {initialRetainedDecoder,retainedDecoderCurrent,retireRetainedDecoder,resetRetainedDecoder,pendingRetainedConfiguration,checkRetainedConfiguration,activateRetainedDecoder,retainedSourcePolicy,acceptRetainedDecoderFrame,closeRetainedDecoderFrame,failRetainedDecoder,retainedPacketPolicy,submittedRetainedPacket,drainRetainedDecoder,flushedRetainedDecoder,releaseRetainedDecoderCapacity,receiveRetainedDecoderFrame,retainedOutputValid,deliveredRetainedFrame} from '../generated/internal/machine/private-retained-decoder.js';
 import {videoReorderDepth} from '../generated/internal/machine/video-frame-order.js';
 const AGAIN=-6;
@@ -137,7 +137,7 @@ export class PrivateRetainedDecoder {
       }
       if(received.id===null)return {result:received.result};const frame=this.frames.get(received.id);this.frames.delete(received.id);
       try{
-        const {width,height}=frame.visibleRect,timestamp=frame.timestamp,duration=frame.duration??0;
+        const {width,height}=frame.visibleRect,timestamp=frame.timestamp,duration=externalFrameDuration(frame);
         if(!retainedOutputValid({width,height,timestamp,duration},this.maxPixels))throw Error('Invalid retained output frame');
         const space=frame.colorSpace;if(!this.current(scope))throw Error('Decoder generation replaced');
         this.machine=deliveredRetainedFrame(this.machine,scope,received.resumed);

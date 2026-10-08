@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {videoCodecConfig,vp9PacketConfig} from './video-codec-config.js';
-import {WebCodecsVideoDecoder} from './external-video-decoder.js';
+import {WebCodecsVideoDecoder,externalFrameDuration} from './external-video-decoder.js';
 import {initialLegacyDecoderWorker,reduceLegacyDecoderWorker,admitLegacyDecoderWork,finishLegacyDecoderWork,legacyDecoderCurrent,admitLegacyDecoderFrame,takeLegacyDecoderFrame,legacyDecoderPacketAdmission,observeLegacyDecoderWait} from './generated/internal/machine/legacy-decoder-worker.js';
 import {videoReorderDepth} from './generated/internal/machine/video-frame-order.js';
 let control=initialLegacyDecoderWorker();
@@ -192,7 +192,7 @@ async function pump(){
       header[5]=w;header[6]=h;header[8]=+nv12;
       header[9]=color[frame.colorSpace.primaries]??2;header[10]=color[frame.colorSpace.transfer]??2;
       header[11]=color[frame.colorSpace.matrix]??2;header[12]=+!!frame.colorSpace.fullRange;
-      view.setFloat64(64,frame.timestamp,true);view.setFloat64(72,frame.duration??0,true);
+      view.setFloat64(64,frame.timestamp,true);view.setFloat64(72,externalFrameDuration(frame),true);
       postMessage({retainedFrame:frame,pts:frame.timestamp,generation:control.generation},[frame]);
       stats.transferredFrames=(stats.transferredFrames??0)+1;
       transition({type:'delivered'});stats.frames++;result=1;

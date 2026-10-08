@@ -27,6 +27,8 @@ export type ResourceLimits = {maxDecodePixels?: number; maxAllocationBytes?: num
 export type PreloadPolicy = 'none' | 'metadata' | 'auto';
 export type BufferingProfile = 'low-latency' | 'balanced' | 'resilient';
 /** memoryBudget is a coded-data budget ceiling in bytes (8–64 MiB), not total player memory.
+ * Remux starts at 8 MiB and grows on protected-GOP pressure up to this cap (default 64 MiB).
+ * Its single preview child has the same cap; their combined coded targets are at most twice the cap.
  * Browser and Shaka cannot enforce it; consult diagnostics. */
 export type BufferingOptions = {preload?:PreloadPolicy; profile?:BufferingProfile; memoryBudget?:number; aheadSeconds?:number; behindSeconds?:number};
 export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|'profile'>> & Pick<BufferingOptions,'memoryBudget'|'aheadSeconds'|'behindSeconds'>>;
@@ -37,7 +39,7 @@ export type BufferingPolicy = Readonly<Required<Pick<BufferingOptions,'preload'|
 export type WatchdogOptions = {nativeProgress?:boolean;hybridDecoder?:boolean;decoderOutput?:boolean;selectiveAudio?:boolean;nativeProgressTimeoutMs?:number};
 export type WatchdogPolicy = Readonly<Required<WatchdogOptions>>;
 export type BufferingCapabilities = Readonly<{control:'hint'|'profile'; preload:boolean; profile:boolean; memoryBudget:boolean}>;
-export type BufferingResolution = {requestedAheadSeconds?:number; requestedBehindSeconds?:number; requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
+export type BufferingResolution = {requestedAheadSeconds?:number; requestedBehindSeconds?:number; requestedMemoryBudget?:number; requestedProfile:BufferingProfile; preload:PreloadPolicy; backend:'browser'|'shaka'|'remux'|'mpv'; control:'hint'|'profile'; cache?:boolean; forwardLimitBytes?:number; maxForwardLimitBytes?:number; backwardLimitBytes?:number; forwardSeconds?:number; backwardSeconds?:number; notes:string[]; settings?:Record<string,unknown>};
 export type PreviewPregeneration = readonly number[] | ({width?:number;height?:number;count?:number|null} & ({timestamps:readonly number[];every?:never;unit?:never;samples?:never}|{every:number;unit?:'seconds'|'minutes';timestamps?:never;samples?:never}|{samples:number;timestamps?:never;every?:never;unit?:never}));
 /** Immutable cache snapshot for a synchronous, side-effect-free sampling callback. */
 export type PreviewSamplingContext = Readonly<{
@@ -64,7 +66,10 @@ export type PreviewStrategyData =
   | {type:'directional';samples?:number;every?:number;radius?:number;lookAhead?:number}
   | {type:'timestamps';timestamps:readonly number[];count?:number|null};
 export type PreviewStrategy = Exclude<PreviewStrategyData,{type:'custom'}> | {type:'custom';sample:PreviewSampler};
-export type PreviewOptionsData = {strategy?:PreviewStrategyData;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
+/** Built-in generated previews follow the accepted engine. auto permits native,
+ * Hybrid and known <=720p software sources during playback; allow overrides the
+ * software size gate; defer permits only authored/cached images while playing. */
+export type PreviewOptionsData = {duringPlayback?:'auto'|'allow'|'defer';strategy?:PreviewStrategyData;pregenerate?:PreviewPregeneration;enabled?:boolean;bucketSeconds?:number;debounceMs?:number;width?:number;maxCacheBytes?:number;maxEntries?:number;timeoutMs?:number};
 export type PreviewOptions = Omit<PreviewOptionsData,'strategy'> & {strategy?:PreviewStrategy};
 export type PreparationComponent = 'inspector' | 'hybrid' | 'software';
 export type PreparationOptions = 'all' | readonly PreparationComponent[];
