@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
+import {initialViewportLease,acquireViewportLease,releaseViewportLease,viewportLeaseCurrent,type ViewportLease} from '../internal/machine/viewport-lease.js';
+import {PlayerError} from '../internal/errors.js';
+const documentLeases=new WeakMap<Document,{state:ViewportLease}>();
 /** Browser-viewport expansion keeps the existing composed player in the top layer. */
 export class ViewportExpansion {
   private restore?:()=>void;
+  private listeners=new Set<()=>void>();
+  get available(){return this.host.isConnected&&typeof this.shell.showPopover==='function';}
+  subscribe(listener:()=>void){this.listeners.add(listener);return ()=>{this.listeners.delete(listener);};}
+  private notify(){this.changed();for(const listener of [...this.listeners]){try{listener();}catch{}}}
   constructor(private host:HTMLElement,private shell:HTMLElement,private changed:()=>void){
     shell.addEventListener('toggle',()=>{if(this.restore&&!this.active)this.close(false);});
     shell.addEventListener('keydown',event=>{
@@ -28,15 +35,21 @@ export class ViewportExpansion {
     if(this.restore)this.close(false);
     if(!this.host.isConnected||typeof this.shell.showPopover!=='function')throw Error('Browser-viewport expansion is unavailable');
     const doc=this.host.ownerDocument,focused=this.host.shadowRoot?.activeElement as HTMLElement|null;
+    let lease=documentLeases.get(doc);if(!lease){lease={state:initialViewportLease()};documentLeases.set(doc,lease);}
+    const admission=acquireViewportLease(lease.state);lease.state=admission.state;
+    if(admission.id===null)throw new PlayerError('UNSUPPORTED_FEATURE','Another player owns browser-viewport expansion');
+    const id=admission.id,owner=lease;
+    const current=()=>{if(!viewportLeaseCurrent(owner.state,id))throw new PlayerError('ABORTED','Browser-viewport expansion was retired');};
     const inert=new Map<HTMLElement,boolean>(),overflow=new Map<HTMLElement,[string,string]>();
-    this.restore=()=>{
+    const restore=()=>{try{
       for(const [node,value]of inert)node.inert=value;
       for(const [node,[value,priority]]of overflow)if(node.style.getPropertyValue('overflow')==='hidden'){
         if(value)node.style.setProperty('overflow',value,priority);else node.style.removeProperty('overflow');
       }
-    };
+    }finally{owner.state=releaseViewportLease(owner.state,id);}};
+    this.restore=restore;
     try{
-      this.shell.setAttribute('popover','manual');this.shell.showPopover();
+      this.shell.setAttribute('popover','manual');this.shell.showPopover();current();
       // Inert siblings along the host's ancestor chain, including shadow roots.
       // Nothing is reparented, so the player, its surface and subtitle layers survive.
       let node:Node=this.host;
@@ -46,15 +59,15 @@ export class ViewportExpansion {
         node=parent instanceof ShadowRoot?parent.host:parent;
       }
       for(const target of [doc.documentElement,doc.body])if(target){overflow.set(target,[target.style.getPropertyValue('overflow'),target.style.getPropertyPriority('overflow')]);target.style.setProperty('overflow','hidden');}
-      (focused??this.shell.querySelector<HTMLElement>('#fullscreen'))?.focus({preventScroll:true});this.changed();
-    }catch(error){this.close(false);throw error;}
+      (focused??this.shell.querySelector<HTMLElement>('#fullscreen'))?.focus({preventScroll:true});current();this.notify();
+    }catch(error){if(this.restore===restore)this.close(false);throw error;}
   }
   close(focus=true){
     if(!this.restore)return;
     const restore=this.restore;this.restore=undefined;
     try{if(this.active)this.shell.hidePopover();}
     finally{
-      this.shell.removeAttribute('popover');restore();this.changed();
+      this.shell.removeAttribute('popover');restore();this.notify();
       if(focus&&this.host.isConnected)this.shell.querySelector<HTMLElement>('#fullscreen')?.focus({preventScroll:true});
     }
   }

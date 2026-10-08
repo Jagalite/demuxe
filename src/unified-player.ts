@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {providerUpdatesPending} from './internal/machine/provider-updates.js';
 import {startupFallbackPlan,startupLoadBudget,startupPrefetchCurrent,startupPreparation} from './internal/machine/startup.js';
 import {resourceAvailable} from './internal/machine/resource-ledger.js';
 import {EffectRuntime} from './internal/effects/runtime.js';
@@ -9,6 +10,7 @@ import {providerDeploymentEnabled, qualifiedProviderIdentities} from './internal
 import {normalizeProviderPreferences} from './internal/provider-cost.js';
 import {preferProviderPlans} from './internal/execution-recipes.js';
 import {ProviderRuntime} from './internal/provider-runtime.js';
+import {DemuxeRuntime,runtimeAccess} from './runtime.js';
 import {loadProviderModule} from './internal/provider-modules.js';
 import {routingRequirements, missingRoutingFacts} from './internal/probe-requirements.js';
 import {bufferingPolicy, resolveBuffering} from './internal/buffering.js';
@@ -103,6 +105,27 @@ export class Player extends EventTarget {
   private readonly qualitySelector?:import('./types.js').QualitySelector;
   private readonly adaptiveSelection:boolean;
   private providerRuntime?: ProviderRuntime;
+  private sharedRuntime?:DemuxeRuntime;
+  private unsubscribeProviders?:()=>void;
+  private get providerUpdatePending(){return providerUpdatesPending(this.control.routing.providers);}
+  private providersChanged(){
+    if(this.destroyed)return;
+    this.dispatchControl({type:'routing.providers',change:{kind:'notify'}});
+    if(!this.queued&&!this.activeOperation)this.schedulePromotion();
+  }
+  private refreshProviders(consumeNotification=true):boolean{
+    const through=this.control.routing.providers.received;
+    const changed=this.sharedRuntime?(this.providerRuntime?.refresh()??false):false;
+    if(consumeNotification)this.dispatchControl({type:'routing.providers',change:{kind:'consume',through}});
+    if(changed){
+      // Preparation jobs retain their outcome and runtime choice. A new catalog
+      // needs a fresh owner; compiled assets remain in the shared runtime cache.
+      const preparation=this.preparation;this.preparation=undefined;preparation?.destroy();
+      this.transcodeAssetsChecked=false;this.selectiveAudioAssetsChecked=false;
+      this.privatePlaybackAssetsFailure=undefined;
+    }
+    return changed;
+  }
   private get buffering(){return this.control.preferences.buffering;}
   private set buffering(value:BufferingPolicy){this.updatePreferences({buffering:value});}
   private get stateSnapshot():PlayerState{return this.control.publication.snapshot??undefined!;}
@@ -220,7 +243,7 @@ export class Player extends EventTarget {
   private promotionController?:AbortController;
   private backgroundPromotion?:{maxKnownBytes:number};
   private tierConfiguration(settings=this.settings,requirements:RouteRequirements={}){return JSON.stringify([settings.aid,settings.sid,settings.subtitles,settings.vf,settings.af,settings.gain,this.candidatePreferences.toneMapping,this.audioOutput,this.audioPlayback,requirements.nativeRemux??this.nativeRemux,this.remuxRuntime,this.mpvSubtitles,this.nativeASS,this.fonts.length,this.subtitleAssets.length,[...this.publicSelections]]);}
-  private promotionFacts():PromotionFacts{return {automatic:this.automatic,source:!!this.source,current:!!this.current,error:!!this.current?.error,paused:this.settings.pause,background:!!this.backgroundPromotion,waiting:this.observedWaiting,queued:this.queued};}
+  private promotionFacts():PromotionFacts{return {automatic:this.automatic,source:!!this.source,current:!!this.current,error:!!this.current?.error,paused:this.settings.pause,background:!!this.backgroundPromotion,waiting:this.observedWaiting,queued:this.queued,reevaluate:this.providerUpdatePending};}
   private cancelPromotion(){
     const running=this.promotionRunning,controller=this.promotionController,operation=this.activeOperation?.controller,inspection=this.inspection,candidate=this.candidate;
     const timer=this.promotionTimer;this.promotionTimer=undefined;this.promotionController=undefined;
@@ -262,12 +285,17 @@ export class Player extends EventTarget {
         this.dispatchControl({type:'routing.promotion',change:{kind:'start',id:timer.id,facts:this.promotionFacts()}});
         if(this.control.routing.promotion.active?.id!==timer.id||this.control.routing.promotion.active.phase!=='inspecting')return;
         const current=this.diagnostics.plan?.id,source=this.source!,settings={...this.settings};
-        if(this.sourceInspection?.source!==source)await this.select(source,settings,true,this.nativeTracks,0,undefined,[],true);
+        const providerPending=this.providerUpdatePending,providerChanged=this.refreshProviders();
+        if(providerPending||providerChanged||this.sourceInspection?.source!==source)await this.select(source,settings,true,this.nativeTracks,0,undefined,[],true);
         const inspected=this.sourceInspection;
         if(!current||!inspected||inspected.source!==source)return;
         const nativeReason=nativeRejection(inspected.probe,{...inspected.settings,subtitles:settings.subtitles,sid:settings.sid==='no'?'no':inspected.settings.sid});
         const plans=this.admissible(source,settings,this.subtitleAssets,this.nativeTracks,nativeReason,true);
         this.assertOperation();
+        this.planDecisions=plans;this.schedulePublish();
+        // Provider changes always refresh route evidence. Playing transitions
+        // retain the existing opt-in overlap and allocation budget contract.
+        if(!settings.pause&&!this.backgroundPromotion)return;
         if(!this.dispatchControl({type:'routing.promotion',change:{kind:'trying',id:timer.id,candidates:promotionCandidates(plans.map(plan=>({id:plan.id,mode:plan.mode,eligible:plan.eligible,cachedFailure:!!this.tierAttempts.reason(source,this.tierConfiguration(settings),plan.id)})),current,settings.pause)}}).accepted)return;
         this.admissionContext={nativeReason,automatic:true};
         while(currentActive()){
@@ -498,8 +526,12 @@ export class Player extends EventTarget {
     const prepare=preparationComponents(options.prepare??[]);
     if (typeof HTMLElement==='undefined') throw new PlayerError('INVALID_ARGUMENT','Player construction requires a browser');
     this.buffering=bufferingPolicy(options.buffering);
-    this.assetBase=runtimeBase(options.assetBase);
-    if(providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,qualifiedProviderIdentities,providerPreferences);
+    if(options.runtime!==undefined&&!(options.runtime instanceof DemuxeRuntime))throw new PlayerError('INVALID_ARGUMENT','Invalid Demuxe runtime');
+    if(options.runtime)runtimeAccess(options.runtime).snapshot();
+    this.sharedRuntime=options.runtime;
+    this.assetBase=runtimeBase(options.assetBase??options.runtime?.assetBase);
+    if(options.runtime&&this.assetBase.href!==options.runtime.assetBase)throw new PlayerError('INVALID_ARGUMENT','Player assetBase must match its shared runtime');
+    if(options.runtime||providerDeploymentEnabled)this.providerRuntime=new ProviderRuntime(this.assetBase,options.runtime?.qualifiedProviders??qualifiedProviderIdentities,providerPreferences,options.runtime);
     if (!(container instanceof HTMLElement) || container instanceof HTMLCanvasElement || container instanceof HTMLVideoElement) throw new PlayerError('INVALID_ARGUMENT','Pass a container element; Player owns its video/canvas surface');
     this.#previewController=new PreviewController([
       {id:'shaka',priority:20,canHandle:()=>!!this.current?.backend.previewFrame,
@@ -559,6 +591,7 @@ export class Player extends EventTarget {
     this.root = document.createElement('div');this.root.className = 'demuxe-player';container.append(this.root);
     this.root.ownerDocument.addEventListener('visibilitychange',()=>{this.dispatchControl({type:'monitor.activity'});this.startWatchdogs();this.schedulePublish();},{signal:this.lifetime.signal});
     this.publish();
+    if(this.sharedRuntime)this.unsubscribeProviders=this.sharedRuntime.subscribe(()=>this.providersChanged());
     if(prepare.length)void this.prepare(prepare);
   }
   /** Stable composition host; internal surfaces may change between routes. */
@@ -812,7 +845,7 @@ export class Player extends EventTarget {
       }finally{this.dispatchControl({type:'operation.finish',id});this.startWatchdogs();this.publish();}
       if(kind==='seeking')this.dispatchEvent(new CustomEvent('seeked',{detail:this.state}));
     }).finally(detachCaller);
-    this.queue=result.catch(()=>{}).finally(()=>{try{detachController();}catch{}finally{this.dispatchControl({type:'operation.release',id});this.operationResources.delete(id);}});
+    this.queue=result.catch(()=>{}).finally(()=>{try{detachController();}catch{}finally{this.dispatchControl({type:'operation.release',id});this.operationResources.delete(id);if(this.providerUpdatePending&&!this.destroyed&&!this.queued)this.schedulePromotion();}});
     acquisition?.reserved(result);
     try{
       controller=new AbortController();
@@ -857,6 +890,8 @@ export class Player extends EventTarget {
     const live=()=>!this.destroyed&&this.operationEpoch===epoch&&this.providerRuntime===provider&&!this.activeOperation;
     const empty=()=>Promise.resolve({milliseconds:0,assets:[]});
     const warm=()=>{
+      if(!live())return empty();
+      this.refreshProviders(false);
       if(!live()||!this.selectDeployedRuntime()||!live())return empty();
       const selection=this.control.routing.deployment.selection;
       const current=()=>live()&&this.control.routing.deployment.selection===selection;
@@ -939,6 +974,7 @@ export class Player extends EventTarget {
         if(type==='activity') {
           if(detail==='waiting')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'waiting'});
           if(detail==='playing')this.dispatchControl({type:'playback.sample',session:sessionEpoch,sequence:++observationSequence,observation:'playing'});
+          if(detail==='playing'&&this.providerUpdatePending&&!this.queued)this.schedulePromotion();
           this.schedulePublish();return;
         }
         if(type==='mpv') {
@@ -1438,6 +1474,7 @@ export class Player extends EventTarget {
     }finally{controller.abort();if(this.inspection===controller)this.inspection=undefined;}
   }
   private async select(source:Source,settings:Settings,preserve:boolean,tracks:(TextTrackSource&{attachmentId?:string})[],start=0,target?:number,priorAttempts:SelectionAttempt[]=[],inspectOnly=false,requirements:RouteRequirements={}){
+    this.refreshProviders();
     if(!inspectOnly&&this.presentation.locksSurface)throw new PlayerError('UNSUPPORTED_FEATURE','Exit video Picture-in-Picture before replacing the playback surface');
     const original={epoch:this.operationEpoch,operation:this.control.operations.active},sourceKey=this.inspectionSourceKey(source);
     if(!this.dispatchControl({type:'routing.inspection',...original,change:{kind:'work.begin',...original,source:sourceKey,provider:!!this.providerRuntime,preserve,inspectOnly}}).accepted)throw new PlayerError('ABORTED','Inspection was retired');
@@ -1953,7 +1990,7 @@ export class Player extends EventTarget {
       }finally{this.dispatchControl({type:'transport.finished',id});}
     }).finally(()=>{this.dispatchControl({type:'play.settled',id:intentId});this.playRequests.delete(intentId);});
   }
-  pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire){const intent=this.playRequests.get(id);this.playRequests.delete(id);intent?.abort();}return this.enqueue(async()=>{await this.applySetting({kind:'pause'});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion)this.schedulePromotion();});}
+  pause() {for(const id of this.dispatchControl({type:'play.retire'}).retire){const intent=this.playRequests.get(id);this.playRequests.delete(id);intent?.abort();}return this.enqueue(async()=>{await this.applySetting({kind:'pause'});this.dispatchControl({type:'playback.observed',playing:false,waiting:false});if(this.backgroundPromotion||this.sharedRuntime)this.schedulePromotion();});}
   seek(seconds: number, options:import('./types.js').SeekOptions={}) {return this.seekForSource(seconds,options);}
   private seekForSource(seconds:number,options:import('./types.js').SeekOptions,sourceId?:number|null) {
     if (!Number.isFinite(seconds) || seconds < 0) throw new PlayerError('INVALID_ARGUMENT','Invalid seek time');
@@ -2264,7 +2301,7 @@ export class Player extends EventTarget {
     this.dispatchControl({type:'operation.retire',terminal:true});
     const cleanup=Promise.all([
       clean(()=>this.cancelPromotion()),clean(()=>this.activeOperation?.controller.abort()),clean(()=>this.lifetime.abort()),clean(()=>this.inspection?.abort()),clean(()=>this.stopWatchdogs()),
-      clean(()=>this.mediaCapabilityQueries.destroy()),clean(()=>this.preparation?.destroy()),clean(()=>this.startupModules?.destroy()),clean(()=>this.providerRuntime?.destroy()),clean(()=>this.presentation.destroy()),clean(()=>this.#previewController.destroy()),
+      clean(()=>this.unsubscribeProviders?.()),clean(()=>this.mediaCapabilityQueries.destroy()),clean(()=>this.preparation?.destroy()),clean(()=>this.startupModules?.destroy()),clean(()=>this.providerRuntime?.destroy()),clean(()=>this.presentation.destroy()),clean(()=>this.#previewController.destroy()),
       ...[this.candidate,this.current].map(session=>clean(()=>this.dispose(session))),
     ]);this.previewSource=undefined;
     void(async()=>{

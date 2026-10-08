@@ -133,7 +133,7 @@ export class EnginePreparation {
             }
             if (name !== 'font') {
                 this.phase(name, 'compiling');
-                module = await WebAssembly.compile(data);
+                module = await (this.providerAssets ? this.providerAssets.module(job.path) : WebAssembly.compile(data));
             }
         }
         catch (cause) {

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 export { Player } from './unified-player.js';
+export { DemuxeRuntime } from './runtime.js';
 export { PLAYBACK_MODES } from './types.js';
 export { PlayerError } from './internal/errors.js';
 export { PLAYER_EVENTS } from './types.js';

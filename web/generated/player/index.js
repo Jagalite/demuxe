@@ -474,6 +474,8 @@ export class DemuxePlayerElement extends Base {
                 this.syncPreviewEnabled();
                 check();
                 core.presentation.setFullscreenTarget(this);
+                const expansion = this.viewportExpansion, element = this;
+                core.presentation.setViewportExpansionAdapter({ get available() { return element.controls && expansion.available; }, get active() { return expansion.active; }, open() { element.settings(false, false); expansion.open(); element.revealControls(); }, close: focus => expansion.close(focus), subscribe: listener => expansion.subscribe(listener) });
                 this.view({ type: 'reset-owner' });
                 for (const type of [...PLAYER_EVENTS, 'preparationchange', 'inspectionchange', 'mpv', 'log', 'source', 'output'])
                     core.addEventListener(type, event => {
@@ -1003,9 +1005,9 @@ export class DemuxePlayerElement extends Base {
     fullscreen() {
         if (this.fullscreenRequest)
             return;
-        if (this.viewportExpansion?.active) {
+        if (this.core?.presentation.state.viewportExpanded) {
             this.settings(false, false);
-            this.viewportExpansion.close();
+            this.core.presentation.exitViewportExpansion();
             return;
         }
         const expand = () => {
@@ -1016,9 +1018,9 @@ export class DemuxePlayerElement extends Base {
                 return;
             }
             try {
-                this.settings(false, false);
-                this.viewportExpansion?.open();
-                this.revealControls();
+                if (!this.core)
+                    throw Error('Player is unavailable');
+                this.core.presentation.requestViewportExpansion();
             }
             catch {
                 this.announce(this.labels.noFullscreen);

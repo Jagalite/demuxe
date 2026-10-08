@@ -6,10 +6,17 @@ export type PresentationState = Readonly<{
   disposed:boolean;
   nextRequest:number;
   targetOverride:boolean;
+  viewportVersion:number;
+  viewportOwner:number|null;
   fullscreen:Request|null;
   pip:(Request&Readonly<{kind:'video'|'document'}>)|null;
 }>;
 export type PresentationCommand =
+  | Readonly<{type:'viewport.replace'}>
+  | Readonly<{type:'viewport.check'|'viewport.remove';id:number}>
+  | Readonly<{type:'viewport.install';id:number;present:boolean}>
+  | Readonly<{type:'viewport.request';available:boolean;nativePresentation:boolean}>
+  | Readonly<{type:'metadata.check';sourceId:number;currentSourceId:number|null|undefined}>
   | Readonly<{type:'target';override:boolean;fullscreen:boolean;containsHost:boolean}>
   | Readonly<{type:'fullscreen.request';containsHost:boolean;supported:boolean}>
   | Readonly<{type:'fullscreen.check';id:number;containsHost:boolean}>
@@ -27,7 +34,7 @@ export type PresentationDecision = Readonly<{
   error?:Readonly<{code:PlayerErrorCode;message:string}>;
 }>;
 export function initialPresentationState():PresentationState {
-  return Object.freeze({disposed:false,nextRequest:1,targetOverride:false,fullscreen:null,pip:null});
+  return Object.freeze({disposed:false,nextRequest:1,targetOverride:false,viewportVersion:0,viewportOwner:null,fullscreen:null,pip:null});
 }
 function result(state:PresentationState):PresentationDecision {return Object.freeze({state:Object.freeze({...state})});}
 function failure(state:PresentationState,code:PlayerErrorCode,message:string,retired=false):PresentationDecision {
@@ -43,10 +50,21 @@ export function transitionPresentation(state:PresentationState,command:Presentat
       ?failure(state,'ABORTED','Fullscreen request was retired',true):result(state);
     case 'pip.check':return state.disposed||state.pip?.id!==command.id||state.pip.retired||state.pip.kind==='video'&&(!command.sameSurface||command.subtitles)
       ?failure(state,'ABORTED','Presentation request was retired',true):result(state);
-    case 'destroy':return result(state.disposed?state:{...state,disposed:true,fullscreen:state.fullscreen?Object.freeze({...state.fullscreen,retired:true}):null,pip:state.pip?Object.freeze({...state.pip,retired:true}):null});
+    case 'destroy':return result(state.disposed?state:{...state,disposed:true,viewportOwner:null,viewportVersion:state.viewportVersion+1,fullscreen:state.fullscreen?Object.freeze({...state.fullscreen,retired:true}):null,pip:state.pip?Object.freeze({...state.pip,retired:true}):null});
   }
   if(state.disposed)return failure(state,'ABORTED','Presentation controller is destroyed');
   switch(command.type){
+    case 'viewport.replace':return Object.freeze({state:Object.freeze({...state,viewportVersion:state.viewportVersion+1}),requestId:state.viewportVersion+1});
+    case 'viewport.check':return state.viewportVersion===command.id?result(state):failure(state,'ABORTED','Viewport adapter replacement was retired');
+    case 'viewport.install':return state.viewportVersion===command.id?result({...state,viewportOwner:command.present?command.id:null}):failure(state,'ABORTED','Viewport adapter replacement was retired');
+    case 'viewport.remove':return result(state.viewportOwner===command.id?{...state,viewportOwner:null}:state);
+    case 'viewport.request':
+      if(state.viewportOwner===null||!command.available)return failure(state,'UNSUPPORTED_FEATURE','Browser-viewport expansion is unavailable');
+      if(state.fullscreen||state.pip||command.nativePresentation)return failure(state,'UNSUPPORTED_FEATURE','Settle and exit fullscreen or Picture-in-Picture before expanding the viewport');
+      return Object.freeze({state,requestId:state.viewportVersion});
+    case 'metadata.check':
+      if(!Number.isSafeInteger(command.sourceId)||command.sourceId<1)return failure(state,'INVALID_ARGUMENT','Expected a loaded source ID');
+      return metadataSourceCurrent(command.sourceId,command.currentSourceId)?result(state):failure(state,'ABORTED','Media Session metadata source was retired');
     case 'target':
       if(state.fullscreen||command.fullscreen)return failure(state,'UNSUPPORTED_FEATURE','Exit fullscreen before changing its target');
       if(command.override&&!command.containsHost)return failure(state,'INVALID_ARGUMENT','Fullscreen target must contain the presentation host');
@@ -72,9 +90,9 @@ export function transitionPresentation(state:PresentationState,command:Presentat
   }
 }
 
-export type PresentationObservation=Readonly<{fullscreen:boolean;documentPiP:boolean;videoPiP:boolean;mediaSession:boolean}>;
+export type PresentationObservation=Readonly<{fullscreen:boolean;viewportExpanded?:boolean;documentPiP:boolean;videoPiP:boolean;mediaSession:boolean}>;
 export function projectPresentation(observation:PresentationObservation){
-  return Object.freeze({fullscreen:observation.fullscreen,pictureInPicture:observation.documentPiP?'document' as const:observation.videoPiP?'video' as const:null,mediaSession:observation.mediaSession});
+  return Object.freeze({fullscreen:observation.fullscreen,viewportExpanded:!!observation.viewportExpanded,pictureInPicture:observation.documentPiP?'document' as const:observation.videoPiP?'video' as const:null,mediaSession:observation.mediaSession});
 }
 export function presentationLocksSurface(state:PresentationState,videoPiP:boolean):boolean {
   return state.pip?.kind==='video'||videoPiP;
@@ -96,3 +114,5 @@ export function transitionMediaSession(state:MediaSessionLease,command:Readonly<
     ?Object.freeze({state:Object.freeze({...state,phase:'active' as const}),outcome:'activated' as const})
     :Object.freeze({state:Object.freeze({...state,owner:null,phase:'idle' as const}),outcome:'released' as const});
 }
+
+export function metadataSourceCurrent(sourceId:number|undefined,currentSourceId:number|null|undefined):boolean{return sourceId!==undefined&&sourceId===currentSourceId;}

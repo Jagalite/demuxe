@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { ProviderPreferences } from '../types.js';
+import type { DemuxeRuntime } from '../runtime.js';
 import type { Probe } from './selection.js';
 export type ComponentPreparedAudio = {
     file: Blob;
@@ -31,6 +32,7 @@ export interface ProviderRuntimeAssets {
  * packaging metadata cannot add compositions or confer build qualification. */
 export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private base;
+    private shared?;
     private controller;
     private state;
     private destruction?;
@@ -42,6 +44,12 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private readonly sources;
     private nextSource;
     private codecSources;
+    private sharedSnapshot?;
+    get revision(): number;
+    /** Adopt additive provider publications only at a player operation boundary.
+     * Existing assets and identities cannot change, so active backend leases
+     * remain valid while newly admitted plans see the updated catalog. */
+    refresh(): boolean;
     private profileAvailability;
     private comparePreparation;
     private preferBroadPreparation;
@@ -51,7 +59,7 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     codecPreparation(source: object, probe: Probe | undefined, runtime: 'pthread' | 'jspi' | 'asyncify', aid?: string): CodecPreparation | undefined;
     preparation(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;
     private readonly providerPreferences;
-    constructor(base: URL, qualified: Readonly<Record<string, string>>, preferences?: ProviderPreferences);
+    constructor(base: URL, qualified: Readonly<Record<string, string>>, preferences?: ProviderPreferences, shared?: DemuxeRuntime | undefined);
     load(): Promise<void>;
     private loadDeployment;
     /** Explicit legacy artifacts take precedence over the shared mpv artifact. */
@@ -74,6 +82,7 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     bytes(path: string): Promise<ArrayBuffer>;
     private acquire;
     module(path: string): Promise<WebAssembly.Module>;
+    private sharedAsset;
     destroy(): Promise<void>;
 }
 export {};

@@ -2,6 +2,9 @@
 import {compareProviderPreferences,normalizeProviderPreferences} from './provider-cost.js';
 import type {ProviderPreferences} from '../types.js';
 import {PlayerError} from './errors.js';
+import {identifyDeployment} from './provider-deployment.js';
+import {awaitRuntime,runtimeAccess} from '../runtime.js';
+import type {DemuxeRuntime,RuntimeDeploymentSnapshot} from '../runtime.js';
 import {parseProviderDeployment,withProviderAvailability} from './provider-catalog.js';
 import type {ParsedProviderDeployment} from './provider-catalog.js';
 import {ProviderAcquisition} from './provider-acquisition.js';
@@ -42,6 +45,22 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   private readonly sources = new WeakMap<object, number>();
   private nextSource = 0;
   private codecSources=new WeakMap<Blob,CodecSourceState>();
+  private sharedSnapshot?:RuntimeDeploymentSnapshot;
+  get revision():number{return this.sharedSnapshot?.revision??0;}
+  /** Adopt additive provider publications only at a player operation boundary.
+   * Existing assets and identities cannot change, so active backend leases
+   * remain valid while newly admitted plans see the updated catalog. */
+  refresh():boolean{
+    if(!this.shared)return false;
+    this.controller.signal.throwIfAborted();
+    const snapshot=runtimeAccess(this.shared).snapshot();
+    if(snapshot===this.sharedSnapshot)return false;
+    const loading=admitRuntimeLoad(createProviderRuntime(this.shared.qualifiedProviders),performance.now()).state;
+    this.state=acceptRuntimeDeployment(loading,snapshot.providers,snapshot.deployment.assets.map(asset=>({id:asset.id,url:asset.url,path:asset.url.slice(this.base.href.length)}))).state;
+    this.deployment=snapshot.deployment;this.sharedSnapshot=snapshot;
+    this.codecSources=new WeakMap();
+    return true;
+  }
   private profileAvailability(runtime:'pthread'|'jspi'|'asyncify',offer:string):CodecProfileAvailability[]{
     if(runtime==='pthread')return [];
     return ['truehd-mlp','dts-hd','ac3-eac3'].map(profile=>{const candidate=codecProfile(profile,runtime);return {profile,offered:this.hasOffer(candidate.providerId,offer),deployed:this.has(candidate.wasmPath)};}).sort((a,b)=>this.comparePreparation(codecProfile(a.profile,runtime).providerId,codecProfile(b.profile,runtime).providerId));
@@ -85,8 +104,9 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
     source=this.codecSources.get(file);return hint?storedCodecPreparation(source,runtime,this.has(hint.wasmPath)):undefined;
   }
   private readonly providerPreferences:ProviderPreferences;
-  constructor(private base: URL, qualified: Readonly<Record<string, string>>,preferences?:ProviderPreferences) {this.providerPreferences=normalizeProviderPreferences(preferences);this.state=createProviderRuntime(qualified);}
+  constructor(private base: URL, qualified: Readonly<Record<string, string>>,preferences?:ProviderPreferences,private shared?:DemuxeRuntime) {this.providerPreferences=normalizeProviderPreferences(preferences);this.state=createProviderRuntime(qualified);}
   load(): Promise<void> {
+    if(this.shared){try{this.controller.signal.throwIfAborted();if(!this.sharedSnapshot)this.refresh();return Promise.resolve();}catch(error){return Promise.reject(error);}}
     const admission=admitRuntimeLoad(this.state,performance.now());this.state=admission.state;
     if(admission.effect==='join')return this.loading!;
     if(admission.effect==='retired')return this.loading=Promise.reject(this.controller.signal.reason??new DOMException('Provider deployment disposed','AbortError'));
@@ -113,19 +133,10 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
         if(observed.effect==='overflow')throw new PlayerError('ASSET_LOAD_FAILED','Provider deployment exceeds byte budget');chunks.push(value);}}
       finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
       const bytes = new Uint8Array(this.state.manifestBytes); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-      const deployment = parseProviderDeployment(JSON.parse(new TextDecoder().decode(bytes)), this.base),providers=[];
+      const deployment = parseProviderDeployment(JSON.parse(new TextDecoder().decode(bytes)), this.base);
       // Hash the exact declared closure in the shell; qualification is decided
       // from this observed identity and the immutable reviewed registry.
-      for(const provider of deployment.catalog.providers){
-        const ids=deployment.providerAssets[provider.id];let matches=!ids.length;
-        if(ids.length){
-          const entries=ids.map(id=>{const asset=deployment.assets.find(a=>a.id===id)!;return ['runtime/'+asset.url.slice(this.base.href.length),asset.sha256] as const;}).sort(([a],[b])=>a<b?-1:a>b?1:0);
-          const artifacts=Object.fromEntries(entries),digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(artifacts,null,2)+'\n'));
-          const identity='sha256:'+Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
-          matches=Object.keys(artifacts).length===ids.length&&identity===provider.implementationIdentity;
-        }
-        providers.push({id:provider.id,implementationIdentity:provider.implementationIdentity,manifestMatches:matches,assets:ids,profiles:provider.offers.map(offer=>offer.profile)});
-      }
+      const providers=await identifyDeployment(deployment,this.base);
       this.controller.signal.throwIfAborted();
       const accepted=acceptRuntimeDeployment(this.state,providers,deployment.assets.map(asset=>({id:asset.id,url:asset.url,path:asset.url.slice(this.base.href.length)})));this.state=accepted.state;
       if(!accepted.accepted)throw this.controller.signal.reason??new DOMException('Provider deployment disposed','AbortError');
@@ -212,6 +223,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   }
   async bytes(path: string): Promise<ArrayBuffer> {
     await this.load(); this.controller.signal.throwIfAborted();path=this.assetPath(path);
+    if(this.shared){const asset=this.sharedAsset(path);return awaitRuntime(runtimeAccess(this.shared).read(this.sharedSnapshot!,asset,false),this.controller.signal);}
     const admission=admitRuntimeRequest(this.state,'bytes',path);this.state=admission.state;
     if(admission.effect==='retired')throw this.controller.signal.reason;
     if(admission.effect==='unavailable')throw new PlayerError('DEPLOYMENT_UNAVAILABLE',`No qualified provider owns required asset: ${path}`);
@@ -231,6 +243,7 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
   }
   async module(path: string): Promise<WebAssembly.Module> {
     await this.load();this.controller.signal.throwIfAborted();path=this.assetPath(path);
+    if(this.shared){const asset=this.sharedAsset(path);return awaitRuntime(runtimeAccess(this.shared).read(this.sharedSnapshot!,asset,true),this.controller.signal);}
     const admission=admitRuntimeRequest(this.state,'module',path);this.state=admission.state;
     if(admission.effect==='retired')throw this.controller.signal.reason;
     if(admission.effect==='unavailable')throw new PlayerError('DEPLOYMENT_UNAVAILABLE',`No qualified provider owns required asset: ${path}`);
@@ -244,6 +257,11 @@ export class ProviderRuntime implements ProviderRuntimeAssets {
       }).then(module=>{this.state=completeRuntimeRequest(this.state,'module',path,true);resolve(module);},error=>{this.state=completeRuntimeRequest(this.state,'module',path,false);reject(error);});
     }
     return pending!;
+  }
+  private sharedAsset(path:string):string{
+    const owner=runtimeAssetOwner(this.state,new URL(path,this.base).href);
+    if(owner.kind!=='ready')throw new PlayerError('DEPLOYMENT_UNAVAILABLE','No qualified provider owns required asset: '+path);
+    return owner.assetId;
   }
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;

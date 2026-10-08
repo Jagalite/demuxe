@@ -98,6 +98,8 @@ export type ProviderPreferences = readonly Readonly<{
   providers: readonly string[];
 }>[];
 export type PlayerOptions = {
+  /** Shared provider catalog and asset cache. Owned and disposed by the caller. */
+  runtime?:import('./runtime-types.js').DemuxeRuntimeHandle;
   /** Rank compatible, deployed, qualified implementations within each capability. */
   providerPreferences?: ProviderPreferences;
   /** Browser-independent direct-load policy. false retains the ordinary load deadline.

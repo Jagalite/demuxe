@@ -73,7 +73,7 @@ export class EnginePreparation {
         finally{reader.releaseLock();}
         data=new Uint8Array(this.state.jobs.find(job=>job.name===name)!.bytes);let offset=0;for(const chunk of chunks){data.set(chunk,offset);offset+=chunk.byteLength;}
       }
-      if(name!=='font'){this.phase(name,'compiling');module=await WebAssembly.compile(data);}
+      if(name!=='font'){this.phase(name,'compiling');module=await (this.providerAssets?this.providerAssets.module(job.path):WebAssembly.compile(data));}
     }catch(cause){error=String(cause);}
     finally{clearTimeout(timer);parent.removeEventListener('abort',abort);}
     const completion=completePreparation(this.state,name,performance.now(),error);this.state=completion.state;

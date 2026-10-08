@@ -13,7 +13,7 @@ export function transitionPromotion(state, change) {
         const timer = state.timer, f = change.facts;
         if (!timer || timer.id !== change.id || timer.epoch !== state.epoch || change.now < timer.due)
             return state;
-        const admitted = !state.active && !f.queued && f.automatic && f.source && f.current && !f.error && (f.paused || f.background) && !f.waiting;
+        const admitted = !state.active && !f.queued && f.automatic && f.source && f.current && !f.error && (f.paused || f.background || f.reevaluate) && !f.waiting;
         return Object.freeze({ ...state, timer: null, active: admitted ? Object.freeze({ id: timer.id, epoch: state.epoch, phase: 'queued' }) : state.active });
     }
     if (change.kind === 'timer-failed')

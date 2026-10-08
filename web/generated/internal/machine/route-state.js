@@ -3,11 +3,14 @@ import { initialRemuxDeployment, transitionRemuxDeployment } from './remux-deplo
 import { initialRecovery, transitionRecovery } from './route-recovery.js';
 import { initialPromotion, transitionPromotion } from './route-promotion.js';
 import { initialRouteEvidence, transitionCapabilityOwner, transitionTierOwner } from './route-evidence.js';
+import { initialProviderUpdates, transitionProviderUpdates } from './provider-updates.js';
 import { copyData } from './data.js';
 import { initialDiscovery, transitionDiscovery } from './route-discovery.js';
 import { initialInspection, transitionInspection } from './route-inspection.js';
-export function initialRouting() { return Object.freeze({ deployment: initialRemuxDeployment(), recovery: initialRecovery(), promotion: initialPromotion(), evidence: initialRouteEvidence(), discovery: initialDiscovery(), inspection: initialInspection(), plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
+export function initialRouting() { return Object.freeze({ providers: initialProviderUpdates(), deployment: initialRemuxDeployment(), recovery: initialRecovery(), promotion: initialPromotion(), evidence: initialRouteEvidence(), discovery: initialDiscovery(), inspection: initialInspection(), plans: Object.freeze([]), attempts: Object.freeze([]), context: Object.freeze({ automatic: false }) }); }
 export function transitionRouting(state, input) {
+    if (input.type === 'routing.providers')
+        return Object.freeze({ ...state, providers: transitionProviderUpdates(state.providers, input.change) });
     if (input.type === 'routing.deployment') {
         const deployment = transitionRemuxDeployment(state.deployment, input.change);
         return deployment === state.deployment ? state : Object.freeze({ ...state, deployment });

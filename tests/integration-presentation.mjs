@@ -3,6 +3,7 @@ import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {checkLivePresentation} from './api-stability/live-presentation-scenarios.mjs';
 const out=`results/api-integration/presentation-${Date.now()}`;await mkdir(out,{recursive:true});
 let server,browser;const checks=[];
 try{
@@ -23,5 +24,7 @@ try{
   const originalRequest=a.requestFullscreen;let finish;a.requestFullscreen=()=>new Promise(resolve=>finish=resolve);const pending=player.presentation.requestFullscreen().catch(error=>error.code);let changed;try{player.presentation.setFullscreenTarget(null);}catch(error){changed=error.code;}await player.presentation.exitFullscreen();finish();if(await pending!=='ABORTED'||changed!=='UNSUPPORTED_FEATURE')throw Error('Pending fullscreen retirement failed');a.requestFullscreen=originalRequest;
   const owned=a.destroy();if(!player.isDestroyed)throw Error('Owned destruction was deferred');await owned;if(stable.isConnected)throw Error('Host leaked');await b.destroy();return {invalid,ownedCleanup:true,sourceRetained:true};
  });assert.equal(result.invalid,'INVALID_ARGUMENT');checks.push({name:'IC-11/12/14/15/22 built-in fullscreen, responsive host, ownership and multiple instances',passed:true,result});
+ const presentation=await page.evaluate(checkLivePresentation);checks.push(...presentation.cases);
+ assert.equal(presentation.passed,true);
 }catch(error){checks.push({passed:false,error:String(error.stack)});process.exitCode=1;}
 finally{await writeFile(out+'/result.json',JSON.stringify({browser:browser?.version(),checks},null,2));await browser?.close();server?.kill();console.log(out,JSON.stringify(checks));}

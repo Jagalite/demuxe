@@ -5,6 +5,8 @@ import {unitPlayer} from '../helpers/unit-player.mjs';
 import {Player} from '../../web/generated/unified-player.js';
 import {PlayerError} from '../../web/generated/internal/errors.js';
 import {deferred} from './virtual-effects.mjs';
+import {DemuxeRuntime} from '../../web/generated/runtime.js';
+import {ProviderRuntime} from '../../web/generated/internal/provider-runtime.js';
 
 /** Real route/source transactions; only deployment, probe, admission and physical
  * backend boundaries are synthetic. The trace is bounded and printed on failure. */
@@ -44,6 +46,41 @@ function routeFixture(t,{plans=['native-direct','hybrid','software'],hook}={}){
  const quiescent=()=>{assert.equal(p.control.source.candidate,null);assert.equal(p.control.routing.discovery.current,null);assert.equal(p.control.routing.inspection.work,null);assert.equal(p.control.operations.entries.length,0);};
  return {p,sessions,trace,events,background,input,run,quiescent};
 }
+
+async function liveCatalogFixture(t,hook){
+ const f=routeFixture(t,{hook}),base=new URL('https://example.test/');
+ f.p.schedulePromotion=Player.prototype.schedulePromotion.bind(f.p);
+ const runtime=new DemuxeRuntime({assetBase:base.href,qualifiedProviders:{'browser-original':'demuxe-browser-v1'}});
+ const provider=new ProviderRuntime(base,runtime.qualifiedProviders,undefined,runtime);
+ f.p.sharedRuntime=runtime;f.p.providerRuntime=provider;f.p.unsubscribeProviders=runtime.subscribe(()=>f.p.providersChanged());
+ t.after(()=>runtime.destroy());
+ t.mock.method(globalThis,'fetch',async()=>Response.json({schema:1,providerContractVersion:1,revision:'native-added',assets:[],providers:[{id:'browser-original',implementationIdentity:'demuxe-browser-v1',technology:'browser-native',delivery:['browser'],offers:[{capability:'media.present.original',version:1,profile:'selected-source'}]}]}));
+ const admissible=f.p.admissible;
+ f.p.admissible=(...args)=>admissible(...args).map(plan=>plan.id==='native-direct'?{...plan,eligible:provider.hasOffer('browser-original','selected-source')}:plan);
+ await f.p.open(f.input());await f.p.queue;assert.equal(f.p.mode,'hybrid');
+ return {...f,runtime,async update(){await runtime.providers.load('extra.json');await new Promise(resolve=>setTimeout(resolve,260));await f.p.queue;}};
+}
+
+test('runtime provider addition performs a real preferred-route transaction and preserves controls',async t=>{
+ const f=await liveCatalogFixture(t);await f.p.seek(17);await f.p.setVolume(.37);await f.p.setPlaybackRate(1.25);
+ const previous=f.p.current;await f.update();
+ assert.equal(f.p.mode,'native');assert.notEqual(f.p.current,previous);assert.equal(previous.destroyed,1);
+ assert.equal(f.p.current.backend.properties.get('time-pos'),17);assert.equal(f.p.settings.pause,true);assert.equal(f.p.settings.volume,37);assert.equal(f.p.settings.speed,1.25);f.quiescent();
+});
+
+test('failed runtime-provider promotion rolls back to the working session',async t=>{
+ const f=await liveCatalogFixture(t,({stage,session})=>{if(stage==='open'&&session.plan==='native-direct')throw new PlayerError('DECODE_FAILED','New provider rejected source');});
+ await f.p.seek(11);const previous=f.p.current;await f.update();
+ assert.equal(f.p.current,previous);assert.equal(previous.destroyed,0);assert.equal(f.p.mode,'hybrid');assert.equal(previous.backend.properties.get('time-pos'),11);assert.equal(f.sessions.at(-1).destroyed,1);f.quiescent();
+});
+
+test('user input retires a provider-triggered candidate before its late open completes',async t=>{
+ const started=deferred(),opened=deferred();
+ const f=await liveCatalogFixture(t,async({stage,session})=>{if(stage==='open'&&session.plan==='native-direct'){started.resolve();await opened.promise;}});
+ const previous=f.p.current;await f.runtime.providers.load('extra.json');await started.promise;
+ const pause=f.p.pause();opened.resolve();await pause;await f.p.queue;
+ assert.equal(f.p.current,previous);assert.equal(f.p.mode,'hybrid');assert.equal(f.sessions.at(-1).destroyed,1);assert.equal(f.p.settings.pause,true);f.p.cancelPromotion();f.quiescent();
+});
 
 test('real discovery rejects failed first candidate and accepts the next with one physical owner',async t=>{
  const f=routeFixture(t,{hook:({stage,session})=>{if(stage==='open'&&session.plan==='native-direct')throw new PlayerError('DECODE_FAILED','fixture native rejection');}});

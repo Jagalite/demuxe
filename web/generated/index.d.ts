@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 export { Player } from './unified-player.js';
+export { DemuxeRuntime } from './runtime.js';
+export type { DemuxeRuntimeOptions, ProviderLoadOptions, ProviderCatalogSnapshot } from './runtime.js';
 export { PLAYBACK_MODES } from './types.js';
 export type { StreamingOptions, MediaInputOptions, AudioOutput, ToneMapping, ResourceLimits, SubtitleOptions, PlaybackMode, RemuxRuntimePolicy, PlayerOptions, StartupEscalationOptions, RemoteSource, TextTrackSource, Capabilities, Diagnostics, PlaybackEvent, TrackType } from './types.js';
 export { PlayerError } from './internal/errors.js';
@@ -25,4 +27,5 @@ export { inspectMedia, CUSTOM_SOURCE_PLAYBACK_LIMIT } from './sources.js';
 export type { CustomSource, InspectionOptions, MediaInspection } from './types.js';
 export type { SeekOptions, PlaybackRange, LoopPolicy, SnapshotOptions, VideoSnapshot } from './types.js';
 export { PlayerPresentation } from './presentation.js';
+export type { PlayerViewportExpansionAdapter, PlayerPresentationSnapshot } from './presentation.js';
 export type { ProviderPreferences } from './types.js';

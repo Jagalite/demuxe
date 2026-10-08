@@ -17,6 +17,11 @@ export declare class Player extends EventTarget {
     private readonly qualitySelector?;
     private readonly adaptiveSelection;
     private providerRuntime?;
+    private sharedRuntime?;
+    private unsubscribeProviders?;
+    private get providerUpdatePending();
+    private providersChanged;
+    private refreshProviders;
     private get buffering();
     private set buffering(value);
     private get stateSnapshot();

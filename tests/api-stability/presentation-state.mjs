@@ -67,7 +67,7 @@ test('document PiP preserves the host across surface changes and terminal state 
   assert.equal(transitionPresentation(state,{type:'pip.check',id:pip.requestId,sameSurface:true,subtitles:false}).error.code,'ABORTED');
   for(const command of [enterFullscreen,enterPiP('video'),{type:'fullscreen.exit'},{type:'pip.exit'}]) assert.equal(transitionPresentation(state,command).error.code,'ABORTED');
   assert.deepEqual(transitionPresentation(state,{type:'destroy'}).state,state);
-  assert.deepEqual(projectPresentation({fullscreen:true,documentPiP:true,videoPiP:true,mediaSession:false}),{fullscreen:true,pictureInPicture:'document',mediaSession:false});
+  assert.deepEqual(projectPresentation({fullscreen:true,documentPiP:true,videoPiP:true,mediaSession:false}),{fullscreen:true,viewportExpanded:false,pictureInPicture:'document',mediaSession:false});
 });
 
 test('Media Session lease fences competing owners and stale installation completion',()=>{
@@ -90,10 +90,11 @@ function environment(t){
   const keys=['document','HTMLVideoElement','ShadowRoot','documentPictureInPicture'];
   const previous=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   t.after(()=>{for(const [key,descriptor]of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}});
-  class Video{}
+  class Video extends EventTarget{}
   globalThis.HTMLVideoElement=Video;globalThis.ShadowRoot=class {};
   const handlers=new Map(),media={playbackState:'none',setActionHandler(name,handler){handlers.set(name,handler);},setPositionState(){}};
-  const doc={fullscreenElement:null,pictureInPictureElement:null,defaultView:{navigator:{mediaSession:media}},
+  const events=new EventTarget();
+  const doc={addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),dispatchEvent:events.dispatchEvent.bind(events),fullscreenElement:null,pictureInPictureElement:null,defaultView:{navigator:{mediaSession:media},MediaMetadata:class{constructor(data){Object.assign(this,structuredClone(data));}}},
     async exitFullscreen(){doc.fullscreenElement=null;},async exitPictureInPicture(){doc.pictureInPictureElement=null;},
     createComment(){return {parentNode:{},replaceWith(host){host.ownerDocument=doc;this.parentNode=null;}};},
   };
@@ -248,4 +249,120 @@ test('retired shadow PiP entry exits its captured video without touching another
  wait.resolve();await assert.rejects(request,{code:'ABORTED'});assert.equal(exits,1);
  const other=env.make();root.pictureInPictureElement=other.player.surface;env.doc.pictureInPictureElement=host;
  assert.equal(presentation.state.pictureInPicture,null);await presentation.exitPictureInPicture();assert.equal(exits,1);
+});
+
+test('viewport expansion is distinct, observable, commandable and retired with its adapter',async t=>{
+ const env=environment(t),{presentation,listeners}=env.make(),changes=[],callbacks=new Set();let active=false,closed=0;
+ const adapter={available:true,get active(){return active;},open(){active=true;for(const fn of callbacks)fn();},close(){active=false;closed++;for(const fn of callbacks)fn();},subscribe(fn){callbacks.add(fn);return()=>callbacks.delete(fn);}};
+ assert.equal(presentation.canExpandViewport,false);assert.throws(()=>presentation.requestViewportExpansion(),{code:'UNSUPPORTED_FEATURE'});
+ const stop=presentation.subscribe(s=>changes.push(s));presentation.setViewportExpansionAdapter(adapter);presentation.requestViewportExpansion();
+ assert.equal(changes.at(-1).viewportExpanded,true);assert.equal(changes.at(-1).fullscreen,false);
+ presentation.exitViewportExpansion();assert.equal(changes.at(-1).viewportExpanded,false);
+ presentation.requestViewportExpansion();presentation.setViewportExpansionAdapter(null);assert.equal(active,false);assert.equal(callbacks.size,0);assert.equal(changes.at(-1).viewportExpanded,false);
+ presentation.setViewportExpansionAdapter(adapter);presentation.requestViewportExpansion();const before=changes.length;
+ stop();await presentation.destroy();assert.equal(changes.length,before);assert.equal(active,false);assert.equal(callbacks.size,0);assert.equal(listeners.size,0);assert.ok(closed>=3);
+ assert.throws(()=>presentation.requestViewportExpansion(),{code:'ABORTED'});
+});
+
+test('presentation observer follows native fullscreen and a replaced PiP surface, isolating subscribers',async t=>{
+ const env=environment(t),{host,player,presentation,listeners}=env.make(),changes=[];
+ presentation.subscribe(()=>{throw Error('observer');});presentation.subscribe(s=>changes.push(s));
+ env.doc.fullscreenElement=host;env.doc.dispatchEvent(new Event('fullscreenchange'));assert.equal(changes.at(-1).fullscreen,true);
+ const old=player.surface;player.surface=new env.Video();for(const fn of [...listeners])fn(player.state);
+ env.doc.fullscreenElement=null;env.doc.pictureInPictureElement=player.surface;old.dispatchEvent(new Event('enterpictureinpicture'));assert.equal(changes.at(-1).pictureInPicture,null);
+ player.surface.dispatchEvent(new Event('enterpictureinpicture'));assert.equal(changes.at(-1).pictureInPicture,'video');await presentation.destroy();assert.equal(listeners.size,0);
+});
+
+test('destruction inside the initial presentation observation retires its player subscription',async t=>{
+ const {presentation,listeners}=environment(t).make();let done;
+ presentation.subscribe(()=>{done=presentation.destroy();});await done;assert.equal(listeners.size,0);
+});
+
+test('metadata is source-scoped, copied, gated by ownership and cleared on replacement and release',async t=>{
+ const env=environment(t),a=env.make(),b=env.make();
+ const metadata={title:'First',artwork:[{src:'https://example.test/cover.png'}]};
+ a.presentation.setMediaSessionMetadata(metadata,1);metadata.title='Changed';assert.equal(env.media.metadata,undefined);
+ a.presentation.setMediaSessionEnabled(true);assert.equal(env.media.metadata.title,'First');
+ b.presentation.setMediaSessionMetadata({title:'Second'},1);assert.equal(env.media.metadata.title,'First');
+ assert.throws(()=>b.presentation.setMediaSessionEnabled(true),{code:'UNSUPPORTED_FEATURE'});
+ a.player.state.sourceId=2;for(const fn of [...a.listeners])fn(a.player.state);assert.equal(env.media.metadata,null);
+ assert.throws(()=>a.presentation.setMediaSessionMetadata({title:'Stale'},1),{code:'ABORTED'});
+ a.presentation.setMediaSessionMetadata({title:'Replacement'},2);assert.equal(env.media.metadata.title,'Replacement');
+ a.presentation.setMediaSessionEnabled(false);assert.equal(env.media.metadata,null);b.presentation.setMediaSessionEnabled(true);assert.equal(env.media.metadata.title,'Second');
+ await a.presentation.destroy();assert.equal(env.media.metadata.title,'Second');await b.presentation.destroy();assert.equal(env.media.metadata,null);
+});
+
+test('metadata construction cannot commit after source replacement',async t=>{
+ const env=environment(t),{player,presentation}=env.make();presentation.setMediaSessionEnabled(true);
+ env.doc.defaultView.MediaMetadata=class{constructor(){player.state.sourceId=2;}};
+ assert.throws(()=>presentation.setMediaSessionMetadata({title:'Late'},1),{code:'ABORTED'});assert.equal(env.media.metadata,null);
+ await presentation.destroy();
+});
+
+test('failed adapter installation rolls back and expansion retired by an observer rejects',async t=>{
+ const env=environment(t),{presentation}=env.make();let active=false,callback;
+ const bad={available:true,get active(){return active;},open(){active=true;},close(){active=false;},subscribe(){throw Error('install');}};
+ assert.throws(()=>presentation.setViewportExpansionAdapter(bad),/install/);assert.equal(presentation.canExpandViewport,false);
+ const adapter={...bad,open(){active=true;callback();},subscribe(fn){callback=fn;return()=>{};}};
+ Object.defineProperty(adapter,'active',{get:()=>active});presentation.setViewportExpansionAdapter(adapter);
+ let done;presentation.subscribe(s=>{if(s.viewportExpanded)done=presentation.destroy();});
+ assert.throws(()=>presentation.requestViewportExpansion(),{code:'ABORTED'});await done;assert.equal(active,false);
+});
+
+test('metadata release reentry cannot clear a successor owner position or metadata',async t=>{
+ const env=environment(t),a=env.make(),b=env.make();let value=null,reenter=false;
+ Object.defineProperty(env.media,'metadata',{get:()=>value,set(next){value=next;if(reenter&&next===null){reenter=false;b.presentation.setMediaSessionEnabled(true);}}});
+ a.presentation.setMediaSessionMetadata({title:'A'},1);a.presentation.setMediaSessionEnabled(true);b.presentation.setMediaSessionMetadata({title:'B'},1);const observations=[];a.presentation.subscribe(s=>observations.push(s));
+ reenter=true;a.presentation.setMediaSessionEnabled(false);assert.equal(observations.at(-1).mediaSession,false);assert.equal(env.media.metadata.title,'B');assert.equal(b.presentation.state.mediaSession,true);await a.presentation.destroy();assert.equal(env.media.metadata.title,'B');await b.presentation.destroy();
+});
+
+test('viewport entry cannot overlap pending native presentation',async t=>{
+ const env=environment(t),{presentation,host}=env.make(),pending=deferred();let active=false;
+ presentation.setViewportExpansionAdapter({available:true,get active(){return active;},open(){active=true;},close(){active=false;},subscribe(){return()=>{};}});
+ host.requestFullscreen=()=>pending.promise;const entering=presentation.requestFullscreen();
+ assert.throws(()=>presentation.requestViewportExpansion(),{code:'UNSUPPORTED_FEATURE'});assert.equal(active,false);
+ pending.resolve();await entering;await presentation.destroy();
+});
+
+test('viewport-exit observer can retire native entry before the gesture API is invoked',async t=>{
+ const env=environment(t),{presentation,host}=env.make();let active=false,callback,invoked=false;
+ presentation.setViewportExpansionAdapter({available:true,get active(){return active;},open(){active=true;callback();},close(){if(active){active=false;callback();}},subscribe(fn){callback=fn;return()=>{};}});
+ presentation.requestViewportExpansion();presentation.subscribe(s=>{if(!s.viewportExpanded)void presentation.exitFullscreen();});
+ host.requestFullscreen=()=>{invoked=true;return Promise.resolve();};await assert.rejects(presentation.requestFullscreen(),{code:'ABORTED'});assert.equal(invoked,false);await presentation.destroy();
+});
+
+test('adapter unsubscribe reentry preserves the successor and releases every subscription',async t=>{
+ const {presentation}=environment(t).make();const callbacks=new Map();let reentered=false;
+ const adapter=id=>({available:true,active:false,open(){},close(){},subscribe(fn){callbacks.set(id,fn);return()=>{callbacks.delete(id);if(id==='first'&&!reentered){reentered=true;presentation.setViewportExpansionAdapter(successor);}};}});
+ const first=adapter('first'),successor=adapter('successor'),incoming=adapter('incoming');
+ presentation.setViewportExpansionAdapter(first);
+ assert.throws(()=>presentation.setViewportExpansionAdapter(incoming),{code:'ABORTED'});
+ assert.deepEqual([...callbacks.keys()],['successor']);
+ await presentation.destroy();assert.equal(callbacks.size,0);
+});
+
+test('adapter close ABA reentry cannot authorize the superseded replacement',async t=>{
+ const {presentation}=environment(t).make();let reenter=false;const callbacks=new Set();
+ const other={available:true,active:false,open(){},close(){},subscribe(fn){callbacks.add(fn);return()=>callbacks.delete(fn);}};
+ const first={...other,close(){if(reenter){reenter=false;presentation.setViewportExpansionAdapter(other);presentation.setViewportExpansionAdapter(first);}}};
+ presentation.setViewportExpansionAdapter(first);reenter=true;
+ assert.throws(()=>presentation.setViewportExpansionAdapter(null),{code:'ABORTED'});
+ assert.equal(presentation.canExpandViewport,true);assert.equal(callbacks.size,1);await presentation.destroy();assert.equal(callbacks.size,0);
+});
+
+test('late subscribe cleanup does not close a reinstalled instance of the same adapter',async t=>{
+ const {presentation}=environment(t).make();let first=true,active=false;const callbacks=new Set();
+ const other={available:true,active:false,open(){},close(){},subscribe(){return()=>{};}};
+ const adapter={available:true,get active(){return active;},open(){active=true;},close(){active=false;},subscribe(fn){callbacks.add(fn);if(first){first=false;presentation.setViewportExpansionAdapter(other);presentation.setViewportExpansionAdapter(adapter);presentation.requestViewportExpansion();}return()=>callbacks.delete(fn);}};
+ presentation.setViewportExpansionAdapter(adapter);assert.equal(active,true);assert.equal(callbacks.size,1);
+ await presentation.destroy();assert.equal(active,false);assert.equal(callbacks.size,0);
+});
+
+test('viewport availability reentry cannot open an unobserved successor adapter',async t=>{
+ const {presentation}=environment(t).make();let opened=0,reenter=false;
+ const successor={available:false,active:false,open(){opened++;},close(){},subscribe(){return()=>{};}};
+ const first={...successor,get available(){if(reenter){reenter=false;presentation.setViewportExpansionAdapter(successor);}return true;}};
+ presentation.setViewportExpansionAdapter(first);reenter=true;
+ assert.throws(()=>presentation.requestViewportExpansion(),{code:'ABORTED'});assert.equal(opened,0);
+ await presentation.destroy();
 });

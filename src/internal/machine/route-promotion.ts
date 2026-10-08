@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {preferredPlanIndices} from './routing.js';
-export type PromotionFacts=Readonly<{automatic:boolean;source:boolean;current:boolean;error:boolean;paused:boolean;background:boolean;waiting:boolean;queued:number}>;
+export type PromotionFacts=Readonly<{automatic:boolean;source:boolean;current:boolean;error:boolean;paused:boolean;background:boolean;waiting:boolean;queued:number;reevaluate?:boolean}>;
 export type PromotionState=Readonly<{serial:number;epoch:number;timer:Readonly<{id:number;epoch:number;due:number}>|null;active:Readonly<{id:number;epoch:number;phase:'queued'|'inspecting'|'trying';candidates?:readonly string[];cursor?:number}>|null}>;
 export type PromotionChange=
   |Readonly<{kind:'cancel'}>
@@ -21,7 +21,7 @@ export function transitionPromotion(state:PromotionState,change:PromotionChange)
   if(change.kind==='fired'){
     const timer=state.timer,f=change.facts;
     if(!timer||timer.id!==change.id||timer.epoch!==state.epoch||change.now<timer.due)return state;
-    const admitted=!state.active&&!f.queued&&f.automatic&&f.source&&f.current&&!f.error&&(f.paused||f.background)&&!f.waiting;
+    const admitted=!state.active&&!f.queued&&f.automatic&&f.source&&f.current&&!f.error&&(f.paused||f.background||f.reevaluate)&&!f.waiting;
     return Object.freeze({...state,timer:null,active:admitted?Object.freeze({id:timer.id,epoch:state.epoch,phase:'queued' as const}):state.active});
   }
   if(change.kind==='timer-failed')return state.timer?.id===change.id?Object.freeze({...state,timer:null}):state;

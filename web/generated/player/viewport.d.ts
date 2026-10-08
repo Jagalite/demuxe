@@ -5,6 +5,10 @@ export declare class ViewportExpansion {
     private shell;
     private changed;
     private restore?;
+    private listeners;
+    get available(): boolean;
+    subscribe(listener: () => void): () => void;
+    private notify;
     constructor(host: HTMLElement, shell: HTMLElement, changed: () => void);
     get active(): boolean;
     open(): void;

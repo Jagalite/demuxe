@@ -4,13 +4,13 @@
   "interpretation": "Mapped-partial links a member to a reviewed behavior family and relevant test implementations. It does not assert that every member or behavior in that family is directly tested. Live evidence applies only to the listed assertions and sampled input hashes; it is not complete package or release qualification.",
   "summary": {
     "entrypoints": 7,
-    "exportDeclarations": 135,
-    "runtimeItems": 224,
-    "mappedPartial": 224,
+    "exportDeclarations": 141,
+    "runtimeItems": 239,
+    "mappedPartial": 239,
     "unmapped": 0,
     "withRecentLiveAssertions": 7,
     "fullyCovered": 0,
-    "structuralOnlyContracts": 105
+    "structuralOnlyContracts": 110
   },
   "behaviorGroups": [
     {
@@ -483,11 +483,17 @@
         ".#PlayerPresentation.requestPictureInPicture",
         ".#PlayerPresentation.setFullscreenTarget",
         ".#PlayerPresentation.setMediaSessionEnabled",
+        ".#PlayerPresentation.setMediaSessionMetadata",
+        ".#PlayerPresentation.setViewportExpansionAdapter",
+        ".#PlayerPresentation.requestViewportExpansion",
+        ".#PlayerPresentation.exitViewportExpansion",
+        ".#PlayerPresentation.canExpandViewport",
+        ".#PlayerPresentation.subscribe",
         ".#PlayerPresentation.state"
       ],
-      "behavior": "Own fullscreen/PiP/media-session transitions without destroying borrowed playback",
+      "behavior": "Own fullscreen/PiP/viewport/media-session transitions and source-scoped metadata without destroying borrowed playback",
       "states": "idle, entering, active, exiting, destroyed",
-      "failures": "permission rejection, unsupported API, late browser completion",
+      "failures": "permission rejection, unsupported API, late browser completion, stale source metadata",
       "backends": "Browser/API dependent",
       "unit": [
         "tests/roadmap-contracts.mjs",
@@ -722,6 +728,33 @@
       "gaps": [
         "Complete recipe/codec/browser/deployment cross-product is not qualified",
         "Cancellation and corrupt assets during execution in installed consumers"
+      ],
+      "status": "partial"
+    },
+    {
+      "id": "shared-runtime",
+      "apis": [
+        ".#DemuxeRuntime.constructor",
+        ".#DemuxeRuntime.assetBase",
+        ".#DemuxeRuntime.qualifiedProviders",
+        ".#DemuxeRuntime.providers",
+        ".#DemuxeRuntime.snapshot",
+        ".#DemuxeRuntime.cacheStats",
+        ".#DemuxeRuntime.clearCache",
+        ".#DemuxeRuntime.subscribe",
+        ".#DemuxeRuntime.destroy"
+      ],
+      "behavior": "Share verified provider assets and publish additive catalogs for per-player reevaluation",
+      "states": "empty, loading, registered, cached, evicted, disposed",
+      "failures": "corrupt manifest or asset, conflicting identity, cancelled consumer, stale player operation",
+      "backends": "Existing qualified execution recipes; active handoffs retain promotion policy",
+      "unit": [
+        "tests/shared-runtime.mjs",
+        "tests/runtime-provider-promotion.mjs"
+      ],
+      "browser": [],
+      "gaps": [
+        "Live decoder handoff across browsers and arbitrary new capability contracts are not qualified"
       ],
       "status": "partial"
     },
@@ -1756,6 +1789,96 @@
       "member": null,
       "status": "mapped-partial",
       "behaviorGroup": "streaming-quality",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.assetBase",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "assetBase",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.cacheStats",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "cacheStats",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.clearCache",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "clearCache",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.constructor",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "constructor",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.destroy",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "destroy",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.providers",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "providers",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.qualifiedProviders",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "qualifiedProviders",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.snapshot",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "snapshot",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#DemuxeRuntime.subscribe",
+      "entry": ".",
+      "export": "DemuxeRuntime",
+      "member": "subscribe",
+      "status": "mapped-partial",
+      "behaviorGroup": "shared-runtime",
       "liveAssertions": [],
       "liveEvidence": []
     },
@@ -3246,6 +3369,16 @@
       "liveEvidence": []
     },
     {
+      "key": ".#PlayerPresentation.canExpandViewport",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "canExpandViewport",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
       "key": ".#PlayerPresentation.constructor",
       "entry": ".",
       "export": "PlayerPresentation",
@@ -3286,6 +3419,16 @@
       "liveEvidence": []
     },
     {
+      "key": ".#PlayerPresentation.exitViewportExpansion",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "exitViewportExpansion",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
       "key": ".#PlayerPresentation.locksSurface",
       "entry": ".",
       "export": "PlayerPresentation",
@@ -3316,6 +3459,16 @@
       "liveEvidence": []
     },
     {
+      "key": ".#PlayerPresentation.requestViewportExpansion",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "requestViewportExpansion",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
       "key": ".#PlayerPresentation.setFullscreenTarget",
       "entry": ".",
       "export": "PlayerPresentation",
@@ -3336,10 +3489,40 @@
       "liveEvidence": []
     },
     {
+      "key": ".#PlayerPresentation.setMediaSessionMetadata",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "setMediaSessionMetadata",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.setViewportExpansionAdapter",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "setViewportExpansionAdapter",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
       "key": ".#PlayerPresentation.state",
       "entry": ".",
       "export": "PlayerPresentation",
       "member": "state",
+      "status": "mapped-partial",
+      "behaviorGroup": "presentation",
+      "liveAssertions": [],
+      "liveEvidence": []
+    },
+    {
+      "key": ".#PlayerPresentation.subscribe",
+      "entry": ".",
+      "export": "PlayerPresentation",
+      "member": "subscribe",
       "status": "mapped-partial",
       "behaviorGroup": "presentation",
       "liveAssertions": [],
@@ -3762,6 +3945,17 @@
     },
     {
       "entry": ".",
+      "export": "DemuxeRuntimeOptions",
+      "members": [
+        "assetBase",
+        "maxCacheBytes",
+        "qualifiedProviders"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
       "export": "Diagnostics",
       "members": [
         "adaptiveFrameDrop",
@@ -4097,6 +4291,7 @@
         "providerPreferences",
         "remuxRuntime",
         "resourceLimits",
+        "runtime",
         "softwarePresenter",
         "startupEscalation",
         "toneMapping",
@@ -4104,6 +4299,18 @@
         "videoFilters",
         "watchdogs",
         "width"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerPresentationSnapshot",
+      "members": [
+        "fullscreen",
+        "mediaSession",
+        "pictureInPicture",
+        "viewportExpanded"
       ],
       "status": "structural-only",
       "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
@@ -4160,6 +4367,19 @@
         "timing",
         "trackPolicy",
         "volume"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "PlayerViewportExpansionAdapter",
+      "members": [
+        "active",
+        "available",
+        "close",
+        "open",
+        "subscribe"
       ],
       "status": "structural-only",
       "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
@@ -4380,6 +4600,26 @@
       "entry": ".",
       "export": "PreviewStrategy",
       "members": [],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ProviderCatalogSnapshot",
+      "members": [
+        "providers",
+        "revision"
+      ],
+      "status": "structural-only",
+      "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
+    },
+    {
+      "entry": ".",
+      "export": "ProviderLoadOptions",
+      "members": [
+        "preload",
+        "signal"
+      ],
       "status": "structural-only",
       "gap": "Option, event, and return-value semantics are not individually audited by this inventory."
     },
@@ -5422,6 +5662,21 @@
         "type"
       ],
       "defaultQualitySelection": [],
+      "DemuxeRuntime": [
+        "assetBase",
+        "cacheStats",
+        "clearCache",
+        "destroy",
+        "providers",
+        "qualifiedProviders",
+        "snapshot",
+        "subscribe"
+      ],
+      "DemuxeRuntimeOptions": [
+        "assetBase",
+        "maxCacheBytes",
+        "qualifiedProviders"
+      ],
       "Diagnostics": [
         "adaptiveFrameDrop",
         "audioFilters",
@@ -5707,6 +5962,7 @@
         "providerPreferences",
         "remuxRuntime",
         "resourceLimits",
+        "runtime",
         "softwarePresenter",
         "startupEscalation",
         "toneMapping",
@@ -5716,15 +5972,27 @@
         "width"
       ],
       "PlayerPresentation": [
+        "canExpandViewport",
         "destroy",
         "exitFullscreen",
         "exitPictureInPicture",
+        "exitViewportExpansion",
         "locksSurface",
         "requestFullscreen",
         "requestPictureInPicture",
+        "requestViewportExpansion",
         "setFullscreenTarget",
         "setMediaSessionEnabled",
-        "state"
+        "setMediaSessionMetadata",
+        "setViewportExpansionAdapter",
+        "state",
+        "subscribe"
+      ],
+      "PlayerPresentationSnapshot": [
+        "fullscreen",
+        "mediaSession",
+        "pictureInPicture",
+        "viewportExpanded"
       ],
       "PlayerPreview": [
         "addProvider",
@@ -5769,6 +6037,13 @@
         "timing",
         "trackPolicy",
         "volume"
+      ],
+      "PlayerViewportExpansionAdapter": [
+        "active",
+        "available",
+        "close",
+        "open",
+        "subscribe"
       ],
       "PreloadPolicy": [],
       "PreparationAsset": [
@@ -5903,6 +6178,14 @@
         "interaction"
       ],
       "PreviewStrategy": [],
+      "ProviderCatalogSnapshot": [
+        "providers",
+        "revision"
+      ],
+      "ProviderLoadOptions": [
+        "preload",
+        "signal"
+      ],
       "ProviderPreferences": [
         "[Symbol.iterator]",
         "[Symbol.unscopables]",

@@ -4,7 +4,7 @@ import {advancedSettings} from './advanced-settings.js';
 // Stateless component templates. Behavior binds once to their persistent nodes.
 export const topBar = () => `<div id="topbar" class="topbar" part="topbar"><span id="title" class="player-title" part="title" hidden></span><span class="space"></span><div id="utility-actions" class="utility-actions" part="actions"><button id="diagnostics-toggle" aria-pressed="false" aria-controls="diagnostics-overlay"></button><button id="open-menu" aria-expanded="false" aria-controls="settings"></button><button id="settings-toggle" aria-expanded="false" aria-controls="settings"></button><button id="fullscreen" part="fullscreen-button"></button></div></div>`;
 
-export const mediaStage = () => `<div id="stage" class="stage" part="stage" tabindex="0" aria-label="Playback area" aria-describedby="shortcuts-help"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div>`;
+export const mediaStage = () => `<div id="stage" class="stage" part="stage" role="region" tabindex="0" aria-label="Playback area" aria-describedby="shortcuts-help"><div id="surface" class="surface"></div><img id="poster" class="poster" alt="" hidden><div id="empty" class="empty"><button id="open"></button></div><div id="busy" class="busy" aria-hidden="true" hidden></div></div>`;
 
 export const loadingIndicator = () => `<div id="buffering-indicator" class="buffering-indicator" aria-hidden="true" hidden><span></span></div>`;
 

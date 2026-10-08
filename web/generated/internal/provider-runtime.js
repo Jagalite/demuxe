@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { compareProviderPreferences, normalizeProviderPreferences } from './provider-cost.js';
 import { PlayerError } from './errors.js';
+import { identifyDeployment } from './provider-deployment.js';
+import { awaitRuntime, runtimeAccess } from '../runtime.js';
 import { parseProviderDeployment, withProviderAvailability } from './provider-catalog.js';
 import { ProviderAcquisition } from './provider-acquisition.js';
 import { resolvableExecutionRecipe, executionRecipe } from './execution-recipes.js';
@@ -13,6 +15,7 @@ import { createProviderRuntime, admitRuntimeLoad, observeRuntimeManifest, accept
  * packaging metadata cannot add compositions or confer build qualification. */
 export class ProviderRuntime {
     base;
+    shared;
     controller = new AbortController();
     state;
     destruction;
@@ -24,6 +27,25 @@ export class ProviderRuntime {
     sources = new WeakMap();
     nextSource = 0;
     codecSources = new WeakMap();
+    sharedSnapshot;
+    get revision() { return this.sharedSnapshot?.revision ?? 0; }
+    /** Adopt additive provider publications only at a player operation boundary.
+     * Existing assets and identities cannot change, so active backend leases
+     * remain valid while newly admitted plans see the updated catalog. */
+    refresh() {
+        if (!this.shared)
+            return false;
+        this.controller.signal.throwIfAborted();
+        const snapshot = runtimeAccess(this.shared).snapshot();
+        if (snapshot === this.sharedSnapshot)
+            return false;
+        const loading = admitRuntimeLoad(createProviderRuntime(this.shared.qualifiedProviders), performance.now()).state;
+        this.state = acceptRuntimeDeployment(loading, snapshot.providers, snapshot.deployment.assets.map(asset => ({ id: asset.id, url: asset.url, path: asset.url.slice(this.base.href.length) }))).state;
+        this.deployment = snapshot.deployment;
+        this.sharedSnapshot = snapshot;
+        this.codecSources = new WeakMap();
+        return true;
+    }
     profileAvailability(runtime, offer) {
         if (runtime === 'pthread')
             return [];
@@ -71,12 +93,24 @@ export class ProviderRuntime {
         return hint ? storedCodecPreparation(source, runtime, this.has(hint.wasmPath)) : undefined;
     }
     providerPreferences;
-    constructor(base, qualified, preferences) {
+    constructor(base, qualified, preferences, shared) {
         this.base = base;
+        this.shared = shared;
         this.providerPreferences = normalizeProviderPreferences(preferences);
         this.state = createProviderRuntime(qualified);
     }
     load() {
+        if (this.shared) {
+            try {
+                this.controller.signal.throwIfAborted();
+                if (!this.sharedSnapshot)
+                    this.refresh();
+                return Promise.resolve();
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        }
         const admission = admitRuntimeLoad(this.state, performance.now());
         this.state = admission.state;
         if (admission.effect === 'join')
@@ -136,20 +170,10 @@ export class ProviderRuntime {
                 bytes.set(chunk, offset);
                 offset += chunk.length;
             }
-            const deployment = parseProviderDeployment(JSON.parse(new TextDecoder().decode(bytes)), this.base), providers = [];
+            const deployment = parseProviderDeployment(JSON.parse(new TextDecoder().decode(bytes)), this.base);
             // Hash the exact declared closure in the shell; qualification is decided
             // from this observed identity and the immutable reviewed registry.
-            for (const provider of deployment.catalog.providers) {
-                const ids = deployment.providerAssets[provider.id];
-                let matches = !ids.length;
-                if (ids.length) {
-                    const entries = ids.map(id => { const asset = deployment.assets.find(a => a.id === id); return ['runtime/' + asset.url.slice(this.base.href.length), asset.sha256]; }).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
-                    const artifacts = Object.fromEntries(entries), digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(artifacts, null, 2) + '\n'));
-                    const identity = 'sha256:' + Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
-                    matches = Object.keys(artifacts).length === ids.length && identity === provider.implementationIdentity;
-                }
-                providers.push({ id: provider.id, implementationIdentity: provider.implementationIdentity, manifestMatches: matches, assets: ids, profiles: provider.offers.map(offer => offer.profile) });
-            }
+            const providers = await identifyDeployment(deployment, this.base);
             this.controller.signal.throwIfAborted();
             const accepted = acceptRuntimeDeployment(this.state, providers, deployment.assets.map(asset => ({ id: asset.id, url: asset.url, path: asset.url.slice(this.base.href.length) })));
             this.state = accepted.state;
@@ -281,6 +305,10 @@ export class ProviderRuntime {
         await this.load();
         this.controller.signal.throwIfAborted();
         path = this.assetPath(path);
+        if (this.shared) {
+            const asset = this.sharedAsset(path);
+            return awaitRuntime(runtimeAccess(this.shared).read(this.sharedSnapshot, asset, false), this.controller.signal);
+        }
         const admission = admitRuntimeRequest(this.state, 'bytes', path);
         this.state = admission.state;
         if (admission.effect === 'retired')
@@ -310,6 +338,10 @@ export class ProviderRuntime {
         await this.load();
         this.controller.signal.throwIfAborted();
         path = this.assetPath(path);
+        if (this.shared) {
+            const asset = this.sharedAsset(path);
+            return awaitRuntime(runtimeAccess(this.shared).read(this.sharedSnapshot, asset, true), this.controller.signal);
+        }
         const admission = admitRuntimeRequest(this.state, 'module', path);
         this.state = admission.state;
         if (admission.effect === 'retired')
@@ -335,6 +367,12 @@ export class ProviderRuntime {
             }).then(module => { this.state = completeRuntimeRequest(this.state, 'module', path, true); resolve(module); }, error => { this.state = completeRuntimeRequest(this.state, 'module', path, false); reject(error); });
         }
         return pending;
+    }
+    sharedAsset(path) {
+        const owner = runtimeAssetOwner(this.state, new URL(path, this.base).href);
+        if (owner.kind !== 'ready')
+            throw new PlayerError('DEPLOYMENT_UNAVAILABLE', 'No qualified provider owns required asset: ' + path);
+        return owner.assetId;
     }
     destroy() {
         if (this.destruction)

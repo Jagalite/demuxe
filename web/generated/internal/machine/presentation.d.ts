@@ -8,12 +8,31 @@ export type PresentationState = Readonly<{
     disposed: boolean;
     nextRequest: number;
     targetOverride: boolean;
+    viewportVersion: number;
+    viewportOwner: number | null;
     fullscreen: Request | null;
     pip: (Request & Readonly<{
         kind: 'video' | 'document';
     }>) | null;
 }>;
 export type PresentationCommand = Readonly<{
+    type: 'viewport.replace';
+}> | Readonly<{
+    type: 'viewport.check' | 'viewport.remove';
+    id: number;
+}> | Readonly<{
+    type: 'viewport.install';
+    id: number;
+    present: boolean;
+}> | Readonly<{
+    type: 'viewport.request';
+    available: boolean;
+    nativePresentation: boolean;
+}> | Readonly<{
+    type: 'metadata.check';
+    sourceId: number;
+    currentSourceId: number | null | undefined;
+}> | Readonly<{
     type: 'target';
     override: boolean;
     fullscreen: boolean;
@@ -65,12 +84,14 @@ export declare function initialPresentationState(): PresentationState;
 export declare function transitionPresentation(state: PresentationState, command: PresentationCommand): PresentationDecision;
 export type PresentationObservation = Readonly<{
     fullscreen: boolean;
+    viewportExpanded?: boolean;
     documentPiP: boolean;
     videoPiP: boolean;
     mediaSession: boolean;
 }>;
 export declare function projectPresentation(observation: PresentationObservation): Readonly<{
     fullscreen: boolean;
+    viewportExpanded: boolean;
     pictureInPicture: "video" | "document" | null;
     mediaSession: boolean;
 }>;
@@ -139,4 +160,5 @@ export declare function transitionMediaSession(state: MediaSessionLease, command
     }>;
     outcome: "released";
 }>;
+export declare function metadataSourceCurrent(sourceId: number | undefined, currentSourceId: number | null | undefined): boolean;
 export {};

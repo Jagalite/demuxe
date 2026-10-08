@@ -335,7 +335,7 @@ export class DemuxePlayerElement extends Base {
       let fullscreenListener=false,pointerListener=false;
       const current=()=>initializing?transitionElementLifecycle(this.lifecycle,{type:'owner-ready',connected:this.isConnected,sameOwner:this.core===initializing}).accepted:transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted;
       const check=()=>{if(!current())throw new PlayerError('ABORTED','Player element initialization retired');};
-      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.previewOptions??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);this.view({type:'reset-owner'});
+      try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.previewOptions??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);const expansion=this.viewportExpansion!,element=this;core.presentation.setViewportExpansionAdapter({get available(){return element.controls&&expansion.available;},get active(){return expansion.active;},open(){element.settings(false,false);expansion.open();element.revealControls();},close:focus=>expansion.close(focus),subscribe:listener=>expansion.subscribe(listener)});this.view({type:'reset-owner'});
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
           if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?this.labels.reading:this.labels.inspecting});this.update(core.state);}
@@ -579,11 +579,11 @@ export class DemuxePlayerElement extends Base {
   }
   private fullscreen(){
     if(this.fullscreenRequest)return;
-    if(this.viewportExpansion?.active){this.settings(false,false);this.viewportExpansion.close();return;}
+    if(this.core?.presentation.state.viewportExpanded){this.settings(false,false);this.core.presentation.exitViewportExpansion();return;}
     const expand=()=>{
       if(this.terminal||!this.isConnected)return;
       if(!this.controls){this.announce(this.labels.noFullscreen);return;}
-      try{this.settings(false,false);this.viewportExpansion?.open();this.revealControls();}catch{this.announce(this.labels.noFullscreen);}
+      try{if(!this.core)throw Error('Player is unavailable');this.core.presentation.requestViewportExpansion();}catch{this.announce(this.labels.noFullscreen);}
     };
     const active=this.ownerDocument.fullscreenElement===this;
     if(!active&&(typeof this.requestFullscreen!=='function'||this.ownerDocument.fullscreenEnabled===false)){expand();return;}

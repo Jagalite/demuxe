@@ -67,6 +67,38 @@ Cross-document moves, independent render hosts, advanced PiP integrations and
 larger decode buffers are outside these adapter profiles. CSS sizing does not
 remove the existing 1920×1080 drawing-buffer ceiling.
 
+The built-in viewer permits one browser-viewport expansion per document. A second player must wait for the first to exit; overlapping entry rejects with `UNSUPPORTED_FEATURE`.
+
+`presentation.state.viewportExpanded` reports browser-viewport expansion separately
+from native `fullscreen`. `presentation.subscribe(listener)` immediately delivers
+the current presentation snapshot and then changed snapshots, including native
+fullscreen/PiP observations and viewport entry/exit. The returned unsubscribe only
+removes that observer. Destruction retires observers without a final callback.
+
+The built-in player registers its complete-player expansion adapter. External
+controls can check `presentation.canExpandViewport`, call
+`requestViewportExpansion()` or `exitViewportExpansion()`, and subscribe to the
+same state as the built-in button. Standalone Player hosts can opt in through
+`setViewportExpansionAdapter(adapter)`; the host adapter owns layout, focus and
+background restoration. Its synchronous `open()`/`close()` must retain composed
+audio/video/subtitle output, and `subscribe()` must notify external exits as well
+as commands. Removing/replacing the adapter or destroying the Player closes it.
+Expansion requires leaving fullscreen/PiP first; native entry closes expansion.
+This does not add Safari native video fullscreen or broaden existing PiP profiles.
+
+Media Session is opt-in with `presentation.setMediaSessionEnabled(true)` and permits
+one owning Player per document. To publish metadata for loaded media, call
+`presentation.setMediaSessionMetadata({title, artist, artwork}, sourceId)` using
+the source ID captured when starting the metadata lookup. A retired source ID
+throws `ABORTED`, so delayed artwork/title work cannot overwrite a replacement.
+Metadata is copied through the owning window's `MediaMetadata` constructor, may
+be prepared before acquiring the lease, and is published only by the accepted
+owner. Pass `null` to clear the current source's metadata. Source replacement,
+source close, disabling the lease and destruction clear the published metadata;
+a non-owner never clears another player's metadata. Titles/URLs are not inferred
+automatically. Browser metadata support and physical OS-control qualification
+remain distinct.
+
 ## External profiles
 
 `demuxe/media-element` explicitly exports/registers `demuxe-media`; import does not

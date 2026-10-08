@@ -2,13 +2,22 @@
 import {PlayerError} from './internal/errors.js';
 import type {Player} from './unified-player.js';
 import {
-  initialPresentationState,transitionPresentation,projectPresentation,presentationLocksSurface,
+  initialPresentationState,transitionPresentation,metadataSourceCurrent,projectPresentation,presentationLocksSurface,
   initialMediaSessionLease,allocateMediaSessionOwner,transitionMediaSession,ownsMediaSession,
   type PresentationCommand,type MediaSessionLease,
 } from './internal/machine/presentation.js';
 
 type DocumentLease={state:MediaSessionLease};
 const documentLeases=new WeakMap<Document,DocumentLease>();
+/** Host-owned complete-player expansion. It must preserve the composed surface. */
+export interface PlayerViewportExpansionAdapter {
+  readonly available:boolean;
+  readonly active:boolean;
+  open():void;
+  close(focus?:boolean):void;
+  subscribe(listener:()=>void):()=>void;
+}
+export type PlayerPresentationSnapshot=ReturnType<typeof projectPresentation>;
 /** Optional browser presentation controls. Calls requiring activation must come from a gesture. */
 export class PlayerPresentation {
   private control=initialPresentationState();
@@ -21,6 +30,11 @@ export class PlayerPresentation {
   private documentValue?:Document;
   private destruction?:Promise<void>;
   private pipClose?:(()=>void);
+  private viewport?:PlayerViewportExpansionAdapter;
+  private stopViewport?:()=>void;
+  private observers=new Set<()=>void>();
+  private observerCleanup=new Set<()=>void>();
+  private metadataValue?:{sourceId:number;value:MediaMetadata|null};
   // Player constructs this facade in a field initializer, before creating its host.
   constructor(private player:Player,private host:()=>HTMLElement){}
   private get ownerDocument(){return this.documentValue??(this.documentValue=this.host().ownerDocument);}
@@ -47,12 +61,71 @@ export class PlayerPresentation {
     const root=surface.getRootNode?.() as Document|ShadowRoot|undefined;
     return this.ownerDocument.pictureInPictureElement===surface||root?.pictureInPictureElement===surface;
   }
-  get state(){return projectPresentation({fullscreen:this.host().ownerDocument.fullscreenElement===this.fullscreenHost(),documentPiP:!!this.pipWindow&&!this.pipWindow.closed,videoPiP:this.videoPiP(),mediaSession:ownsMediaSession(this.lease.state,this.owner)});}
+  get state(){return projectPresentation({fullscreen:this.host().ownerDocument.fullscreenElement===this.fullscreenHost(),viewportExpanded:!!this.viewport?.active,documentPiP:!!this.pipWindow&&!this.pipWindow.closed,videoPiP:this.videoPiP(),mediaSession:ownsMediaSession(this.lease.state,this.owner)});}
+  private notify=()=>{for(const observer of [...this.observers]){try{observer();}catch{}}};
+  private requireAlive(){if(this.control.disposed)throw new PlayerError('ABORTED','Presentation controller is destroyed');}
+  /** Immediate observation, then changes; unsubscribe never destroys the player. */
+  subscribe(listener:(state:PlayerPresentationSnapshot)=>void):()=>void{
+    this.requireAlive();
+    if(typeof listener!=='function')throw new PlayerError('INVALID_ARGUMENT','Expected a presentation listener');
+    const doc=this.ownerDocument;let previous:PlayerPresentationSnapshot|undefined,surface:HTMLElement|undefined,stopped=false;
+    const observe=()=>{
+      if(stopped||this.control.disposed)return;
+      const state=this.state;
+      if(previous&&Object.keys(state).every(key=>state[key as keyof typeof state]===previous![key as keyof typeof state]))return;
+      previous=state;try{listener(state);}catch{}
+    };
+    const surfaceEvents=['enterpictureinpicture','leavepictureinpicture'];
+    const update=()=>{
+      if(stopped||this.control.disposed)return;
+      if(surface!==this.player.surface){for(const event of surfaceEvents)surface?.removeEventListener(event,observe);surface=this.player.surface;for(const event of surfaceEvents)surface?.addEventListener(event,observe);}
+      observe();
+    };
+    let stopPlayer:(()=>void)|undefined;
+    const stop=()=>{if(stopped)return;stopped=true;this.observers.delete(observe);this.observerCleanup.delete(stop);doc.removeEventListener('fullscreenchange',observe);for(const event of surfaceEvents)surface?.removeEventListener(event,observe);stopPlayer?.();};
+    this.observers.add(observe);this.observerCleanup.add(stop);doc.addEventListener('fullscreenchange',observe);
+    try{stopPlayer=this.player.subscribe(update);if(stopped)stopPlayer();}catch(error){stop();throw error;}
+    return stop;
+  }
+  get canExpandViewport(){return !this.control.disposed&&!!this.viewport?.available;}
+  /** Configure at the host boundary; standalone players have no expansion adapter. */
+  setViewportExpansionAdapter(adapter:PlayerViewportExpansionAdapter|null){
+    this.requireAlive();if(adapter===this.viewport||!adapter&&!this.viewport)return;
+    if(adapter&&(!['open','close','subscribe'].every(key=>typeof adapter[key as 'open']==='function')))throw new PlayerError('INVALID_ARGUMENT','Invalid viewport expansion adapter');
+    const {requestId:id}=this.accept({type:'viewport.replace'});
+    const previous=this.viewport;previous?.close(false);
+    this.accept({type:'viewport.check',id:id!});
+    // Retire the old unsubscribe handle before invoking application code. It
+    // may install a successor or destroy this controller synchronously.
+    const stop=this.stopViewport;this.stopViewport=undefined;stop?.();
+    this.accept({type:'viewport.install',id:id!,present:!!adapter});
+    this.viewport=undefined;
+    if(adapter){
+      this.viewport=adapter;
+      try{const stop=adapter.subscribe(()=>{if(this.control.viewportOwner===id)this.notify();});if(this.control.disposed||this.control.viewportOwner!==id){stop();if(this.viewport!==adapter)adapter.close(false);return;}this.stopViewport=stop;}
+      catch(error){if(this.control.viewportOwner===id){this.transition({type:'viewport.remove',id:id!});this.viewport=undefined;}try{if(this.viewport!==adapter)adapter.close(false);}finally{this.notify();}throw error;}
+    }
+    this.notify();
+  }
+  requestViewportExpansion(){
+    this.requireAlive();
+    const viewport=this.viewport,version=this.control.viewportVersion;
+    const available=!!viewport?.available,observed=this.state;
+    // Host getters may replace the adapter while observations are sampled.
+    this.accept({type:'viewport.check',id:version});
+    const {requestId:id}=this.accept({type:'viewport.request',available,nativePresentation:observed.fullscreen||!!observed.pictureInPicture});
+    viewport!.open();
+    if(this.transition({type:'viewport.check',id:id!}).error){if(this.viewport!==viewport||this.control.disposed)viewport!.close(false);throw new PlayerError('ABORTED','Viewport expansion was retired');}
+    this.notify();
+  }
+  exitViewportExpansion(){this.requireAlive();this.viewport?.close();this.notify();}
   get locksSurface(){return presentationLocksSurface(this.control,this.videoPiP());}
   async requestFullscreen(){
+    this.requireAlive();
     const host=this.fullscreenHost(),request=host.requestFullscreen;
     const {requestId:id}=this.accept({type:'fullscreen.request',containsHost:this.containsHost(host),supported:typeof request==='function'});
     try{
+      this.viewport?.close(false);this.accept({type:'fullscreen.check',id:id!,containsHost:this.containsHost(host)});
       // Invoke on the initiating gesture stack, before awaiting completion.
       await request.call(host);
       const decision=this.transition({type:'fullscreen.check',id:id!,containsHost:this.containsHost(host)});
@@ -60,10 +133,11 @@ export class PlayerPresentation {
         if(host.ownerDocument.fullscreenElement===host)await host.ownerDocument.exitFullscreen();
         throw new PlayerError(decision.error.code,decision.error.message);
       }
-    }finally{this.transition({type:'fullscreen.settled',id:id!});}
+    }finally{this.transition({type:'fullscreen.settled',id:id!});this.notify();}
   }
-  async exitFullscreen(){this.accept({type:'fullscreen.exit'});const host=this.fullscreenHost();if(host.ownerDocument.fullscreenElement===host)await host.ownerDocument.exitFullscreen();}
+  async exitFullscreen(){this.accept({type:'fullscreen.exit'});const host=this.fullscreenHost();if(host.ownerDocument.fullscreenElement===host)await host.ownerDocument.exitFullscreen();this.notify();}
   async requestPictureInPicture(kind:'video'|'document'='video'){
+    this.requireAlive();
     // Capture the owning document before document PiP reparents the host.
     void this.ownerDocument;
     const api=(globalThis as typeof globalThis&{documentPictureInPicture?:{requestWindow(options:{width:number;height:number}):Promise<Window>}}).documentPictureInPicture;
@@ -73,6 +147,7 @@ export class PlayerPresentation {
     const {requestId:id}=this.accept({type:'pip.request',kind,supported:kind==='document'?typeof requestWindow==='function':typeof requestVideo==='function',eligible:kind==='document'||video&&!surface.disablePictureInPicture&&!(this.player.state.subtitlesVisible&&this.player.state.mediaInfo.subtitle),documentOpen:!!this.pipWindow&&!this.pipWindow.closed});
     if(id===undefined)return;
     try{
+      this.viewport?.close(false);this.accept({type:'pip.check',id,sameSurface:surface===this.player.surface,subtitles:kind==='video'&&this.player.state.subtitlesVisible&&!!this.player.state.mediaInfo.subtitle});
       if(kind==='document'){
         const win=await requestWindow!.call(api,{width:640,height:360});
         let closed=false;const close=()=>{if(!closed){closed=true;win.close();}};
@@ -83,7 +158,7 @@ export class PlayerPresentation {
           const before=host.before;check();before.call(host,marker);check();
           restore=()=>{
             if(this.pipWindow!==win)return;this.pipWindow=undefined;this.restore=undefined;this.pipClose=undefined;
-            try{win.removeEventListener('pagehide',restore!);}finally{if(marker?.parentNode)marker.replaceWith(host!);}
+            try{win.removeEventListener('pagehide',restore!);}finally{if(marker?.parentNode)marker.replaceWith(host!);this.notify();}
           };
           this.restore=restore;this.pipClose=close;this.pipWindow=win;
           const body=win.document.body;check();const style=body.style;check();style.margin='0';check();
@@ -102,12 +177,27 @@ export class PlayerPresentation {
         if(this.videoPiP(surface))await this.ownerDocument.exitPictureInPicture();
         throw new PlayerError(decision.error.code,decision.error.message);
       }
-    }finally{this.transition({type:'pip.settled',id});}
+    }finally{this.transition({type:'pip.settled',id});this.notify();}
   }
   async exitPictureInPicture(){
     this.accept({type:'pip.exit'});
     if(this.pipWindow){const win=this.pipWindow,close=this.pipClose??(()=>win.close());try{this.restore?.();}finally{close();}}
     if(this.videoPiP())await this.ownerDocument.exitPictureInPicture();
+    this.notify();
+  }
+  /** A source ID is mandatory so asynchronous metadata from retired media is rejected. */
+  setMediaSessionMetadata(metadata:MediaMetadataInit|null,sourceId:number){
+    this.requireAlive();
+    const current=()=>{this.accept({type:'metadata.check',sourceId,currentSourceId:this.player.state.sourceId});};
+    current();let value:MediaMetadata|null=null;
+    if(metadata!==null){
+      if(typeof metadata!=='object')throw new PlayerError('INVALID_ARGUMENT','Expected Media Session metadata or null');
+      const Metadata=this.ownerDocument.defaultView?.MediaMetadata;
+      if(!Metadata)throw new PlayerError('UNSUPPORTED_FEATURE','Media Session metadata is unavailable');
+      try{value=new Metadata(metadata);}catch{throw new PlayerError('INVALID_ARGUMENT','Invalid Media Session metadata');}
+    }
+    current();this.metadataValue={sourceId,value};
+    if(ownsMediaSession(this.lease.state,this.owner))this.mediaSession()!.metadata=value;
   }
   private mediaSession(){return this.ownerDocument.defaultView?.navigator.mediaSession??globalThis.navigator?.mediaSession;}
   setMediaSessionEnabled(enabled:boolean){
@@ -125,6 +215,9 @@ export class PlayerPresentation {
       if(!current())return;
       const stop=this.player.subscribe(state=>{
         if(!current())return;
+        if(!metadataSourceCurrent(this.metadataValue?.sourceId,state.sourceId))this.metadataValue=undefined;
+        const metadata=this.metadataValue?.value??null;if(media.metadata!==metadata)media.metadata=metadata;
+        if(!current())return;
         media.playbackState=state.sourceId===null?'none':state.playbackIntent==='play'?'playing':'paused';
         if(!current())return;
         if(state.duration!==null&&state.duration>0&&state.currentTime<=state.duration)media.setPositionState?.({duration:state.duration,position:state.currentTime,playbackRate:state.playbackRate});else media.setPositionState?.();
@@ -132,25 +225,31 @@ export class PlayerPresentation {
       if(!current()){stop();return;}
       this.subscription={serial,stop};
       this.lease.state=transitionMediaSession(this.lease.state,{type:'activate',owner:this.owner,serial}).state;
+      this.notify();
     }catch{this.releaseMediaSession(serial);throw new PlayerError('UNSUPPORTED_FEATURE','Media Session actions are unavailable');}
   }
   private releaseMediaSession(expectedSerial?:number){
-    const serial=expectedSerial??this.lease.state.serial;
-    const decision=transitionMediaSession(this.lease.state,{type:'release',owner:this.owner,serial});this.lease.state=decision.state;
-    const subscription=this.subscription;
-    if(subscription&&subscription.serial===serial){this.subscription=undefined;try{subscription.stop();}catch{}}
-    if(decision.outcome!=='released')return;
-    const media=this.mediaSession();if(!media)return;
-    const vacant=()=>this.lease.state.owner===null&&this.lease.state.serial===serial;
-    for(const action of ['play','pause','seekto'] as const){if(!vacant())return;try{media.setActionHandler(action,null);}catch{}}
-    if(!vacant())return;
-    media.playbackState='none';if(vacant())try{media.setPositionState?.();}catch{}
+    try{
+      const serial=expectedSerial??this.lease.state.serial;
+      const decision=transitionMediaSession(this.lease.state,{type:'release',owner:this.owner,serial});this.lease.state=decision.state;
+      const subscription=this.subscription;
+      if(subscription&&subscription.serial===serial){this.subscription=undefined;try{subscription.stop();}catch{}}
+      if(decision.outcome!=='released')return;
+      const media=this.mediaSession();if(!media)return;
+      const vacant=()=>this.lease.state.owner===null&&this.lease.state.serial===serial;
+      for(const action of ['play','pause','seekto'] as const){if(!vacant())return;try{media.setActionHandler(action,null);}catch{}}
+      if(!vacant())return;
+      media.metadata=null;if(!vacant())return;
+      media.playbackState='none';if(vacant())try{media.setPositionState?.();}catch{}
+    }finally{this.notify();}
   }
   destroy():Promise<void>{
     if(this.destruction)return this.destruction;
     let resolve!:()=>void,reject!:(error:unknown)=>void;this.destruction=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
     this.transition({type:'destroy'});const errors:unknown[]=[],win=this.pipWindow,restore=this.restore,close=this.pipClose??(()=>win?.close());
     const release=(work:()=>void)=>{try{work();}catch(error){errors.push(error);}};
+    for(const stop of [...this.observerCleanup])release(stop);
+    const viewport=this.viewport;this.viewport=undefined;release(()=>this.stopViewport?.());this.stopViewport=undefined;release(()=>viewport?.close(false));this.metadataValue=undefined;
     release(()=>this.releaseMediaSession());release(()=>restore?.());release(close);
     const exits:Promise<unknown>[]=[];
     release(()=>{if(this.videoPiP())exits.push(this.ownerDocument.exitPictureInPicture().catch(()=>{}));});

@@ -3,12 +3,14 @@ import { type RemuxDeployment, type RemuxDeploymentChange } from './remux-deploy
 import { type RecoveryState, type RecoveryChange } from './route-recovery.js';
 import { type PromotionState, type PromotionChange } from './route-promotion.js';
 import { type RouteEvidence, type CapabilityChange, type TierChange } from './route-evidence.js';
+import { type ProviderUpdates, type ProviderUpdateChange } from './provider-updates.js';
 import { type DiscoveryState, type DiscoveryChange } from './route-discovery.js';
 import { type InspectionState, type InspectionChange } from './route-inspection.js';
 import type { SelectionAttempt } from './source-policy.js';
 import type { RoutePlan } from './route-admission.js';
 import type { DecodingEvidence } from './media-facts.js';
 export type RoutingState = Readonly<{
+    providers: ProviderUpdates;
     deployment: RemuxDeployment;
     recovery: RecoveryState;
     promotion: PromotionState;
@@ -24,6 +26,9 @@ export type RoutingState = Readonly<{
 }>;
 export declare function initialRouting(): RoutingState;
 export type RoutingInput = Readonly<{
+    type: 'routing.providers';
+    change: ProviderUpdateChange;
+}> | Readonly<{
     type: 'routing.deployment';
     epoch: number;
     operation: number | null;

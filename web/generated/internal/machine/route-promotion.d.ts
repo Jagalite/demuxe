@@ -8,6 +8,7 @@ export type PromotionFacts = Readonly<{
     background: boolean;
     waiting: boolean;
     queued: number;
+    reevaluate?: boolean;
 }>;
 export type PromotionState = Readonly<{
     serial: number;

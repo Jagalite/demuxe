@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 export function initialPresentationState() {
-    return Object.freeze({ disposed: false, nextRequest: 1, targetOverride: false, fullscreen: null, pip: null });
+    return Object.freeze({ disposed: false, nextRequest: 1, targetOverride: false, viewportVersion: 0, viewportOwner: null, fullscreen: null, pip: null });
 }
 function result(state) { return Object.freeze({ state: Object.freeze({ ...state }) }); }
 function failure(state, code, message, retired = false) {
@@ -16,11 +16,25 @@ export function transitionPresentation(state, command) {
             ? failure(state, 'ABORTED', 'Fullscreen request was retired', true) : result(state);
         case 'pip.check': return state.disposed || state.pip?.id !== command.id || state.pip.retired || state.pip.kind === 'video' && (!command.sameSurface || command.subtitles)
             ? failure(state, 'ABORTED', 'Presentation request was retired', true) : result(state);
-        case 'destroy': return result(state.disposed ? state : { ...state, disposed: true, fullscreen: state.fullscreen ? Object.freeze({ ...state.fullscreen, retired: true }) : null, pip: state.pip ? Object.freeze({ ...state.pip, retired: true }) : null });
+        case 'destroy': return result(state.disposed ? state : { ...state, disposed: true, viewportOwner: null, viewportVersion: state.viewportVersion + 1, fullscreen: state.fullscreen ? Object.freeze({ ...state.fullscreen, retired: true }) : null, pip: state.pip ? Object.freeze({ ...state.pip, retired: true }) : null });
     }
     if (state.disposed)
         return failure(state, 'ABORTED', 'Presentation controller is destroyed');
     switch (command.type) {
+        case 'viewport.replace': return Object.freeze({ state: Object.freeze({ ...state, viewportVersion: state.viewportVersion + 1 }), requestId: state.viewportVersion + 1 });
+        case 'viewport.check': return state.viewportVersion === command.id ? result(state) : failure(state, 'ABORTED', 'Viewport adapter replacement was retired');
+        case 'viewport.install': return state.viewportVersion === command.id ? result({ ...state, viewportOwner: command.present ? command.id : null }) : failure(state, 'ABORTED', 'Viewport adapter replacement was retired');
+        case 'viewport.remove': return result(state.viewportOwner === command.id ? { ...state, viewportOwner: null } : state);
+        case 'viewport.request':
+            if (state.viewportOwner === null || !command.available)
+                return failure(state, 'UNSUPPORTED_FEATURE', 'Browser-viewport expansion is unavailable');
+            if (state.fullscreen || state.pip || command.nativePresentation)
+                return failure(state, 'UNSUPPORTED_FEATURE', 'Settle and exit fullscreen or Picture-in-Picture before expanding the viewport');
+            return Object.freeze({ state, requestId: state.viewportVersion });
+        case 'metadata.check':
+            if (!Number.isSafeInteger(command.sourceId) || command.sourceId < 1)
+                return failure(state, 'INVALID_ARGUMENT', 'Expected a loaded source ID');
+            return metadataSourceCurrent(command.sourceId, command.currentSourceId) ? result(state) : failure(state, 'ABORTED', 'Media Session metadata source was retired');
         case 'target':
             if (state.fullscreen || command.fullscreen)
                 return failure(state, 'UNSUPPORTED_FEATURE', 'Exit fullscreen before changing its target');
@@ -56,7 +70,7 @@ export function transitionPresentation(state, command) {
     }
 }
 export function projectPresentation(observation) {
-    return Object.freeze({ fullscreen: observation.fullscreen, pictureInPicture: observation.documentPiP ? 'document' : observation.videoPiP ? 'video' : null, mediaSession: observation.mediaSession });
+    return Object.freeze({ fullscreen: observation.fullscreen, viewportExpanded: !!observation.viewportExpanded, pictureInPicture: observation.documentPiP ? 'document' : observation.videoPiP ? 'video' : null, mediaSession: observation.mediaSession });
 }
 export function presentationLocksSurface(state, videoPiP) {
     return state.pip?.kind === 'video' || videoPiP;
@@ -76,3 +90,4 @@ export function transitionMediaSession(state, command) {
         ? Object.freeze({ state: Object.freeze({ ...state, phase: 'active' }), outcome: 'activated' })
         : Object.freeze({ state: Object.freeze({ ...state, owner: null, phase: 'idle' }), outcome: 'released' });
 }
+export function metadataSourceCurrent(sourceId, currentSourceId) { return sourceId !== undefined && sourceId === currentSourceId; }
