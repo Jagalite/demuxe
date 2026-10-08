@@ -40,6 +40,18 @@ export function transitionPlayer(state:PlayerControlState,input:PlayerControlInp
     const transactions=decision.state.settingsTransactions;
     decision=Object.freeze({...decision,state:Object.freeze({...decision.state,settingsTransactions:Object.freeze({...transactions,pending:Object.freeze({...transactions.pending!,resumeSuppressed:true})})})});
   }
+  // A held Wasm seek has already stopped playback. Cancellation revokes its
+  // resume authority, so publish Pause before retiring that transport. A latest
+  // successor may inherit only the original session's playing intent.
+  const pendingTransport=decision.state.transport.pending;
+  if(input.type==='operation.cancel'&&pendingTransport?.operation===input.id&&pendingTransport.held&&['seeking','restoring','selecting'].includes(pendingTransport.phase)&&pendingTransport.session===decision.state.source.acceptedSession&&pendingTransport.epoch===decision.state.operations.epoch){
+    const latest=decision.state.playback.latestSeek;
+    const successor=!pendingTransport.wasPaused&&latest!==null&&latest!==pendingTransport.intent&&decision.state.playback.seeks.includes(latest);
+    decision=Object.freeze({...decision,state:Object.freeze({...decision.state,settings:Object.freeze({...decision.state.settings,pause:true}),transport:Object.freeze({...decision.state.transport,resumeSeek:successor?Object.freeze({intent:latest,session:pendingTransport.session,epoch:pendingTransport.epoch}):undefined})})});
+  }
+  if(input.type==='seek.request'&&input.latest&&decision.accepted&&decision.state.transport.resumeSeek)decision=Object.freeze({...decision,state:Object.freeze({...decision.state,transport:Object.freeze({...decision.state.transport,resumeSeek:Object.freeze({...decision.state.transport.resumeSeek,intent:decision.id!})})})});
+  const resumeSeek=decision.state.transport.resumeSeek;
+  if(resumeSeek&&(input.type==='play.retire'||input.type==='seek.settled'&&input.id===resumeSeek.intent||resumeSeek.session!==decision.state.source.acceptedSession||resumeSeek.epoch!==decision.state.operations.epoch))decision=Object.freeze({...decision,state:Object.freeze({...decision.state,transport:Object.freeze({...decision.state.transport,resumeSeek:undefined})})});
   const transport=decision.state.transport;
   if(transport.pending&&(input.type==='source.clear'||!playerTransportAuthority(decision.state,transport.pending.id)))decision=Object.freeze({...decision,state:Object.freeze({...decision.state,transport:retirePlayerTransport(transport)})});
   if(decision.state!==state&&input.type!=='resource.event'){

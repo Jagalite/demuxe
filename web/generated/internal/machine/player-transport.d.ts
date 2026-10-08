@@ -26,6 +26,11 @@ type Work = Readonly<{
 export type PlayerTransportState = Readonly<{
     serial: number;
     pending: Work | null;
+    resumeSeek?: Readonly<{
+        intent: number;
+        session: number;
+        epoch: number;
+    }>;
 }>;
 export type TransportEffect = Readonly<{
     kind: 'verify' | 'hold-seek' | 'seek' | 'fallback' | 'restore' | 'resume' | 'pause' | 'reject' | 'ignore';

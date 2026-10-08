@@ -237,6 +237,10 @@ Call from a user gesture; resume is initiated in that gesture when no operation
 is pending. Autoplay denial is AUTOPLAY_BLOCKED and never triggers codec fallback.
 pause resolves at observed pause. seek resolves after output settles; it does not
 interrupt active packet reads. There are at most 32 pending core operations.
+Cancelling a Hybrid or Software seek while it holds playback leaves the session
+paused and reports paused intent. A replacement `policy: 'latest'` seek inherits
+the prior playing intent and resumes after verification; an explicit Pause
+suppresses resume.
 Controls preview scrubbing locally and submit a seek on release.
 Built-in thumbnails use an independent session of the accepted playback engine.
 See [preview routing](PREVIEW-ROUTING.md) for playback policy, cancellation,

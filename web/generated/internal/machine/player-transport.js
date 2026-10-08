@@ -11,7 +11,8 @@ export function playerTransportAuthority(state, id) {
 }
 export function transitionPlayerTransport(state, input) {
     const no = (reason = 'retired', message) => Object.freeze({ state, accepted: false, reason, message, retire: Object.freeze([]) });
-    const set = (pending, effect, pause = false) => Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, transport: Object.freeze({ serial: pending?.id ?? state.transport.serial, pending }), ...(pause ? { settings: Object.freeze({ ...state.settings, pause: true }) } : {}) }), accepted: true, id: pending?.id, retire: Object.freeze([]), transportEffect: effect ? Object.freeze({ ...effect }) : undefined });
+    // Keep a queued successor's resume intent across unrelated FIFO transports.
+    const set = (pending, effect, pause = false) => Object.freeze({ state: Object.freeze({ ...state, revision: state.revision + 1, transport: Object.freeze({ ...state.transport, serial: pending?.id ?? state.transport.serial, pending, ...(pending?.kind === 'seek' && pending.intent === state.transport.resumeSeek?.intent ? { resumeSeek: undefined } : {}) }), ...(pause ? { settings: Object.freeze({ ...state.settings, pause: true }) } : {}) }), accepted: true, id: pending?.id, retire: Object.freeze([]), transportEffect: effect ? Object.freeze({ ...effect }) : undefined });
     const old = state.transport.pending;
     const providerOrdered = !!state.routing.deployment.selection?.providerPreferences?.some(rule => rule.capability === 'media.play.complete');
     if (input.type === 'transport.finished')
@@ -44,9 +45,12 @@ export function transitionPlayerTransport(state, input) {
         else if (!state.playback.plays.includes(input.intent))
             return no();
         const play = input.type === 'transport.play.begin';
+        const continuation = !play && state.transport.resumeSeek?.intent === input.intent && state.transport.resumeSeek.session === state.source.acceptedSession && state.transport.resumeSeek.epoch === op.epoch;
+        const wasPaused = state.settings.pause && !continuation;
         const bounded = play && state.source.automatic && input.local && input.nativeRemux !== 'never' && !input.trialVerified && ['direct', 'direct-mpv'].includes(input.backendPlan ?? '') && input.fallbackAvailable;
-        const pending = Object.freeze({ id: state.transport.serial + 1, epoch: op.epoch, operation: op.id, session: state.source.acceptedSession, kind: play ? 'play' : 'seek', phase: play ? 'verifying' : 'seeking', intent: input.intent, target: play ? input.position : input.target, previous: play ? input.position : input.previous, wasPaused: state.settings.pause, held: !play && !state.settings.pause && state.source.mode !== 'native', trialSame: play && input.trialSame, trialVerified: play && input.trialVerified, bounded, local: play && input.local, inconclusive: false, backendPlan: play ? input.backendPlan : undefined, nativeRemux: play ? input.nativeRemux : 'auto' });
-        return set(pending, play ? { kind: 'verify', budget: fastLocalRecovery({ ...input, automatic: state.source.automatic }) ? FIREFOX_LOCAL_RECOVERY_MS : bounded ? 1500 : undefined } : { kind: pending.held ? 'hold-seek' : 'seek', target: input.target });
+        const pending = Object.freeze({ id: state.transport.serial + 1, epoch: op.epoch, operation: op.id, session: state.source.acceptedSession, kind: play ? 'play' : 'seek', phase: play ? 'verifying' : 'seeking', intent: input.intent, target: play ? input.position : input.target, previous: play ? input.position : input.previous, wasPaused, held: !play && !wasPaused && state.source.mode !== 'native', trialSame: play && input.trialSame, trialVerified: play && input.trialVerified, bounded, local: play && input.local, inconclusive: false, backendPlan: play ? input.backendPlan : undefined, nativeRemux: play ? input.nativeRemux : 'auto' });
+        const decision = set(pending, play ? { kind: 'verify', budget: fastLocalRecovery({ ...input, automatic: state.source.automatic }) ? FIREFOX_LOCAL_RECOVERY_MS : bounded ? 1500 : undefined } : { kind: pending.held ? 'hold-seek' : 'seek', target: input.target });
+        return continuation ? Object.freeze({ ...decision, state: Object.freeze({ ...decision.state, settings: Object.freeze({ ...decision.state.settings, pause: false }) }) }) : decision;
     }
     if (!old || !playerTransportAuthority(state, input.id))
         return no();

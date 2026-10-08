@@ -299,3 +299,99 @@ test('failed boundary resume pauses without selecting a new route',async t=>{
  assert.deepEqual(calls,['pause',['seek',75],['seek',42],'play','pause']);
  assert.equal(p.settings.pause,true);
 });
+
+for(const mode of ['hybrid','software'])test(`aborting a held ${mode} seek reports the physical paused state`,async t=>{
+ const {p,backend}=fixture(t,{mode});let started,release;
+ const ready=new Promise(r=>started=r),controller=new AbortController();
+ backend.properties.set('pause',false);
+ backend.pause=async()=>backend.properties.set('pause',true);
+ backend.play=async()=>backend.properties.set('pause',false);
+ p.settled=async()=>{started();await new Promise(r=>release=r);};
+ const pending=p.seek(4,{signal:controller.signal}),rejected=assert.rejects(pending,e=>e.code==='ABORTED');
+ await ready;controller.abort();release();await rejected;
+ assert.equal(backend.properties.get('pause'),true);assert.equal(p.settings.pause,true);
+ assert.equal(p.control.transport.pending,null);
+});
+test('a latest seek successor retains playing intent through predecessor cancellation',async t=>{
+ const {p,calls}=fixture(t,{mode:'hybrid'});let started,release,count=0;
+ const ready=new Promise(r=>started=r);
+ p.settled=async()=>{if(count++===0){started();await new Promise(r=>release=r);}};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const successor=p.seek(6,{policy:'latest'});release();await Promise.all([rejected,successor]);
+ assert.equal(p.settings.pause,false);assert.deepEqual(calls,['pause',['seek',4],'pause',['seek',6],'play']);
+});
+test('cancelling a native seek does not change playing intent',()=>{
+ const m=model(),id=m.seek().id;m.send({type:'operation.cancel',id:m.operation});
+ assert.equal(m.state.settings.pause,false);assert.equal(m.state.transport.pending,null);
+});
+
+for(const action of ['abort-successor','pause','replace-successor'])test(`cancelled hold handles ${action} without reviving retired intent`,async t=>{
+ const {p,calls}=fixture(t,{mode:'hybrid'});let started,release,count=0;
+ const ready=new Promise(r=>started=r),controller=new AbortController();
+ p.settled=async()=>{if(count++===0){started();await new Promise(r=>release=r);}};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const second=p.seek(6,{policy:'latest',signal:controller.signal});
+ const secondResult=action==='pause'?second:assert.rejects(second,e=>e.code==='ABORTED');
+ let last;
+ if(action==='abort-successor')controller.abort();
+ if(action==='pause')last=p.pause();
+ if(action==='replace-successor')last=p.seek(8,{policy:'latest'});
+ release();await Promise.all([rejected,secondResult,last]);
+ assert.equal(p.settings.pause,action!=='replace-successor');
+ assert.equal(calls.includes('play'),action==='replace-successor');
+ assert.equal(p.control.transport.resumeSeek,undefined);
+});
+
+test('a replacement seek restores playing intent after boundary recovery',async t=>{
+ const {p,backend,calls}=boundaryFixture(t);let started,release,count=0;
+ const ready=new Promise(r=>started=r),settled=p.settled;
+ p.settled=async(...args)=>{await settled(...args);if(count++===0){started();await new Promise(r=>release=r);}};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const second=p.seek(75,{policy:'latest'}),boundary=assert.rejects(second,e=>e.code==='INVALID_ARGUMENT');
+ release();await Promise.all([rejected,boundary]);
+ assert.equal(p.settings.pause,false);assert.equal(backend.properties.get('time-pos'),4);
+ assert.deepEqual(calls,['pause',['seek',4],'pause',['seek',75],['seek',4],'play']);
+});
+
+test('replacement seek fallback retains the inherited playing intent',async t=>{
+ const {p,backend}=fixture(t,{mode:'hybrid'});let started,release,selected;
+ const ready=new Promise(r=>started=r),seek=backend.seek;
+ p.settled=async()=>{started();await new Promise(r=>release=r);};
+ backend.seek=async target=>{if(target===6)throw new PlayerError('DECODE_FAILED','fixture recovery');await seek(target);};
+ p.select=async(...args)=>{selected=args;};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const second=p.seek(6,{policy:'latest'});release();await Promise.all([rejected,second]);
+ assert.equal(selected[1].pause,false);assert.equal(selected[5],6);
+});
+ test('queued seek preserves latest successor resume',async t=>{
+ const {p,calls}=fixture(t,{mode:'hybrid'});let started,release,count=0;
+ const ready=new Promise(r=>started=r);
+ p.settled=async()=>{if(count++===0){started();await new Promise(r=>release=r);}};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const queued=p.seek(5);
+ const successor=p.seek(6,{policy:'latest'});release();await Promise.all([rejected,queued,successor]);
+ assert.deepEqual(calls,['pause',['seek',4],['seek',5],'pause',['seek',6],'play']);
+ assert.equal(p.settings.pause,false);
+ });
+ test('cancel held seek during fallback selection reports pause',async t=>{
+ const {p,backend}=fixture(t,{mode:'hybrid'});let started,release;
+ const ready=new Promise(r=>started=r),controller=new AbortController();
+ backend.properties.set('pause',false);
+ backend.pause=async()=>backend.properties.set('pause',true);
+ backend.seek=async()=>{throw new PlayerError('DECODE_FAILED','fixture recovery');};
+ p.select=async()=>{started();await new Promise(r=>release=r);p.assertOperation();};
+ const pending=p.seek(4,{signal:controller.signal}),rejected=assert.rejects(pending,e=>e.code==='ABORTED');
+ await ready;assert.equal(p.control.transport.pending.phase,'selecting');controller.abort();release();await rejected;
+
+ assert.equal(p.settings.pause,backend.properties.get('pause'));
+ });
+
+test('replacement resumes after cancelling a held seek in fallback selection',async t=>{
+ const {p,backend,calls}=fixture(t,{mode:'hybrid'});let started,release;
+ const ready=new Promise(r=>started=r),seek=backend.seek;
+ backend.seek=async target=>{if(target===4)throw new PlayerError('DECODE_FAILED','fixture recovery');await seek(target);};
+ p.select=async()=>{started();await new Promise(r=>release=r);p.assertOperation();};
+ const first=p.seek(4,{policy:'latest'}),rejected=assert.rejects(first,e=>e.code==='ABORTED');await ready;
+ const successor=p.seek(6,{policy:'latest'});release();await Promise.all([rejected,successor]);
+ assert.equal(p.settings.pause,false);assert.deepEqual(calls,['pause','pause',['seek',6],'play']);
+});
