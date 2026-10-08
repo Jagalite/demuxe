@@ -14,13 +14,14 @@ try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
  browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});const page=await browser.newPage();await page.route('**/fixtures/preview-test/**',async route=>{const name=basename(new URL(route.request().url()).pathname);await route.fulfill({body:await readFile(fixture+'/'+name),contentType:name.endsWith('.mpd')?'application/dash+xml':name.endsWith('.jpg')?'image/jpeg':'video/mp4'});});await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async path=>{
-  await window.player.destroy();const {ShakaBackend}=await import('/web/generated/internal/shaka-backend.js');const {PreviewController}=await import('/web/generated/preview/controller.js');
-  const v=document.createElement('video');document.body.append(v);const backend=new ShakaBackend(v,new URL('/',location.href));
+  await window.player.destroy();const {ShakaBackend}=await import('/web/generated/internal/shaka-backend.js');const {PreviewController}=await import('/web/generated/preview/controller.js');const {Player}=await import('/web/generated/index.js');
+  const owner=new Player(document.querySelector('#surface'),{preview:false});
+  const v=document.createElement('video');document.body.append(v);const backend=new ShakaBackend(v,new URL('/',location.href),undefined,owner.providerRuntime);
   const preview=new PreviewController([{id:'shaka',priority:20,canHandle:()=>true,getFrame:r=>backend.previewFrame(r)}],{debounceMs:0});
   try{await backend.openRemote({url:new URL(path,location.origin).href,format:'dash'});await backend.seek(1);const before=v.currentTime;
    const frame=await preview.getFrame({time:2.4,width:120});const indexed=backend.player.getManifest().imageStreams.map(s=>!!s.segmentIndex);
    return {before,after:v.currentTime,paused:v.paused,indexed,frame:frame?{actualTime:frame.actualTime,width:frame.width,height:frame.height,path:frame.path,size:frame.image.blob?.size}:null,diagnostics:preview.diagnostics};
-  }finally{preview.destroy();await backend.destroy();v.remove();}
+  }finally{preview.destroy();await backend.destroy();await owner.destroy();v.remove();}
  },'/fixtures/preview-test/main.mpd');
  assert.ok(result.frame,JSON.stringify(result));assert.equal(result.before,result.after);assert.equal(result.paused,true);assert.equal(result.frame.actualTime,2);assert.equal(result.frame.width,120);assert.equal(result.frame.path,'shaka-image-track');assert.ok(result.frame.size>0);console.log(JSON.stringify(result,null,2));
 }finally{await browser?.close();server.kill();}

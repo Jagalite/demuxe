@@ -28,6 +28,24 @@ globalThis.fetch=async()=>new Response('// fake runtime');
 globalThis.document={createElement:()=>({remove(){}}),head:{append(script){globalThis.shaka=runtime;queueMicrotask(()=>script.onload?.());}}};
 function video(){const value=new EventTarget(),textEvents=new EventTarget();return Object.assign(value,{textTracks:Object.assign([],{addEventListener:textEvents.addEventListener.bind(textEvents),removeEventListener:textEvents.removeEventListener.bind(textEvents)}),paused:true,ended:false,currentTime:0,duration:30,volume:1,playbackRate:1,videoWidth:640,videoHeight:360,readyState:4,muted:false,buffered:{length:0},seekable:{length:0},getVideoPlaybackQuality:()=>({totalVideoFrames:1,droppedVideoFrames:0}),pause(){this.paused=true;},async play(){this.paused=false;},load(){},removeAttribute(){},replaceChildren(){}});}
 const source={url:'https://media.test/main.mpd',format:'dash'};
+test('automatic restrictions preserve an active audio catalogue before deferred ABR',async()=>{
+ const low={id:4,active:false,videoCodec:'avc1',audioCodec:'aac',audioId:7,height:90,bandwidth:500000};
+ const all=[low,{...low,id:5,active:true,height:180,bandwidth:1500000}];
+ variantOverride=all;
+ const backend=new ShakaBackend(video(),new URL('https://app.test/'));
+ try{
+  await backend.openRemote(source);
+  const player=backend.player,calls=[],select=player.selectVariantTrack.bind(player);
+  player.getVariantTracks=()=>all.filter(t=>t.height<=(player.config.restrictions?.maxHeight??Infinity)&&t.bandwidth<=(player.config.restrictions?.maxBandwidth??Infinity));
+  player.getAudioTracks=()=>player.getVariantTracks().some(t=>t.active)?player.audio:[];
+  player.selectVariantTrack=(...args)=>{calls.push(args);select(...args);};
+  await backend.setQuality({mode:'auto',maxHeight:90,maxBandwidth:1000000});
+  assert.equal(player.getVariantTracks().find(t=>t.active)?.id,4);
+  assert.equal(player.getAudioTracks().length,2);
+  assert.deepEqual(calls[0].slice(1),[false,0],'Keep the full existing buffer');
+  assert.equal(player.config.abr.enabled,true);
+ }finally{await backend.destroy();variantOverride=undefined;}
+});
 test('manual quality preserves buffered media for responsive and buffered requests',async()=>{
  const low={id:4,active:true,videoCodec:'avc1.640020',audioCodec:'mp4a.40.2',audioId:7,height:360,bandwidth:500000};
  variantOverride=[low,{...low,id:5,active:false,height:720,bandwidth:2000000}];

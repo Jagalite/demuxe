@@ -528,6 +528,23 @@ export class ShakaBackend extends EventTarget {
                         this.check(lease);
                         if (!configured)
                             throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka rejected the quality configuration');
+                        if (policy.mode === 'auto') {
+                            // Shaka hides a restricted active variant before its deferred ABR
+                            // switch. Its audio catalogue is empty in that interval. Establish
+                            // an eligible variant with the same audio before committing policy.
+                            const selected = player.getVariantTracks().find(t => t.active);
+                            this.check(lease);
+                            if (!selected || !plan.ids.includes(selected.id)) {
+                                const transition = qualitySwitchBuffer();
+                                this.check(lease);
+                                player.selectVariantTrack(allowed[0], transition.clearBuffer, transition.safeMargin);
+                                this.check(lease);
+                                const applied = player.getVariantTracks().find(t => t.active);
+                                this.check(lease);
+                                if (!applied || !plan.ids.includes(applied.id))
+                                    throw new PlayerError('UNSUPPORTED_FEATURE', 'Shaka did not apply the automatic quality constraints');
+                            }
+                        }
                         this.control = stepShakaQuality(this.control, lease, 'configured');
                     }
                     else if (phase === 'select') {

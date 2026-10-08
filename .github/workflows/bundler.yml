@@ -66,6 +66,7 @@ jobs:
       DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
       API_EXTENDED: ${{ github.event_name == 'schedule' && '1' || '0' }}
       API_SEED: ${{ github.event_name == 'schedule' && github.run_number || '24301' }}
+      DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -115,6 +116,7 @@ jobs:
     env:
       BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || needs.providers.outputs.inventory_sha256 }}
       BUNDLE_SOURCE_CANDIDATE: '1'
+      DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
         with:
