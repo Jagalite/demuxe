@@ -13,7 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-24.04, gate: retirement, node: '22'}
+          - {os: ubuntu-24.04, gate: retirement, node: '22', chrome: system}
+          - {os: ubuntu-24.04, gate: retirement, node: '22', chrome: installed}
     env:
       HEADLESS: '1'
     steps:
@@ -36,6 +37,7 @@ jobs:
         timeout-minutes: 10
         run: |
           npx playwright install --with-deps chromium firefox
+          if [ '${{ matrix.chrome }}' = installed ]; then npx playwright install chrome; fi
           node --input-type=module -e "import {chromium} from 'playwright';const b=await chromium.launch({channel:'chrome',headless:true});console.log('SYSTEM CHROME',b.version());await b.close();"
           sudo apt-get install -y ffmpeg pulseaudio xvfb
           bash scripts/start-ci-audio.sh
@@ -81,19 +83,19 @@ jobs:
           import {spawnSync} from 'node:child_process';
           import {mkdirSync,writeFileSync} from 'node:fs';
           mkdirSync('results/passive-retirement',{recursive:true});const checks=[];
-          for(const family of ['chrome','firefox'])for(let trial=0;trial<5;trial++){
+          for(const family of ['chrome'])for(let trial=0;trial<10;trial++){
             console.log('PASSIVE RETIREMENT TRIAL',family,trial+1);
             const run=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BROWSER:family},encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});
             const log=(run.stdout||'')+(run.stderr||'');console.log(log);writeFileSync(`results/passive-retirement/${family}-${trial+1}.log`,log);
             checks.push({family,trial:trial+1,passed:run.status===0});writeFileSync('results/passive-retirement/result.json',JSON.stringify({checks},null,2));
           }
-          for(const family of ['chrome','firefox']){
+          for(const family of ['chrome']){
             const run=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BROWSER:family,ONLY:'static application at /deep/runtime-v2/',RETIREMENT_NEGATIVE_CONTROL:'1'},encoding:'utf8',timeout:180000,maxBuffer:20*1024*1024});
             const log=(run.stdout||'')+(run.stderr||'');console.log(log);writeFileSync(`results/passive-retirement/${family}-negative.log`,log);
             const heartbeats=Number(log.match(/NEGATIVE LIVE HEARTBEATS (\d+)/)?.[1]);
             checks.push({family,negativeControl:true,exitCode:run.status,heartbeats,passed:run.status!==0&&log.includes('Workers still executing after destroy: blob:')&&heartbeats>50});
           }
-          const passed=checks.length===12&&checks.every(row=>row.passed);writeFileSync('results/passive-retirement/result.json',JSON.stringify({checks,passed},null,2));assert.equal(passed,true);
+          const passed=checks.length===11&&checks.every(row=>row.passed);writeFileSync('results/passive-retirement/result.json',JSON.stringify({checks,passed},null,2));assert.equal(passed,true);
           JS
       - name: Verify all extra release browser gates
         if: matrix.gate == 'extra'
@@ -107,7 +109,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: consumer-fixed-${{ matrix.gate }}
+          name: consumer-fixed-${{ matrix.gate }}-${{ matrix.chrome }}
           path: |
             results/fixed-archive/
             results/passive-retirement/

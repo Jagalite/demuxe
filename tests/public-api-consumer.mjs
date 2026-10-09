@@ -28,12 +28,24 @@ async function check(name,fn){
  for(let trial=0;trial<2;trial++){
   const page=await browser.newPage(),failedRequests=[],pageErrors=[],consoleMessages=[];
   let phase='scenario',row={name,passed:false,attempts};result.checks.push(row);
+  row.workerEvents=[];
+  page.on('worker',worker=>{row.workerEvents.push({event:'target-created',url:worker.url(),time:Date.now()});worker.on('close',()=>row.workerEvents.push({event:'target-closed',url:worker.url(),time:Date.now()}));});
+  await page.addInitScript(()=>{
+    const OriginalWorker=globalThis.Worker;let sequence=0;
+    globalThis.Worker=new Proxy(OriginalWorker,{construct(Target,args){
+      const worker=new Target(...args),id=++sequence;
+      console.log('WORKER-LIFETIME',JSON.stringify({event:'created',id,url:String(args[0]),time:Date.now()}));
+      const terminate=worker.terminate;
+      worker.terminate=function(){console.log('WORKER-LIFETIME',JSON.stringify({event:'terminate-called',id,url:String(args[0]),time:Date.now()}));return terminate.call(this);};
+      return worker;
+    }});
+  });
   let writes=Promise.resolve();
   const save=()=>{const bytes=JSON.stringify(result,null,2),next=writes.then(()=>writeFile(out+'/result.json',bytes));writes=next.catch(()=>{});return next;};
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
   page.on('pageerror',error=>pageErrors.push(String(error)));
   page.on('crash',()=>pageErrors.push('Page crashed'));
-  page.on('console',message=>{consoleMessages.push({time:Date.now(),text:message.text()});if(consoleMessages.length>80)consoleMessages.shift();});
+  page.on('console',message=>{if(message.text().startsWith('WORKER-LIFETIME'))row.workerEvents.push({event:'page-log',text:message.text(),time:Date.now()});consoleMessages.push({time:Date.now(),text:message.text()});if(consoleMessages.length>80)consoleMessages.shift();});
   const progress=setInterval(()=>{row.phase=phase;console.log('WAIT',name,phase);void save().catch(error=>{row.receiptError=String(error);process.exitCode=1;});},10000);
   let retry=false;
   try{await deadline(fn(page),120000);row.passed=true;}
@@ -60,6 +72,11 @@ async function assertWorkersRetired(page){
  while(page.workers().length&&Date.now()<end)await page.waitForTimeout(50);
  const workers=page.workers().map(worker=>worker.url());
  result.checks.at(-1).retirement={elapsedMs:Date.now()-start,remaining:workers};
+ if(workers.length&&process.env.RETIREMENT_NEGATIVE_CONTROL!=='1'){
+  const samples=[];
+  for(let i=0;i<10;i++){await page.waitForTimeout(1000);samples.push({elapsedMs:Date.now()-start,workers:page.workers().map(worker=>worker.url())});if(!page.workers().length)break;}
+  result.checks.at(-1).retirement.extendedObservation=samples;
+ }
  assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
 }
 try{
