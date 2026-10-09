@@ -404,7 +404,7 @@ await check('overlay controls, URL opening, idle reveal and close stay in the co
  // Autoplay hides and translates controls. Measure the visible overlay after
  // pausing and revealing it, once its real CSS animations have finished.
  await page.evaluate(()=>player.pause());await viewer.dispatchEvent('pointermove',{pointerType:'mouse'});
- await viewer.evaluate(async el=>{await new Promise(resolve=>requestAnimationFrame(resolve));await Promise.all(el.shadowRoot.getAnimations().map(animation=>animation.finished.catch(()=>{})));});
+ await viewer.evaluate(async el=>{await new Promise(resolve=>requestAnimationFrame(resolve));await Promise.all(el.shadowRoot.getElementById('shell').getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})));});
  const bounds=await viewer.evaluate(el=>{const r=id=>{const b=el.shadowRoot.getElementById(id).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right};};return {stage:r('stage'),controls:r('controls'),top:r('topbar')};});assert.ok(bounds.controls.bottom<=bounds.stage.bottom+1&&bounds.controls.top>=bounds.stage.top,JSON.stringify(bounds));assert.ok(bounds.top.top>=bounds.stage.top,JSON.stringify(bounds));
  await page.screenshot({path:out+'/overlay-desktop.png',fullPage:true});
  await page.evaluate(()=>player.pause());await viewer.locator('#play').click();await page.evaluate(()=>{document.querySelector('demuxe-player').shadowRoot.activeElement?.blur();});await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));
