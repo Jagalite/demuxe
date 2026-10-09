@@ -11,9 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arm: [base, gl]
+        playwright: ['1.58.2', '1.63.0', '1.64.0']
+        source: [blob, http]
     env:
-      MEDIA_ARM: ${{ matrix.arm }}
+      PW_VERSION: ${{ matrix.playwright }}
+      MEDIA_SOURCE: ${{ matrix.source }}
       DEBUG: pw:browser
       GST_DEBUG: '2'
     steps:
@@ -23,14 +25,13 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.0
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@${{ matrix.playwright }}
       - run: npx playwright install --with-deps webkit
       - run: |
           sudo apt-get install -y ffmpeg pulseaudio gstreamer1.0-tools
           bash scripts/start-ci-audio.sh
           node tests/api-stability/fixtures.mjs
       - name: Add missing GL video sink dependency in the diagnostic arm
-        if: matrix.arm == 'gl'
         run: sudo apt-get install -y gstreamer1.0-gl
       - name: Record actual system video decoders and sink availability
         run: |
@@ -42,5 +43,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: webkit-native-media-${{ matrix.arm }}
+          name: webkit-native-media-${{ matrix.playwright }}-${{ matrix.source }}
           path: results/webkit-native-video/
