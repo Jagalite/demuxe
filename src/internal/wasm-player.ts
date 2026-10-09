@@ -98,11 +98,11 @@ export class WasmPlayer extends EventTarget {
       timeout=this.readyTimer=setTimeout(expire,Math.max(0,this.lifecycle.initialization!.deadline-performance.now()));
       void (async()=>{
         // Chromium can block module-worker responses from an iframe's initial
-        // empty document. Commit a same-origin owner before starting its tree.
+        // empty document. Let its load task finish before starting the worker tree.
         await new Promise<void>((done,no)=>{
-          const owner=this.workerOwner;let finished=false;
-          const finish=(error?:Error)=>{if(finished)return;finished=true;owner.removeEventListener('load',loaded);owner.removeEventListener('error',failed);this.cancelOwnerLoad=undefined;error?no(error):done();};
-          const loaded=()=>finish(),failed=()=>finish(new Error('Playback worker owner failed to load'));
+          const owner=this.workerOwner;let finished=false,task:ReturnType<typeof setTimeout>|undefined;
+          const finish=(error?:Error)=>{if(finished)return;finished=true;clearTimeout(task);owner.removeEventListener('load',loaded);owner.removeEventListener('error',failed);this.cancelOwnerLoad=undefined;error?no(error):done();};
+          const loaded=()=>{task=setTimeout(()=>finish(),0);},failed=()=>finish(new Error('Playback worker owner failed to load'));
           this.cancelOwnerLoad=error=>finish(error);
           owner.addEventListener('load',loaded,{once:true});owner.addEventListener('error',failed,{once:true});
           owner.src='about:blank';document.body.append(owner);

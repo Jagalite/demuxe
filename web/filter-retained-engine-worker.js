@@ -406,6 +406,7 @@ self.onmessage = async ({data}) => {
       clean(()=>clearInterval(timer));
       if (audio) clean(()=>Atomics.store(audio,2,0));
       await cleanAsync(closeIO);
+      clean(()=>engine?._web_decoder_cancel?.());
       clean(()=>decoderWorker?.postMessage({type:'cancel'}));
       await cleanAsync(()=>webgpuService?.close());webgpuService=null;
       clean(()=>engine?._web_destroy());

@@ -226,6 +226,7 @@ self.onmessage = async ({data}) => {
       clearInterval(timer);
       if (audio) Atomics.store(audio,2,0);
       await closeIO();
+      engine?._web_decoder_cancel?.();
       decoderWorker?.postMessage({type:'cancel'});
       engine?._web_destroy();
       // Native joins precede the queued pthread pool-return messages.

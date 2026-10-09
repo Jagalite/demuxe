@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,firefox} from 'playwright';
+import {chromium,firefox,webkit} from 'playwright';
 import {spawn} from 'node:child_process';import {mkdir,writeFile,readFile} from 'node:fs/promises';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
-const family=process.env.BROWSER||'chrome',out=`results/public-api/${family}-${new Date().toISOString().replaceAll(':','-')}`;await mkdir(out,{recursive:true});console.log(out);
+const family=process.env.BROWSER||'chrome',out=`results/public-api/${family}-${new Date().toISOString().replaceAll(':','-')}`;if(!['chrome','chromium','firefox','webkit'].includes(family))throw Error('Unsupported BROWSER: '+family);await mkdir(out,{recursive:true});console.log(out);
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
-const browser=await(family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});const page=await browser.newPage();page.setDefaultTimeout(30000);
+const browser=await(family==='firefox'?firefox:family==='webkit'?webkit:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});const page=await browser.newPage();page.setDefaultTimeout(30000);
 const result={browser:browser.version(),family,checks:[],hashes:{}};for(const p of ['src/unified-player.ts','src/internal/state.ts','src/types.ts','src/internal/wasm-player.ts','src/internal/native-player.ts','tests/public-api.mjs'])result.hashes[p]=createHash('sha256').update(await readFile(p)).digest('hex');
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 async function check(name,fn){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack),state:await page.evaluate(()=>window.player?.state).catch(()=>null)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}

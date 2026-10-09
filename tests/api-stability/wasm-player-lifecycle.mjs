@@ -10,7 +10,7 @@ async function fixture(t,{ready=true,modulePending=false,destination,audioOutput
  const install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});};
  install('performance',{now:()=>now,timeOrigin:0});
  install('crossOriginIsolated',true);install('location',{origin:'https://example.test'});
- install('setTimeout',(callback,delay)=>{const timer={callback,delay};timers.add(timer);return timer;});
+ install('setTimeout',(callback,delay)=>{const timer={callback,delay};timers.add(timer);if(delay===0)queueMicrotask(()=>{if(timers.delete(timer))callback();});return timer;});
  install('clearTimeout',timer=>{timers.delete(timer);clearHook?.(timer);});
  install('setInterval',(callback,delay)=>{const timer={callback,delay};intervals.add(timer);return timer;});
  install('clearInterval',timer=>{intervals.delete(timer);});
@@ -44,7 +44,7 @@ test('workers wait for the committed owner and retain the latest initial resize'
  const f=await fixture(t,{ready:false,ownerLoad:false});
  assert.equal(f.worker,undefined);assert.equal(f.messages.length,0);assert.equal(f.owner.src,'about:blank');
  f.player.sendTiming(true);f.player.resize(640,360);f.player.resize(800,450);
- f.owner.dispatchEvent(new Event('load'));await turn();
+ f.owner.dispatchEvent(new Event('load'));assert.equal(f.worker,undefined);await turn();
  assert.ok(f.worker);assert.equal(f.messages[0].type,'init');
  assert.deepEqual(f.messages.find(message=>message.type==='resize'),{type:'resize',width:800,height:450});
  f.owner.dispatchEvent(new Event('load'));await turn();assert.equal(f.log.filter(value=>value==='worker-create').length,1);
@@ -58,6 +58,13 @@ test('destroy while the owner loads contains resources and prevents late worker 
  f.owner.dispatchEvent(new Event('load'));await turn();
  assert.equal(f.worker,undefined);assert.equal(f.player.pendingResize,undefined);assert.equal(f.timers.size,0);
  assert.deepEqual(f.log,['owner-remove','audio-close']);assert.equal(f.player.lifecycle.phase,'closed');
+});
+
+test('destroy after owner load cancels the deferred worker startup task',async t=>{
+ const f=await fixture(t,{ready:false,ownerLoad:false});f.owner.dispatchEvent(new Event('load'));
+ assert.equal(f.worker,undefined);assert.ok([...f.timers].some(timer=>timer.delay===0));
+ await f.player.destroy();await assert.rejects(f.player.ready,/destroyed/);await turn();
+ assert.equal(f.worker,undefined);assert.equal(f.timers.size,0);assert.deepEqual(f.log,['owner-remove','audio-close']);
 });
 
 test('the initialization deadline cancels an owner that never loads',async t=>{

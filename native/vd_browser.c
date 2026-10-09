@@ -27,6 +27,7 @@
 
 struct browser_decoder_mailbox web_decoder;
 static _Atomic int enabled;
+static _Atomic int cancelled;
 static pthread_mutex_t owner_lock=PTHREAD_MUTEX_INITIALIZER;
 static struct mp_filter *owner;
 EMSCRIPTEN_KEEPALIVE void web_decoder_wakeup(void) {
@@ -38,15 +39,29 @@ _Static_assert(offsetof(struct browser_decoder_mailbox, timestamp)==64,"decoder 
 _Static_assert(offsetof(struct browser_decoder_mailbox, packet)==80,"decoder ABI");
 _Static_assert(offsetof(struct browser_decoder_mailbox, codec_name)==80+WEB_DEC_PACKET_MAX+WEB_DEC_FRAME_MAX,"decoder extension ABI");
 EMSCRIPTEN_KEEPALIVE uintptr_t web_decoder_ptr(void) { return (uintptr_t)&web_decoder; }
-EMSCRIPTEN_KEEPALIVE void web_decoder_enable(int value) { atomic_store(&enabled,value); }
+EMSCRIPTEN_KEEPALIVE void web_decoder_enable(int value) {
+    atomic_store(&cancelled,0);
+    atomic_store(&enabled,value);
+}
+EMSCRIPTEN_KEEPALIVE void web_decoder_cancel(void) {
+    // Native destruction can request decoder close after the JS service retires.
+    // Cancel both current and later waits without depending on its event loop.
+    atomic_store(&cancelled,1);
+    emscripten_futex_wake(&web_decoder.state,1);
+}
 int web_decoder_enabled(void) { return atomic_load(&enabled); }
 static int request(int operation) {
+    if(atomic_load(&cancelled))return operation==5?0:AVERROR(EIO);
     web_decoder.operation=operation;
     int ticket=++web_decoder.serial*4+1;
     atomic_store(&web_decoder.state,ticket);
     emscripten_futex_wake(&web_decoder.state,1);
     double deadline=emscripten_get_now()+5000;
     while(atomic_load(&web_decoder.state)==ticket) {
+        if(atomic_load(&cancelled)) {
+            atomic_store(&web_decoder.state,0);
+            return operation==5?0:AVERROR(EIO);
+        }
         if(emscripten_get_now()>deadline) {
             atomic_store(&web_decoder.state,0);
             return AVERROR(ETIMEDOUT);
