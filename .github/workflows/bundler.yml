@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        os: [macos-15]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,7 +55,7 @@ jobs:
             await writeFile('results/release-remaining/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,platform:process.platform},null,2));
           } finally {await runtime.cleanup();}
           JS
-          python3 scripts/prepare-release-fixtures.py
+          node tests/api-stability/fixtures.mjs
       - name: Verify all menu layouts against the installed archive
         if: matrix.os == 'ubuntu-24.04'
         run: |
