@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [firefox]
-        arm: [baseline, audio-first-1, audio-first-2, audio-first-3]
+        arm: [worker-audio-owner-1, worker-audio-owner-2]
     env:
       BROWSER: ${{ matrix.browser }}
       OWNER_ARM: ${{ matrix.arm }}
@@ -54,8 +54,8 @@ jobs:
           python3 - <<'OWNER'
           import os,pathlib
           file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
-          if arm.startswith('audio-first'):
-              marker='release(() => this.worker?.terminate());'
+          if arm.startswith('worker-audio-owner'):
+              marker='release(() => this.workerOwner.remove());'
               first=text.index(marker);begin=text.index('try {',first);last=text.index('this.lifecycle = finishWasmRetirement',begin)
               audio=text[begin:last];workers=text[first:begin];text=text[:first]+audio+workers+text[last:]
           if arm!='baseline':assert text!=file.read_text(),'Overlay failed'
@@ -80,7 +80,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: firefox-audio-order-${{ matrix.arm }}
+          name: firefox-audio-owner-${{ matrix.arm }}
           path: |
             results/firefox-native-crash/
             results/firefox-owner-navigation/
