@@ -11,6 +11,19 @@ test('copy preserves unrelated files and is repeatable',async()=>{const dir=path
   else await assert.rejects(readFile(path.join(dir,name)),{code:'ENOENT'});
  }
 });
+test('full deployment retains the RGB fallback while standard deployment stays lighter',async()=>{
+ const dir=path.join(root,'deployment-sets');run(dir);
+ const release=JSON.parse(await readFile(path.join(pkg,'release-manifest.json')));
+ const rgb=['web/engine-software-full/player.mjs','web/engine-software-full/player.wasm'];
+ const standard=JSON.parse(await readFile(path.join(dir,'demuxe-runtime.json')));assert.equal(standard.assetSet,'standard');
+ for(const name of rgb){assert.equal(standard.files[name],undefined);await assert.rejects(readFile(path.join(dir,name)),{code:'ENOENT'});}
+ await writeFile(path.join(dir,'consumer.txt'),'retain');
+ execFileSync(process.execPath,[cli,'copy-assets',dir,'--full'],{stdio:'pipe'});
+ const full=JSON.parse(await readFile(path.join(dir,'demuxe-runtime.json')));assert.equal(full.assetSet,'full');
+ for(const name of rgb){assert.deepEqual(full.files[name],release.files[name]);assert.equal(createHash('sha256').update(await readFile(path.join(dir,name))).digest('hex'),release.files[name].sha256);}
+ run(dir);for(const name of rgb)await assert.rejects(readFile(path.join(dir,name)),{code:'ENOENT'});
+ assert.equal(await readFile(path.join(dir,'consumer.txt'),'utf8'),'retain');
+});
 test('copy refuses unrelated collisions and symlinks',async()=>{const dir=path.join(root,'collision');await mkdir(path.join(dir,'web'),{recursive:true});await writeFile(path.join(dir,'web/io-worker.js'),'owned by consumer');assert.match(failure(dir),/unrelated destination/);assert.equal(await readFile(path.join(dir,'web/io-worker.js'),'utf8'),'owned by consumer');const link=path.join(root,'symlink');await symlink(dir,link);assert.match(failure(link),/symlink/);});
 test('copy rejects tampered and missing assets before writing runtime files',async()=>{const file=path.join(pkg,'web/io-worker.js'),original=await readFile(file);try{await writeFile(file,'corrupt');assert.match(failure(path.join(root,'tampered')),/hash mismatch/);}finally{await writeFile(file,original);}const manifestFile=path.join(pkg,'release-manifest.json'),before=await readFile(manifestFile);try{const m=JSON.parse(before);m.files['missing.js']={bytes:1,sha256:'bad'};await writeFile(manifestFile,JSON.stringify(m));assert.match(failure(path.join(root,'missing')),/Missing package asset/);}finally{await writeFile(manifestFile,before);}});
 test('copy rejects incompatible package manifest version',async()=>{const file=path.join(pkg,'package.json'),before=await readFile(file);try{const p=JSON.parse(before);p.version='999.0.0';await writeFile(file,JSON.stringify(p));assert.match(failure(path.join(root,'incompatible')),/Incompatible package/);}finally{await writeFile(file,before);}});
