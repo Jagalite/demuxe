@@ -65,6 +65,17 @@ for(const bundle of [false,true])await check(`${bundle?'bundled':'static'} core-
 for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{window.__consumerPhase=mode+':set-mode';await viewer.player.setMode(mode);window.__consumerPhase=mode+':open';await viewer.open({url:location.origin+'/media/movie.mp4'});window.__consumerPhase=mode+':volume';await viewer.player.setVolume(.4);window.__consumerPhase=mode+':play';await viewer.play();window.__consumerPhase=mode+':playing';},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{window.__consumerPhase='pause';await viewer.pause();window.__consumerPhase='seek';await viewer.seek(1);window.__consumerPhase='seek-done';});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
 await page.evaluate(async base=>{window.custom=new Player(document.querySelector('#custom'),{mode:'native',nativeRemux:'always',assetBase:base});await custom.open({url:location.origin+'/media/remux.mkv'});await custom.play();},base);await page.waitForFunction(()=>custom.state.currentTime>.2);await page.evaluate(()=>custom.seek(1));assert.ok(requests.some(u=>u.includes(base+'web/engine-remux/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-hybrid/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-software-yuv/')||u.includes(base+'web/engine-software-full/')));assert.ok(requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).every(u=>u.startsWith(origin+base)),requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).join('\n'));
+if(process.env.BLOCK_REMUX_CHILD==='1'){
+ const rootWorker=page.workers().find(worker=>worker.url().endsWith('/native-mse-worker.js'));
+ assert.ok(rootWorker,'Native MSE root was created');
+ await rootWorker.evaluate(async()=>{
+  const childURL=URL.createObjectURL(new Blob([`postMessage('blocked');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0);`],{type:'text/javascript'}));
+  self.__diagnosticBlockedChild=new Worker(childURL);
+  await new Promise(resolve=>self.__diagnosticBlockedChild.onmessage=()=>resolve());
+  URL.revokeObjectURL(childURL);
+ });
+ console.log('BLOCKED REMUX DESCENDANT',rootWorker.url());
+}
 const retirement={start:Date.now(),observations:[]};result.checks.at(-1).retirement=retirement;
 await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
 retirement.destroyDone=Date.now();

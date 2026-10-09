@@ -72,9 +72,10 @@ jobs:
           node --input-type=module <<'JS'
           import {spawnSync} from 'node:child_process';
           let failures=0;
-          for(let trial=0;trial<10;trial++){
-            console.log('CONSUMER RETIREMENT TRIAL',trial+1);
-            const result=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BROWSER:'chrome',ONLY:'static application at /deep/runtime-v2/'},stdio:'inherit',timeout:180000});
+          const cases=[...Array.from({length:4},()=>({BROWSER:'chrome'})),{BROWSER:'firefox'},...Array.from({length:3},()=>({BROWSER:'chrome',ONLY:'static application at /deep/runtime-v2/',BLOCK_REMUX_CHILD:'1'}))];
+          for(let trial=0;trial<cases.length;trial++){
+            console.log('CONSUMER RETIREMENT TRIAL',trial+1,JSON.stringify(cases[trial]));
+            const result=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,...cases[trial],DEBUG:'pw:browser'},stdio:'inherit',timeout:600000});
             if(result.status!==0)failures++;
           }
           console.log('RETIREMENT BASELINE FAILURES',failures);
