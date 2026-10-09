@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [firefox]
-        arm: [drop-worker-reference, audio-first, yield-before-termination]
+        arm: [parent-worker, keep-owner]
     env:
       BROWSER: ${{ matrix.browser }}
       OWNER_ARM: ${{ matrix.arm }}
@@ -54,9 +54,8 @@ jobs:
           python3 - <<'OWNER'
           import os,pathlib
           file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
-          if arm=='drop-worker-reference':text=text.replace('release(() => this.worker?.terminate());', 'release(() => {const worker=this.worker;if(worker){worker.onmessage=null;worker.onerror=null;worker.terminate();this.worker=undefined;}});')
-          elif arm=='audio-first':text=text.replace('release(() => this.worker?.terminate());', 'await this.audioContext.close();release(() => this.worker?.terminate());')
-          elif arm=='yield-before-termination':text=text.replace('release(() => this.worker?.terminate());', 'await new Promise(resolve=>setTimeout(resolve,50));release(() => this.worker?.terminate());')
+          if arm=='parent-worker':text=text.replace('}, owner.Worker);','}, Worker);')
+          elif arm=='keep-owner':text=text.replace('release(() => this.workerOwner.remove());','/* Diagnostic: keep owner until top-level document unload. */')
           if arm!='baseline':assert text!=file.read_text(),'Overlay failed'
           file.write_text(text)
           OWNER
@@ -79,7 +78,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: firefox-retirement-${{ matrix.arm }}
+          name: firefox-realm-${{ matrix.arm }}
           path: |
             results/firefox-native-crash/
             results/firefox-owner-navigation/
