@@ -6,44 +6,27 @@ permissions:
   contents: read
   actions: read
 jobs:
-  archive-replay:
+  component-replay:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - browser: chrome
-            repeat: 1
-          - browser: chrome
-            repeat: 2
-          - browser: firefox
-            repeat: 1
-          - browser: webkit
-            repeat: 1
+        repeat: [1, 2, 3]
     env:
-      BROWSER: ${{ matrix.browser }}
-      BETA_ARCHIVE: build/diagnostic-runtime/demuxe-1.1.1.tgz
+      BROWSER: firefox
+      DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
-      - name: Preserve diagnostic harness identity
-        run: |
-          mkdir "$RUNNER_TEMP/consumer-diagnostic"
-          cp tests/public-api-consumer.mjs "$RUNNER_TEMP/consumer-diagnostic/"
-          git rev-parse HEAD > "$RUNNER_TEMP/consumer-diagnostic/harness-commit.txt"
-      - uses: actions/checkout@v4
         with:
-          ref: f15253f7d4c409f259e6e15a32d7e585d6a3ee91
+          ref: bea9b234e1a0ea13b77db7906b097e504545eb7e
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - name: Install browsers
-        run: |
-          if [ "$BROWSER" = chrome ]; then npx playwright install --with-deps chrome chromium; else npx playwright install --with-deps "$BROWSER"; fi
-      - name: Install fixture tools and stable audio output
-        run: |
+      - run: npx playwright install --with-deps firefox
+      - run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
           bash scripts/start-ci-audio.sh
@@ -51,29 +34,24 @@ jobs:
         with:
           name: unqualified-runtime-debug
           path: build/diagnostic-runtime
-          run-id: 37887309494
+          run-id: 37897612923
           github-token: ${{ github.token }}
-      - name: Verify exact failed archive and prepare its consumer fixture
+      - name: Verify and install the exact failed release archive
         run: |
-          echo '693ac46e717b64b3d6f619edb1ca18aff0bfc692f02e997b62366dfc92a2a11f  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
+          echo '3535aa9e63e25965f0216249be217d5cbafb5d8fa3b77c190939576ef9f4bff2  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
+          mkdir -p build/diagnostic-consumer results/component-diagnostic
+          npm install --prefix build/diagnostic-consumer --offline --ignore-scripts --no-audit --no-fund "$PWD/build/diagnostic-runtime/demuxe-1.1.1.tgz"
+          echo "DEMUXE_RUNTIME_ROOT=$PWD/build/diagnostic-consumer/node_modules/demuxe" >> "$GITHUB_ENV"
           python3 experiments/optimization-integration/fixtures.py
-          mkdir -p build/routing-completion/fixtures results/consumer-diagnostic
-          ffmpeg -nostdin -v error -n -i build/optimization-fixtures/gain.mp4 -c:v libvpx-vp9 -deadline realtime -cpu-used 6 -threads 2 -c:a libopus build/routing-completion/fixtures/vp9-opus.mkv
-          cp "$RUNNER_TEMP/consumer-diagnostic/"* results/consumer-diagnostic/
-          cp "$RUNNER_TEMP/consumer-diagnostic/public-api-consumer.mjs" tests/public-api-consumer.mjs
-          sha256sum "$BETA_ARCHIVE" fixtures/example.mp4 build/routing-completion/fixtures/vp9-opus.mkv tests/public-api-consumer.mjs > results/consumer-diagnostic/identities.txt
-          git diff -- tests/public-api-consumer.mjs > results/consumer-diagnostic/harness-overlay.patch
-      - name: Replay the package consumer with bounded diagnostics
-        if: matrix.browser != 'webkit'
-        run: node tests/public-api-consumer.mjs
-      - name: Verify all WebKit boundaries against the exact archive
-        if: matrix.browser == 'webkit'
-        run: node tests/api-stability/live-boundaries.mjs --archive
+          sha256sum build/diagnostic-runtime/demuxe-1.1.1.tgz tests/player-component.mjs > results/component-diagnostic/identities.txt
+      - name: Replay original component checks with browser stderr
+        run: |
+          set -o pipefail
+          node tests/player-component.mjs 2>&1 | tee results/component-diagnostic/browser.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: consumer-full-deployment-${{ matrix.browser }}-${{ matrix.repeat || '1' }}
+          name: component-firefox-${{ matrix.repeat }}
           path: |
-            results/consumer-diagnostic/
-            results/public-api-consumer/
-            results/api-stability/live-boundaries/
+            results/component-diagnostic/
+            results/player-component/
