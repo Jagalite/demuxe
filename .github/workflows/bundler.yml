@@ -13,10 +13,10 @@ jobs:
       fail-fast: false
       matrix:
         browser: [firefox]
-        replay: [1, 2, 3]
+        arm: [baseline, defer, blob]
     env:
       BROWSER: ${{ matrix.browser }}
-      OWNER_ARM: production
+      OWNER_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
       BUNDLE_SOURCE_CANDIDATE: '1'
       BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir "$RUNNER_TEMP/owner-fix"
-          cp tests/worker-owner-diagnostic.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
+          cp tests/firefox-owner-navigation.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
           git rev-parse HEAD > "$RUNNER_TEMP/owner-fix/revision.txt"
       - uses: actions/checkout@v4
         with:
@@ -52,6 +52,14 @@ jobs:
           node scripts/prepare-bundle-ci.mjs
           cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
           cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
+          python3 - <<'OWNER'
+          import os,pathlib
+          file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
+          if arm=='defer':text=text.replace('release(() => this.worker?.terminate());', 'release(() => this.worker?.terminate());await new Promise(resolve=>setTimeout(resolve,0));')
+          elif arm=='blob':text=text.replace("owner.src = 'about:blank';", "const blob=URL.createObjectURL(new Blob(['<!doctype html>'],{type:'text/html'}));owner.src=blob;owner.addEventListener('load',()=>URL.revokeObjectURL(blob),{once:true});")
+          if arm!='baseline':assert text!=file.read_text(),'Overlay failed'
+          file.write_text(text)
+          OWNER
           node tests/api-stability/fixtures.mjs
           mkdir -p results/worker-owner
           cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
@@ -59,21 +67,22 @@ jobs:
       - name: Run exact component transitions with browser crash diagnostics
         run: |
           ulimit -c unlimited
-          node tests/player-component.mjs
+          node tests/firefox-owner-navigation.mjs
       - name: Capture native thread stacks from a browser crash
         if: always()
         run: |
           mkdir -p results/firefox-native-crash
           for core in "$RUNNER_TEMP"/firefox-cores/core.*; do
             [ -f "$core" ] || continue
-            gdb --batch -ex 'set pagination off' -ex 'info sharedlibrary' -ex 'thread apply all bt 16' "$HOME/.cache/ms-playwright/firefox-1509/firefox/firefox" "$core" > "results/firefox-native-crash/$(basename "$core").txt" 2>&1 || true
+            gdb --batch -ex 'set pagination off' -ex 'info sharedlibrary' -ex 'info registers' -ex 'x/24i $pc-32' -ex 'thread apply all bt 16' "$HOME/.cache/ms-playwright/firefox-1509/firefox/firefox" "$core" > "results/firefox-native-crash/$(basename "$core").txt" 2>&1 || true
           done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: firefox-native-crash-${{ matrix.replay }}
+          name: firefox-owner-${{ matrix.arm }}
           path: |
             results/firefox-native-crash/
+            results/firefox-owner-navigation/
             results/worker-owner/
             results/public-api/
             results/player-component/
