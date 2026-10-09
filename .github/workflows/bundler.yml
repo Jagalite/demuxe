@@ -12,7 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, webkit]
+        browser: [chromium, firefox, webkit]
+        playwright: ['1.64.0']
+        include:
+          - browser: firefox
+            playwright: '1.58.2'
         arm: [current-browser]
     env:
       BROWSER: ${{ matrix.browser }}
@@ -35,10 +39,10 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.0
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@${{ matrix.playwright }}
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: |
-          sudo apt-get install -y ffmpeg pulseaudio gdb
+          sudo apt-get install -y ffmpeg pulseaudio gdb gstreamer1.0-gl
           mkdir -p "$RUNNER_TEMP/firefox-cores"
           sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/firefox-cores/core.%p"
           bash scripts/start-ci-audio.sh
@@ -52,6 +56,13 @@ jobs:
           node scripts/prepare-bundle-ci.mjs
           cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
           cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" "$RUNNER_TEMP/owner-fix/worker-tree-containment.mjs" "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
+          python3 - <<'OWNER'
+          import os,pathlib
+          file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text()
+          start=text.index('                await new Promise((done, no) => {');end=text.index('                if (!wasmAlive(this.lifecycle))',start)
+          text=text[:start]+'                await new Promise(resolve=>setTimeout(resolve,0));\n'+text[end:]
+          text=text.replace('}, owner.Worker);','}, Worker);');file.write_text(text)
+          OWNER
           node tests/api-stability/fixtures.mjs
           mkdir -p results/worker-owner
           cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
@@ -59,9 +70,11 @@ jobs:
       - name: Run exact component transitions with browser crash diagnostics
         run: |
           ulimit -c unlimited
+          node tests/worker-tree-containment.mjs
+          node tests/worker-owner-diagnostic.mjs
           node tests/public-api.mjs
           node tests/player-component.mjs
-          node tests/worker-owner-diagnostic.mjs
+          if [ "$BROWSER" = firefox ]; then node tests/firefox-owner-navigation.mjs; fi
       - name: Capture native thread stacks from a browser crash
         if: always()
         run: |
@@ -73,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: modern-browser-${{ matrix.browser }}
+          name: no-iframe-worker-${{ matrix.browser }}-${{ matrix.playwright }}
           path: |
             results/firefox-native-crash/
             results/worker-tree-containment/
