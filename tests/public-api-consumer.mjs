@@ -52,19 +52,14 @@ async function check(name,fn){
   console.log(row.passed?'PASS':'FAIL',name,row.passed?'':JSON.stringify(row));if(!row.passed)process.exitCode=1;return;
  }
 }
-async function liveWorkerURLs(page){
- const workers=page.workers(),alive=await Promise.all(workers.map(async worker=>{
-  try{await deadline(worker.evaluate(()=>true),1000);return worker.url();}
-  catch(error){return error?.message==='Live scenario deadline exceeded'?worker.url():null;}
- }));
- return alive.filter(Boolean);
-}
 async function assertWorkersRetired(page){
- // Chromium allows blocked worker execution two seconds before forced termination.
- // Use the same three-second retirement grace as the worker-tree containment gate.
- const end=Date.now()+3000;
- let workers=await liveWorkerURLs(page);
- while(workers.length&&Date.now()<end){await page.waitForTimeout(50);workers=await liveWorkerURLs(page);}
+ // Observe target closure passively. Debugger evaluation can postpone Chromium
+ // worker termination; polling with worker.evaluate changes the teardown itself.
+ // Keep the three-second grace used by the worker-tree containment gate.
+ const start=Date.now(),end=start+3000;
+ while(page.workers().length&&Date.now()<end)await page.waitForTimeout(50);
+ const workers=page.workers().map(worker=>worker.url());
+ result.checks.at(-1).retirement={elapsedMs:Date.now()-start,remaining:workers};
  assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
 }
 try{
@@ -105,8 +100,7 @@ await check('runtime policy separates private qualification from pthread isolati
  assert.equal(pthread,'ISOLATION_REQUIRED');
  result.runtimePolicy={capabilities,runtime,before,paused,after,pthread};
  await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
- for(let end=Date.now()+3000;page.workers().length&&Date.now()<end;)await page.waitForTimeout(50);
- assert.equal(page.workers().length,0,'Private runtime workers survive destroy');
+ await assertWorkersRetired(page);
 });
 // Actual browser policy is tested separately without the permissive autoplay flag.
 }finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}

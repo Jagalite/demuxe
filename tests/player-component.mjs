@@ -8,7 +8,14 @@ const browser=await(family==='firefox'?firefox:family==='webkit'?webkit:chromium
 const result={family,browser:browser.version(),checks:[],hashes:{},screenReader:'Semantic accessibility tree and keyboard checks; no physical screen-reader session'};for(const p of ['src/player/index.ts','src/player/styles.ts','src/unified-player.ts','tests/player-component.mjs'])result.hashes[p]=createHash('sha256').update(await readFile(p)).digest('hex');
 await page.addInitScript(()=>{window.componentMediaEvents=[];for(const name of ['ended','playing','pause','seeked'])document.addEventListener(name,event=>{if(event.target instanceof HTMLVideoElement){componentMediaEvents.push({name,time:event.target.currentTime,duration:event.target.duration});if(componentMediaEvents.length>30)componentMediaEvents.shift();}},true);});
 result.browserEvents=[];for(const event of ['crash','close'])page.on(event,()=>result.browserEvents.push({event,time:Date.now()}));browser.on('disconnected',()=>result.browserEvents.push({event:'disconnected',time:Date.now()}));
-async function check(name,fn){try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack),diagnostics:await page.evaluate(()=>({mediaEvents:window.componentMediaEvents,a:window.a?.player?.state,b:window.b?.player?.state,focus:window.a?.shadowRoot.activeElement?.id,menuOpen:window.a?.shadowRoot.getElementById('settings')?.open})).catch(()=>null)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
+async function freshPlaybackFixture(){
+ await page.evaluate(async()=>{
+  const bytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer();
+  await a.open(new File([bytes],'controls-playback.mp4'));
+ });
+ await page.waitForFunction(()=>a.player.state.pendingOperation===null&&a.player.state.status==='paused');
+}
+async function check(name,fn){try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack),diagnostics:await page.evaluate(()=>({mediaEvents:window.componentMediaEvents,a:window.a?.player?.state,b:window.b?.player?.state,focus:window.a?.shadowRoot.activeElement?.id,menuOpen:window.a?.shadowRoot.getElementById('settings')?.open,backend:window.a?.player?.diagnostics,video:[...(window.a?.shadowRoot.querySelectorAll('video')??[])].map(video=>({time:video.currentTime,duration:video.duration,readyState:video.readyState,networkState:video.networkState,paused:video.paused,error:video.error?.code}))})).catch(()=>null)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
 try{await page.goto(origin+'/examples/player-element.html');await page.evaluate(async()=>{window.a=document.querySelectorAll('demuxe-player')[0];window.b=document.querySelectorAll('demuxe-player')[1];await Promise.all([a.ready,b.ready]);});
 await check('two idle instances, lazy engines and idempotent registration',async()=>{const d=await page.evaluate(async()=>{const m=await import('/web/generated/player/index.js');m.definePlayerElement();m.definePlayerElement();return {same:a.player===await a.ready,different:a.player!==b.player,requests:performance.getEntriesByType('resource').filter(e=>/\.wasm|engine-worker/.test(e.name)).length,shadow:a.shadowRoot.mode};});assert.deepEqual(d,{same:true,different:true,requests:0,shadow:'open'});assert.equal(page.workers().length,0);});
 await check('custom titles update live as plain text with explicit policies',async()=>{
@@ -331,6 +338,8 @@ await check('pointer Play and Pause keep immediate shortcuts scoped to the activ
  await page.evaluate(time=>a.seek(time),initialTime);
 });
 await check('hidden controls retain shortcuts and button focus allows playback keys',async()=>{
+ // Start the control measurement with fresh media rather than a prior seek/switch.
+ await freshPlaybackFixture();
  const v=page.locator('demuxe-player').first();await v.locator('#stage').click({position:{x:30,y:100}});assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));
  await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await page.evaluate(()=>b.player.state.status),'paused');
  await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('m');await page.waitForFunction(()=>a.player.state.muted);await page.keyboard.press('m');await page.waitForFunction(()=>!a.player.state.muted);
@@ -338,6 +347,8 @@ await check('hidden controls retain shortcuts and button focus allows playback k
  await v.locator('#open-menu').click();await v.locator('#url').fill('https://example.com/');await page.keyboard.type('km');assert.equal(await v.locator('#url').inputValue(),'https://example.com/km');assert.equal(await page.evaluate(()=>a.player.state.status),'paused');await page.keyboard.press('Escape');
 });
 await check('mouse exit hides controls only while playing without stealing outside focus',async()=>{
+ // Start the control measurement with fresh media rather than a prior seek/switch.
+ await freshPlaybackFixture();
  const v=page.locator('demuxe-player').first(),idle=()=>v.locator('#shell').evaluate(el=>el.classList.contains('idle'));
  await page.evaluate(()=>a.pause());
  for(const playing of [false,true]){
