@@ -174,3 +174,59 @@ jobs:
             build/bundle-flexibility/ci-*/playback-*.json
             build/bundle-ci-consumer/candidate-admission.json
             build/bundle-ci-inputs/harness-commit.txt
+
+  sequence-diagnosis:
+    if: inputs.source_run != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    env:
+      BROWSER: ${{ matrix.browser }}
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
+      DEBUG: pw:browser
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retain diagnostic harness
+        run: cp tests/buffering/runtime-policy-browser.mjs "$RUNNER_TEMP/runtime-policy-browser.mjs"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start browser audio
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: ${{ inputs.source_run }}
+          github-token: ${{ github.token }}
+      - run: node scripts/prepare-bundle-ci.mjs
+      - run: node tests/api-stability/fixtures.mjs
+      - name: Replay exact sequences with diagnostic harness
+        run: |
+          cp "$RUNNER_TEMP/runtime-policy-browser.mjs" tests/buffering/runtime-policy-browser.mjs
+          node tests/api-stability/browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sequence-diagnosis-${{ matrix.browser }}
+          path: |
+            results/api-stability/scenarios/
+            build/bundle-ci-consumer/candidate-admission.json
+            build/bundle-ci-inputs/bundle-ci-inventory.json
