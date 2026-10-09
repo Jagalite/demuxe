@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [firefox]
-        arm: [current-browser-1, current-browser-2]
+        browser: [chromium, webkit]
+        arm: [current-browser]
     env:
       BROWSER: ${{ matrix.browser }}
       OWNER_ARM: ${{ matrix.arm }}
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           mkdir "$RUNNER_TEMP/owner-fix"
-          cp tests/worker-tree-containment.mjs tests/firefox-owner-navigation.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
+          cp tests/worker-owner-diagnostic.mjs tests/worker-tree-containment.mjs tests/firefox-owner-navigation.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
           git rev-parse HEAD > "$RUNNER_TEMP/owner-fix/revision.txt"
       - uses: actions/checkout@v4
         with:
@@ -51,7 +51,7 @@ jobs:
       - run: |
           node scripts/prepare-bundle-ci.mjs
           cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
-          cp "$RUNNER_TEMP/owner-fix/worker-tree-containment.mjs" "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
+          cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" "$RUNNER_TEMP/owner-fix/worker-tree-containment.mjs" "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
           node tests/api-stability/fixtures.mjs
           mkdir -p results/worker-owner
           cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
@@ -59,10 +59,9 @@ jobs:
       - name: Run exact component transitions with browser crash diagnostics
         run: |
           ulimit -c unlimited
-          node tests/worker-tree-containment.mjs
-          node tests/firefox-owner-navigation.mjs
           node tests/public-api.mjs
           node tests/player-component.mjs
+          node tests/worker-owner-diagnostic.mjs
       - name: Capture native thread stacks from a browser crash
         if: always()
         run: |
@@ -74,7 +73,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: firefox-current-browser-${{ matrix.arm }}
+          name: modern-browser-${{ matrix.browser }}
           path: |
             results/firefox-native-crash/
             results/worker-tree-containment/
