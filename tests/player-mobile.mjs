@@ -205,6 +205,7 @@ try{
  assert.equal(await page.evaluate(()=>$('error').hidden),true);
  await page.evaluate(async()=>{viewer.setPlaybackRate=originalRate;viewer.player.open=originalOpen;await viewer.pause();});
  await page.keyboard.press('Escape');
+ await page.locator('#viewer #settings').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>$('error').parentElement===$('shell')&&$('status').parentElement===$('shell')),true);
  console.log('PASS rejected settings operations show an accessible message and clickable Retry inside the modal; closing restores overlay ownership');
 
@@ -333,6 +334,8 @@ try{
   await page.setViewportSize({width,height});
   for(const layout of ['classic','cinema','rail','studio','focus','deck']){
    await page.evaluate(layout=>{viewer.layout=layout;viewer.revealControls();},layout);
+   // Viewport units may settle after WebKit acknowledges the resize.
+   await page.waitForFunction(()=>{const r=$('shell').getBoundingClientRect();window.expansionLayoutCheck={bounds:{left:r.left,top:r.top,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight},expanded:$('shell').matches(':popover-open'),sameCore:viewer.player===expansionCore,sameSurface:viewer.player.surface===expansionSurface,sameSource:viewer.player.state.sourceId===expansionSource,subtitle:$('surface').contains(subtitleLayer),outsideInert:outside.inert};return Math.abs(r.width-innerWidth)<2&&Math.abs(r.height-innerHeight)<2&&Math.abs(r.left)<2&&Math.abs(r.top)<2;},null,{timeout:5000});
    assert.equal(await page.evaluate(()=>{const r=$('shell').getBoundingClientRect();return $('shell').matches(':popover-open')&&Math.abs(r.width-innerWidth)<2&&Math.abs(r.height-innerHeight)<2&&Math.abs(r.left)<2&&Math.abs(r.top)<2&&viewer.player===expansionCore&&viewer.player.surface===expansionSurface&&viewer.player.state.sourceId===expansionSource&&$('surface').contains(subtitleLayer)&&outside.inert;}),true,`Expanded ${layout} ${width}x${height}`);
    const controls=await page.evaluate(()=>['fullscreen','settings-toggle','play','timeline','mute'].map(id=>{const r=$(id).getBoundingClientRect();return {id,inside:r.width>0&&r.height>0&&r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1};}));
    assert.deepEqual(controls.filter(c=>!c.inside),[],`Expanded controls ${layout} ${width}x${height}`);
@@ -395,7 +398,7 @@ try{
  report.error=String(error.stack);process.exitCode=1;
  if(browser){
   const page=browser.contexts()[0]?.pages()[0];
-  if(page)report.failureDiagnostics=await deadline(page.evaluate(()=>({phase:window.mobileExpansionPhase,state:window.viewer?.player?.state,video:window.viewer?.player?.surface instanceof HTMLVideoElement?{readyState:viewer.player.surface.readyState,networkState:viewer.player.surface.networkState,paused:viewer.player.surface.paused,currentTime:viewer.player.surface.currentTime,error:viewer.player.surface.error?.code}:null})),2000).catch(error=>({error:String(error)}));
+  if(page)report.failureDiagnostics=await deadline(page.evaluate(()=>({phase:window.mobileExpansionPhase,layout:window.expansionLayoutCheck,state:window.viewer?.player?.state,video:window.viewer?.player?.surface instanceof HTMLVideoElement?{readyState:viewer.player.surface.readyState,networkState:viewer.player.surface.networkState,paused:viewer.player.surface.paused,currentTime:viewer.player.surface.currentTime,error:viewer.player.surface.error?.code}:null})),2000).catch(error=>({error:String(error)}));
  }
 }
 finally{
