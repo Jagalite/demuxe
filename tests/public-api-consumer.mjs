@@ -28,12 +28,13 @@ async function check(name,fn){
  for(let trial=0;trial<2;trial++){
   const page=await browser.newPage(),failedRequests=[],pageErrors=[],consoleMessages=[];
   let phase='scenario',row={name,passed:false,attempts};result.checks.push(row);
-  const save=()=>writeFile(out+'/result.json',JSON.stringify(result,null,2));
+  let writes=Promise.resolve();
+  const save=()=>{const bytes=JSON.stringify(result,null,2),next=writes.then(()=>writeFile(out+'/result.json',bytes));writes=next.catch(()=>{});return next;};
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
   page.on('pageerror',error=>pageErrors.push(String(error)));
   page.on('crash',()=>pageErrors.push('Page crashed'));
   page.on('console',message=>{consoleMessages.push({time:Date.now(),text:message.text()});if(consoleMessages.length>80)consoleMessages.shift();});
-  const progress=setInterval(()=>{row.phase=phase;console.log('WAIT',name,phase);void save();},10000);
+  const progress=setInterval(()=>{row.phase=phase;console.log('WAIT',name,phase);void save().catch(error=>{row.receiptError=String(error);process.exitCode=1;});},10000);
   let retry=false;
   try{await deadline(fn(page),120000);row.passed=true;}
   catch(error){

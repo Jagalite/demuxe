@@ -12,10 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox, webkit]
         include:
           - browser: chrome
+            repeat: 1
+          - browser: chrome
             repeat: 2
+          - browser: firefox
+            repeat: 1
+          - browser: webkit
+            repeat: 1
     env:
       BROWSER: ${{ matrix.browser }}
       BETA_ARCHIVE: build/diagnostic-runtime/demuxe-1.1.1.tgz
