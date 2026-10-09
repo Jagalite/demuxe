@@ -4,29 +4,94 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
-  containment:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+  fresh-native:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
-        owner: [page, blank, blob, network, srcdoc]
+        os: [ubuntu-24.04]
+        browser: [chromium, webkit]
+        playwright: ['1.64.0']
+        include:
+          - browser: webkit
+            playwright: '1.58.2'
+            os: ubuntu-24.04
     env:
       BROWSER: ${{ matrix.browser }}
-      TREE_OWNER: ${{ matrix.owner }}
+      OWNER_ARM: fresh-native
+      DEBUG: pw:browser
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      BUNDLE_INVENTORY_SHA256: 99dc95319ae2d8abd1f899904b77853ef785ec1c1a05d278ceabc83285a012f3
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          mkdir "$RUNNER_TEMP/fresh-native"
+          cp web/generated/internal/wasm-player.js tests/worker-tree-containment.mjs tests/firefox-owner-navigation.mjs tests/worker-owner-diagnostic.mjs tests/api-stability/fresh-native-boundaries.mjs "$RUNNER_TEMP/fresh-native/"
+          git rev-parse HEAD > "$RUNNER_TEMP/fresh-native/harness-revision.txt"
+      - uses: actions/checkout@v4
+        with:
+          ref: f32afd60db1787600229823d13c668a812da4dca
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@${{ matrix.playwright }}
+        if: matrix.playwright != '1.64.0'
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: node tests/worker-owner-grace-containment.mjs
+      - run: |
+          if [ '${{ matrix.os }}' = 'ubuntu-24.04' ]; then
+            sudo apt-get install -y ffmpeg pulseaudio gstreamer1.0-gl
+            bash scripts/start-ci-audio.sh
+          else
+            command -v ffmpeg || brew install ffmpeg
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: 37941803988
+          github-token: ${{ github.token }}
+      - name: Verify fresh native source runtime and exact compiled page-worker overlay
+        run: |
+          node scripts/prepare-bundle-ci.mjs
+          cp "$RUNNER_TEMP/fresh-native/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
+          cp "$RUNNER_TEMP/fresh-native/worker-tree-containment.mjs" tests/
+          cp "$RUNNER_TEMP/fresh-native/firefox-owner-navigation.mjs" "$RUNNER_TEMP/fresh-native/worker-owner-diagnostic.mjs" tests/
+          cp "$RUNNER_TEMP/fresh-native/fresh-native-boundaries.mjs" tests/api-stability/
+          node tests/api-stability/fixtures.mjs
+          mkdir -p results/fresh-native
+          cp "$RUNNER_TEMP/fresh-native/harness-revision.txt" results/fresh-native/
+          shasum -a 256 "$DEMUXE_RUNTIME_ROOT/web/engine-mpv/player.wasm" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/fresh-native/identities.txt
+          node --input-type=module - <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const binary=readFileSync(process.env.DEMUXE_RUNTIME_ROOT+'/web/engine-mpv/player.wasm');
+          const exports=WebAssembly.Module.exports(new WebAssembly.Module(binary)).map(e=>e.name);
+          if(!exports.includes('web_decoder_cancel'))throw Error('Fresh native decoder cancellation export missing');
+          writeFileSync('results/fresh-native/native-cancellation-export.json',JSON.stringify({sourceCommit:'f32afd60db1787600229823d13c668a812da4dca',overlayCommit:'b48e160a5371020b80852d1c53078fce819ca032',present:true},null,2)+'\n');
+          JS
+      - name: Verify live and blocked-root descendant termination
+        run: node tests/worker-tree-containment.mjs
+      - name: Verify live seek preview network and cancellation boundaries
+        run: node tests/api-stability/fresh-native-boundaries.mjs
+      - name: Verify actual browser public API and component transitions
+        if: matrix.browser == 'chromium'
+        run: |
+          node tests/public-api.mjs
+          node tests/player-component.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: grace-owner-${{ matrix.browser }}-${{ matrix.owner }}
-          path: results/worker-tree-containment/
+          name: fresh-completion-${{ matrix.os }}-${{ matrix.browser }}-${{ matrix.playwright }}
+          path: |
+            results/fresh-native/
+            results/worker-tree-containment/
+            results/firefox-owner-navigation/
+            results/worker-owner/
+            results/public-api/
+            results/player-component/
+            results/api-stability/live-boundaries/
