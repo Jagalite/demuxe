@@ -112,9 +112,9 @@ for paths,script,expected in [(args.consumer,'tests/beta-consumer.mjs',consumer_
   evidence.append({'file':str(file.resolve()),'sha256':archive_sha(file),'browser':data['family'],'cases':len(data['cases'])})
  if families!={'chrome','firefox'}:raise SystemExit('Both Chrome and Firefox results are required')
 extra=json.loads(args.extra.read_text())
-expected_extra={'cli','consumer-chrome','consumer-firefox','public-api-chrome','public-api-firefox','component-chrome','component-firefox','menu-review','boundaries-chromium','boundaries-firefox','boundaries-webkit'}
+expected_extra={'cli','consumer-chrome','consumer-firefox','public-api-chrome','public-api-firefox','component-chrome','component-firefox','menu-review','worker-tree-chromium','worker-tree-firefox','worker-tree-webkit','boundaries-chromium','boundaries-firefox','boundaries-webkit'}
 if extra['archiveSHA256']!=runtime_hash or extra['sourceCommit']!=manifest['sourceCommit'] or not extra['passed'] or {c['name'] for c in extra['checks']}!=expected_extra or not all(c['passed'] for c in extra['checks']):raise SystemExit('Incomplete or mismatched extra release qualification')
-required_harnesses={'tests/release-extra.mjs','tests/beta-consumer.mjs','tests/beta-streaming.mjs','tests/public-api-consumer.mjs','tests/public-api.mjs','tests/player-component.mjs','tests/player-menu-review.mjs','tests/copy-assets.mjs','scripts/serve.mjs', *{'tests/api-stability/'+name+'.mjs' for name in ['live-boundaries','live-boundary-scenarios','live-network-scenarios','live-fault-server','live-check-helpers','live-runtime']}}
+required_harnesses={'tests/release-extra.mjs','tests/beta-consumer.mjs','tests/beta-streaming.mjs','tests/public-api-consumer.mjs','tests/public-api.mjs','tests/player-component.mjs','tests/player-menu-review.mjs','tests/worker-tree-containment.mjs','tests/copy-assets.mjs','scripts/serve.mjs', *{'tests/api-stability/'+name+'.mjs' for name in ['live-boundaries','live-boundary-scenarios','live-network-scenarios','live-fault-server','live-check-helpers','live-runtime']}}
 if set(extra['harnesses'])!=required_harnesses:raise SystemExit('Missing extra test harness hashes')
 for name,digest in extra['harnesses'].items():
  if digest!=source['files'].get('demuxe/'+name):raise SystemExit('Extra harness differs from tagged source: '+name)

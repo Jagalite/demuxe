@@ -5,12 +5,12 @@ import {WasmPlayer} from '../../web/generated/internal/wasm-player.js';
 const turn=()=>new Promise(setImmediate);
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 
-async function fixture(t,{ready=true,modulePending=false,destination,audioOutput='stereo',ownerLoad=true,workerThrows}={}){
+async function fixture(t,{ready=true,modulePending=false,destination,audioOutput='stereo',startupTask=true,workerThrows}={}){
  const saved=new Map(),timers=new Set(),intervals=new Set(),messages=[],log=[],module=deferred();let worker,context,hook,clearHook,now=0;
  const install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});};
  install('performance',{now:()=>now,timeOrigin:0});
  install('crossOriginIsolated',true);install('location',{origin:'https://example.test'});
- install('setTimeout',(callback,delay)=>{const timer={callback,delay};timers.add(timer);if(delay===0)queueMicrotask(()=>{if(timers.delete(timer))callback();});return timer;});
+ install('setTimeout',(callback,delay)=>{const timer={callback,delay};timers.add(timer);if(delay===0&&startupTask)queueMicrotask(()=>{if(timers.delete(timer))callback();});return timer;});
  install('clearTimeout',timer=>{timers.delete(timer);clearHook?.(timer);});
  install('setInterval',(callback,delay)=>{const timer={callback,delay};intervals.add(timer);return timer;});
  install('clearInterval',timer=>{intervals.delete(timer);});
@@ -31,61 +31,48 @@ async function fixture(t,{ready=true,modulePending=false,destination,audioOutput
  }
  class AudioWorkletNode{port={postMessage:()=>log.push('port-close-message'),close:()=>log.push('port-close')};connect(){}disconnect(){log.push('node-disconnect');}}
  install('AudioContext',AudioContext);install('AudioWorkletNode',AudioWorkletNode);
- const owner=Object.assign(new EventTarget(),{hidden:false,setAttribute(){},contentWindow:{Worker},remove(){log.push('owner-remove');}});
- install('document',{body:{append(){if(ownerLoad)queueMicrotask(()=>owner.dispatchEvent(new Event('load')));}},createElement:()=>owner});
+ install('Worker',Worker);
+ install('document',{createElement(){throw Error('Worker startup must not require a DOM owner');}});
  let player;
  t.after(async()=>{hook=undefined;clearHook=undefined;await player?.destroy().catch(()=>{});for(const [key,descriptor]of saved)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];});
  player=new WasmPlayer({width:320,height:180,transferControlToOffscreen:()=>({})},{assetBase:new URL('https://example.test/'),audioOutput,prepared:{font:new ArrayBuffer(1)}});void player.ready.catch(()=>{});
  await turn();if(ready){worker.emit({type:'ready',browserCodecsAbsent:false});await player.ready;}
- return{player,get worker(){return worker;},context,messages,log,timers,intervals,module,owner,set hook(value){hook=value;},set clearHook(value){clearHook=value;},get now(){return now;},set now(value){now=value;},fire(delay,{early=false}={}){const timer=[...timers].find(timer=>timer.delay===delay);assert.ok(timer,'missing deadline '+delay);timers.delete(timer);if(!early)now+=delay;timer.callback();}};
+ return{player,get worker(){return worker;},context,messages,log,timers,intervals,module,set hook(value){hook=value;},set clearHook(value){clearHook=value;},get now(){return now;},set now(value){now=value;},fire(delay,{early=false}={}){const timer=[...timers].find(timer=>timer.delay===delay);assert.ok(timer,'missing deadline '+delay);timers.delete(timer);if(!early)now+=delay;timer.callback();}};
 }
 
-test('workers wait for the committed owner and retain the latest initial resize',async t=>{
- const f=await fixture(t,{ready:false,ownerLoad:false});
- assert.equal(f.worker,undefined);assert.equal(f.messages.length,0);assert.equal(f.owner.src,'about:blank');
+test('deferred page worker startup retains the latest initial resize',async t=>{
+ const f=await fixture(t,{ready:false,startupTask:false});
+ assert.equal(f.worker,undefined);assert.equal(f.messages.length,0);
  f.player.sendTiming(true);f.player.resize(640,360);f.player.resize(800,450);
- f.owner.dispatchEvent(new Event('load'));assert.equal(f.worker,undefined);await turn();
+ f.fire(0);assert.equal(f.worker,undefined);await turn();
  assert.ok(f.worker);assert.equal(f.messages[0].type,'init');
  assert.deepEqual(f.messages.find(message=>message.type==='resize'),{type:'resize',width:800,height:450});
- f.owner.dispatchEvent(new Event('load'));await turn();assert.equal(f.log.filter(value=>value==='worker-create').length,1);
+ assert.equal(f.log.filter(value=>value==='worker-create').length,1);
  f.worker.emit({type:'ready'});await f.player.ready;
 });
 
-test('destroy while the owner loads contains resources and prevents late worker creation',async t=>{
- const f=await fixture(t,{ready:false,ownerLoad:false}),opened=f.player.open(new ArrayBuffer(4));
+test('destroy cancels pending startup and prevents an accepted open from creating a worker',async t=>{
+ const f=await fixture(t,{ready:false,startupTask:false}),opened=f.player.open(new ArrayBuffer(4));
+ const startup=[...f.timers].find(timer=>timer.delay===0);
  f.player.resize(640,360);await f.player.destroy();
  await assert.rejects(opened,/destroyed/);await assert.rejects(f.player.ready,/destroyed/);
- f.owner.dispatchEvent(new Event('load'));await turn();
+ startup.callback();await turn();
  assert.equal(f.worker,undefined);assert.equal(f.player.pendingResize,undefined);assert.equal(f.timers.size,0);
- assert.deepEqual(f.log,['owner-remove','audio-close']);assert.equal(f.player.lifecycle.phase,'closed');
+ assert.deepEqual(f.log,['audio-close']);assert.equal(f.player.lifecycle.phase,'closed');
 });
 
-test('destroy after owner load cancels the deferred worker startup task',async t=>{
- const f=await fixture(t,{ready:false,ownerLoad:false});f.owner.dispatchEvent(new Event('load'));
- assert.equal(f.worker,undefined);assert.ok([...f.timers].some(timer=>timer.delay===0));
- await f.player.destroy();await assert.rejects(f.player.ready,/destroyed/);await turn();
- assert.equal(f.worker,undefined);assert.equal(f.timers.size,0);assert.deepEqual(f.log,['owner-remove','audio-close']);
-});
-
-test('the initialization deadline cancels an owner that never loads',async t=>{
- const f=await fixture(t,{ready:false,ownerLoad:false});f.fire(60000);
+test('the initialization deadline cancels pending worker startup',async t=>{
+ const f=await fixture(t,{ready:false,startupTask:false}),startup=[...f.timers].find(timer=>timer.delay===0);f.fire(60000);
  await assert.rejects(f.player.ready,/initialization timed out/);
- f.owner.dispatchEvent(new Event('load'));await turn();assert.equal(f.worker,undefined);
+ startup.callback();await turn();assert.equal(f.worker,undefined);
  assert.equal(f.player.lifecycle.phase,'failed');await f.player.destroy();
- assert.deepEqual(f.log,['owner-remove','audio-close']);
+ assert.deepEqual(f.log,['audio-close']);assert.equal(f.timers.size,0);
 });
 
-test('owner load errors reject initialization and remain contained after a late load',async t=>{
- const f=await fixture(t,{ready:false,ownerLoad:false});f.owner.dispatchEvent(new Event('error'));
- await assert.rejects(f.player.ready,error=>error.code==='ASSET_LOAD_FAILED'&&/owner failed to load/.test(error.message));
- f.owner.dispatchEvent(new Event('load'));await turn();assert.equal(f.worker,undefined);await f.player.destroy();
- assert.deepEqual(f.log,['owner-remove','audio-close']);assert.equal(f.timers.size,0);
-});
-
-test('worker construction failure rejects ready and still removes its owner and audio context',async t=>{
+test('worker construction failure rejects ready and still closes the audio context',async t=>{
  const f=await fixture(t,{ready:false,workerThrows:Error('Worker constructor blocked')});
  await assert.rejects(f.player.ready,/Worker constructor blocked/);assert.equal(f.worker,undefined);
- await f.player.destroy();assert.deepEqual(f.log,['owner-remove','audio-close']);assert.equal(f.timers.size,0);
+ await f.player.destroy();assert.deepEqual(f.log,['audio-close']);assert.equal(f.timers.size,0);
 });
 
 test('an existing stereo destination works when WebKit reports no configurable channels',async t=>{
@@ -130,7 +117,7 @@ test('destroy reentry shares one promise, retires pending requests/waits first a
  const f=await fixture(t),request=f.player.command('pending'),wait=f.player.waitForPreviewPresentation();await turn();let nested;
  f.player.loading.signal.addEventListener('abort',()=>{assert.equal(f.player.lifecycle.requests.length,0);assert.equal(f.player.lifecycle.waiters.length,0);nested=f.player.destroy();});
  const destroy=f.player.destroy();assert.equal(nested,destroy);await assert.rejects(request,/destroyed/);await assert.rejects(wait,/destroyed/);await destroy;
- assert.equal(f.player.lifecycle.phase,'closed');assert.deepEqual(f.log.filter(entry=>['terminate','owner-remove','audio-close'].includes(entry)),['terminate','owner-remove','audio-close']);
+ assert.equal(f.player.lifecycle.phase,'closed');assert.deepEqual(f.log.filter(entry=>['terminate','audio-close'].includes(entry)),['terminate','audio-close']);
  assert.equal(f.intervals.size,0);assert.equal(f.timers.size,0);assert.equal(f.player.eventWaiters.size,0);
 });
 
@@ -171,15 +158,15 @@ test('event waiter deadline and later events cannot resurrect retired work',asyn
  f.worker.event({event:'playback-restart'});assert.equal(f.player.eventWaiters.size,0);assert.equal(f.player.lifecycle.waiters.length,0);
 });
 
-test('native cleanup deadline still terminates worker, removes owner and closes audio once',async t=>{
+test('native cleanup deadline still terminates the worker tree and closes audio once',async t=>{
  const f=await fixture(t);f.hook=()=>{};const destroy=f.player.destroy();f.fire(10000);await assert.rejects(destroy,/cleanup timed out/);
  f.worker.emit({type:'destroyed'});assert.equal(f.player.lifecycle.phase,'closed');assert.equal(f.player.destroy(),destroy);
- for(const name of ['terminate','owner-remove','audio-close'])assert.equal(f.log.filter(entry=>entry===name).length,1);
+ for(const name of ['terminate','audio-close'])assert.equal(f.log.filter(entry=>entry===name).length,1);
 });
 
 test('throwing physical cleanup cannot strand remaining resources',async t=>{
  const f=await fixture(t),error=Error('containment failure');f.worker.terminate=()=>{f.log.push('terminate');throw error;};
- await assert.rejects(f.player.destroy(),value=>value===error);assert.ok(f.log.includes('owner-remove'));assert.ok(f.log.includes('audio-close'));assert.equal(f.player.lifecycle.phase,'retiring');assert.equal(f.player.lifecycle.releaseFailed,true);
+ await assert.rejects(f.player.destroy(),value=>value===error);assert.ok(f.log.includes('audio-close'));assert.equal(f.player.lifecycle.phase,'retiring');assert.equal(f.player.lifecycle.releaseFailed,true);
 });
 
 
@@ -212,7 +199,7 @@ test('destroy settles a waiter even when timer cleanup throws and still contains
  const f=await fixture(t),error=Error('waiter cleanup failed'),wait=f.player.waitForPreviewPresentation();
  f.clearHook=timer=>{if(timer?.delay===25000)throw error;};const destroyed=f.player.destroy();
  await assert.rejects(wait,/Player destroyed/);await assert.rejects(destroyed,value=>value===error);
- for(const name of ['terminate','owner-remove','audio-close'])assert.equal(f.log.filter(entry=>entry===name).length,1);
+ for(const name of ['terminate','audio-close'])assert.equal(f.log.filter(entry=>entry===name).length,1);
  assert.equal(f.player.eventWaiters.size,0);assert.equal(f.player.lifecycle.waiters.length,0);f.clearHook=undefined;
 });
 
@@ -344,6 +331,6 @@ for(const at of [9999,10000])test(`actual destruction acknowledgment at ${at} ha
  const f=await fixture(t);f.hook=()=>{};const closing=f.player.destroy();await turn();f.now=at;f.worker.emit({type:'destroyed'});
  if(at<10000)await closing;else await assert.rejects(closing,/cleanup timed out/);
  f.worker.emit({type:'destroyed'});assert.equal(f.player.lifecycle.phase,'closed');
- for(const release of ['terminate','owner-remove','audio-close'])assert.equal(f.log.filter(item=>item===release).length,1);
+ for(const release of ['terminate','audio-close'])assert.equal(f.log.filter(item=>item===release).length,1);
  assert.equal(f.timers.size,0);
 });

@@ -74,7 +74,6 @@ export type PlayerDiagnostics = {
 export declare class WasmPlayer extends EventTarget {
     private loading;
     private worker;
-    private workerOwner;
     private audioContext;
     private audioNode?;
     private selectiveGain?;
@@ -91,7 +90,7 @@ export declare class WasmPlayer extends EventTarget {
     private destruction?;
     private onDestroyed?;
     private readyTimer?;
-    private cancelOwnerLoad?;
+    private cancelWorkerStart?;
     private pendingResize?;
     private rejectReady?;
     private eventWaiters;
