@@ -10,7 +10,7 @@ CASES = {
 }
 HARNESS = {'tests/api-stability/'+name+'.mjs' for name in [
  'live-boundaries','live-boundary-scenarios','live-network-scenarios',
- 'live-fault-server','live-check-helpers','live-runtime']}
+ 'live-fault-server','live-check-helpers','live-runtime']} | {'tests/browser-test-runtime.mjs'}
 
 
 def verify_boundary_receipt(receipt, family, archive_hash, manifest, source_files):

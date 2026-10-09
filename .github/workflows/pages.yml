@@ -97,7 +97,12 @@ jobs:
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
       - name: Install test browsers
-        run: npx playwright install --with-deps chromium chrome firefox webkit
+        run: npx playwright install --with-deps chromium chrome firefox
+      - name: Install the independently pinned Linux WebKit media target
+        run: |
+          npm install --prefix "$RUNNER_TEMP/demuxe-linux-webkit" --ignore-scripts --no-audit --no-fund playwright@1.58.2
+          "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/.bin/playwright" install --with-deps webkit
+          printf 'DEMUXE_WEBKIT_TEST_MODULE=%s\n' "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
       - name: Start audio service for playback checks
         run: bash scripts/start-ci-audio.sh
       - name: Verify Chrome-family playback and record timings

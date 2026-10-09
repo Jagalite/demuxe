@@ -13,7 +13,7 @@ export function assertExactBytes(actual,expected,length,message){
 }
 
 export const liveEvidenceInputs=[
- 'tests/api-stability/live-runtime.mjs','scripts/serve.mjs',
+ 'tests/api-stability/live-runtime.mjs','tests/browser-test-runtime.mjs','scripts/serve.mjs',
  'fixtures/example.mp4','tests/api-stability/live-boundaries.mjs',
  'tests/api-stability/live-check-helpers.mjs','tests/api-stability/live-network-scenarios.mjs',
  'tests/api-stability/live-fault-server.mjs','web/range-reader.js','web/generated/sources.js',

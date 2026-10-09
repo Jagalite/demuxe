@@ -17,7 +17,7 @@ try{
  assert.equal(process.platform,'darwin','Apple WebKit qualification requires macOS');
  assert.equal(report.sourceCommit,execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),'Archive must match the checked-out tag');
  const env={...process.env,BROWSER:'webkit',DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot};
- for(const key of ['ONLY','CASES','PROFILE','LIVE_NEGATIVE_CONTROL'])delete env[key];
+ for(const key of ['ONLY','CASES','PROFILE','LIVE_NEGATIVE_CONTROL','DEMUXE_WEBKIT_TEST_MODULE'])delete env[key];
  const jobs=[['api','tests/public-api.mjs',21],['component','tests/player-component.mjs',61],['boundaries','tests/api-stability/live-boundaries.mjs',19],['worker-tree','tests/worker-tree-containment.mjs',10]];
  for(const [name,script,count]of jobs){
   report.harnesses[script]=hash(await readFile(script));await save();
