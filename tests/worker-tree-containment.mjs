@@ -12,6 +12,8 @@ for(let cycle=0;cycle<10;cycle++){
  let deadline=Date.now()+10000;while([0,1,2].some(level=>(counts.get(cycle+'-'+level)||0)<5)){if(Date.now()>deadline)throw Error('Nested worker heartbeat failed to start');await wait(20);}
  if(cycle%2){await page.evaluate(()=>treeWorker.postMessage({block:true,buffer:new SharedArrayBuffer(4)}));await page.waitForFunction(()=>rootBlocked);row.blockedRoot=true;}else row.blockedRoot=false;
  const sample=()=>[0,1,2].map(level=>counts.get(cycle+'-'+level)||0);row.before=sample();await wait(200);row.control=sample();if(row.control.some((value,i)=>(!row.blockedRoot||i>0)&&value<=row.before[i]))throw Error('Negative control did not observe every live descendant');
- await page.evaluate(()=>{treeWorker.terminate();window.treeWorker=null;});await wait(500);row.settled=sample();await wait(500);row.after=sample();if(row.after.some((value,i)=>value!==row.settled[i]))throw Error('Root termination left a live descendant');row.passed=true;await save();console.log('PASS direct worker three-level containment',family,cycle);
+ await page.evaluate(()=>{treeWorker.terminate();window.treeWorker=null;});// Chromium gives blocked worker execution two seconds before forcing termination.
+ // Allow that browser grace period, then require stable descendant heartbeats.
+ await wait(row.blockedRoot?3000:500);row.settled=sample();await wait(500);row.after=sample();if(row.after.some((value,i)=>value!==row.settled[i]))throw Error('Root termination left a live descendant');row.passed=true;await save();console.log('PASS direct worker three-level containment',family,cycle);
 }report.passed=true;
 }catch(error){report.error=String(error.stack);process.exitCode=1;}finally{await browser?.close();await new Promise(resolve=>server.close(resolve));await save();}
