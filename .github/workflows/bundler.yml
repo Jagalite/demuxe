@@ -69,13 +69,13 @@ jobs:
           node tests/api-stability/fixtures.mjs
           mkdir -p results/fresh-native
           cp "$RUNNER_TEMP/fresh-native/harness-revision.txt" results/fresh-native/
-          sha256sum "$DEMUXE_RUNTIME_ROOT/web/engine-hybrid/player.wasm" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/fresh-native/identities.txt
+          shasum -a 256 "$DEMUXE_RUNTIME_ROOT/web/engine-hybrid/player.wasm" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/fresh-native/identities.txt
           node --input-type=module - <<'JS'
           import {readFileSync,writeFileSync} from 'node:fs';
           const binary=readFileSync(process.env.DEMUXE_RUNTIME_ROOT+'/web/engine-hybrid/player.wasm');
           const exports=WebAssembly.Module.exports(new WebAssembly.Module(binary)).map(e=>e.name);
           if(!exports.includes('web_decoder_cancel'))throw Error('Fresh native decoder cancellation export missing');
-          writeFileSync('results/fresh-native/native-cancellation-export.json',JSON.stringify({sourceCommit:'f32afd60db1787600229823d13c668a812da4dca',present:true},null,2)+'\n');
+          writeFileSync('results/fresh-native/native-cancellation-export.json',JSON.stringify({sourceCommit:'f32afd60db1787600229823d13c668a812da4dca',overlayCommit:'b48e160a5371020b80852d1c53078fce819ca032',present:true},null,2)+'\n');
           JS
       - name: Stress 80 subtitle and engine switch cycles including cleanup
         run: |
