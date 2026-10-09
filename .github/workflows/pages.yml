@@ -98,13 +98,7 @@ jobs:
       - name: Install test browsers
         run: npx playwright install --with-deps chromium chrome firefox webkit
       - name: Start audio service for playback checks
-        run: |
-          pulseaudio --start --exit-idle-time=-1
-          # The default null sink can buffer two seconds, matching the native output deadline.
-          pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2 norewinds=1
-          pactl set-default-sink demuxe_ci
-          pactl info
-          pactl list short sinks
+        run: bash scripts/start-ci-audio.sh
       - name: Verify Chrome-family playback and record timings
         env:
           BROWSER: chromium

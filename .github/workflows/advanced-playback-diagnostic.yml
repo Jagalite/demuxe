@@ -50,6 +50,7 @@ jobs:
           mkdir "$RUNNER_TEMP/advanced-diagnostic"
           cp tests/api-stability/advanced-playback.mjs "$RUNNER_TEMP/advanced-diagnostic/advanced-playback.mjs"
           cp tests/api-stability/fixtures.mjs tests/api-stability/filter-reference.mjs tests/api-stability/filter-reference.test.mjs "$RUNNER_TEMP/advanced-diagnostic/"
+          cp scripts/start-ci-audio.sh "$RUNNER_TEMP/advanced-diagnostic/start-ci-audio.sh"
           git rev-parse HEAD > "$RUNNER_TEMP/advanced-diagnostic/harness-commit.txt"
           sha256sum tests/api-stability/advanced-playback.mjs > "$RUNNER_TEMP/advanced-diagnostic/harness-sha256.txt"
       - uses: actions/checkout@v4
@@ -66,7 +67,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
-          pulseaudio --start --exit-idle-time=-1
+          bash "$RUNNER_TEMP/advanced-diagnostic/start-ci-audio.sh"
       - uses: actions/download-artifact@v4
         with:
           name: source-provider-browser-inputs
