@@ -37,6 +37,8 @@ export class WasmPlayer extends EventTarget {
     destruction;
     onDestroyed;
     readyTimer;
+    cancelOwnerLoad;
+    pendingResize;
     rejectReady;
     eventWaiters = new Map();
     refreshAuthorization;
@@ -92,23 +94,13 @@ export class WasmPlayer extends EventTarget {
         this.workerOwner = document.createElement('iframe');
         this.workerOwner.hidden = true;
         this.workerOwner.setAttribute('aria-hidden', 'true');
-        document.body.append(this.workerOwner);
-        const owner = this.workerOwner.contentWindow;
-        try {
-            this.worker = runtimeWorker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' }, owner.Worker);
-        }
-        catch (error) {
-            this.workerOwner.remove();
-            void this.audioContext.close();
-            throw error;
-        }
         const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4 + (this.audioOnly ? 8192 * 16 : 0));
         this.audioHeader = new Int32Array(audio, 0, 16);
         this.ready = new Promise((resolve, reject) => {
             this.rejectReady = reject;
             this.lifecycle = beginWasmHandshake(this.lifecycle, 'initialization', performance.now());
             const failReady = (error) => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'failed', performance.now()); this.lifecycle = step.state; if (step.effect !== 'reject')
-                return; this.initializationError = error; reject(error); };
+                return; this.initializationError = error; this.cancelOwnerLoad?.(error); reject(error); };
             let timeout;
             const expire = () => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'deadline', performance.now()); this.lifecycle = step.state; if (step.effect === 'waiting') {
                 timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
@@ -116,106 +108,125 @@ export class WasmPlayer extends EventTarget {
             else if (step.effect === 'reject') {
                 const error = new Error('Player initialization timed out');
                 this.initializationError = error;
+                this.cancelOwnerLoad?.(error);
                 reject(error);
             } };
             timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
-            const workerFailure = (event) => {
-                const failure = claimWasmWorkerFailure(this.lifecycle);
-                this.lifecycle = failure.state;
-                if (!failure.accepted)
-                    return;
-                event.preventDefault();
-                clearTimeout(timeout);
-                const error = new PlayerError('ASSET_LOAD_FAILED', 'Playback engine worker failed: ' + ('message' in event ? event.message : event.type), null, null, 'operation', true);
-                if (this.lifecycle.phase === 'failed')
-                    this.initializationError ??= error;
-                reject(error);
-                this.fail(error);
-            };
-            this.worker.onerror = workerFailure;
-            this.worker.onmessageerror = workerFailure;
-            this.worker.onmessage = ({ data }) => {
-                if ((this.destroyed || this.lifecycle.phase === 'failed') && data.type !== 'destroyed')
-                    return;
-                if (data.type === 'provider-module') {
-                    const path = data.path;
-                    if (!providerAssets || !['web/engine-software-full/player.wasm', 'web/engine-software-yuv/player.wasm'].includes(path)) {
-                        this.worker.postMessage({ type: 'provider-module', error: 'Unexpected provider engine request' });
-                        return;
-                    }
-                    void providerAssets.module(path).then(module => { if (wasmAlive(this.lifecycle))
-                        this.worker.postMessage({ type: 'provider-module', module }); }, error => { if (wasmAlive(this.lifecycle))
-                        this.worker.postMessage({ type: 'provider-module', error: String(error) }); });
-                }
-                else if (data.type === 'ready') {
-                    const step = observeWasmHandshake(this.lifecycle, 'initialization', 'ready', performance.now());
-                    this.lifecycle = step.state;
-                    if (step.effect === 'reject') {
-                        clearTimeout(timeout);
-                        const error = new Error('Player initialization timed out');
-                        this.initializationError = error;
-                        reject(error);
-                        return;
-                    }
-                    if (step.effect !== 'ready')
-                        return;
-                    clearTimeout(timeout);
-                    this.browserCodecsAbsent = data.browserCodecsAbsent;
-                    this.sendTiming(true);
-                    resolve();
-                }
-                else if (data.type === 'error') {
-                    clearTimeout(timeout);
-                    const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderTimeout ? new PlayerError('NETWORK_TIMEOUT', data.message, null, null, 'operation', true) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
-                    failReady(isPlayerError(error) ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
-                    this.fail(error, data.id);
-                }
-                else if (data.type === 'destroyed') {
-                    if (this.diagnostics) {
-                        this.diagnostics.decoderStats = data.decoderStats;
-                        if (data.presentation)
-                            this.diagnostics.presentation = data.presentation;
-                    }
-                    const completed = this.onDestroyed;
-                    this.onDestroyed = undefined;
-                    completed?.();
-                }
-                else if (data.type === 'refresh') {
-                    void this.refreshAuthorization?.(data.resource).then(update => { if (wasmAlive(this.lifecycle))
-                        this.worker.postMessage({ type: 'refreshed', id: data.id, update }); }, () => { if (wasmAlive(this.lifecycle))
-                        this.worker.postMessage({ type: 'refreshed', id: data.id, error: true }); });
-                }
-                else if (data.type === 'output')
-                    this.dispatchEvent(new CustomEvent('output', { detail: data.data }));
-                else if (data.type === 'source')
-                    this.dispatchEvent(new CustomEvent('source', { detail: data.info }));
-                else if (data.type === 'diagnostics')
-                    this.diagnostics = { ...data.data, buffering: { ...resolveBuffering(this.buffering, 'mpv'), settings: { ...this.bufferingSettings, 'demuxer-cache-state': this.properties.get('demuxer-cache-state'), 'paused-for-cache': this.properties.get('paused-for-cache'), 'cache-buffering-state': this.properties.get('cache-buffering-state') } } };
-                else if (data.type === 'log')
-                    this.dispatchEvent(new CustomEvent('log', { detail: data.message }));
-                else if (data.type === 'event') {
-                    const event = data.event;
-                    if (event.event === 'start-file') {
-                        this.lifecycle = observeWasmFile(this.lifecycle, true);
-                    }
-                    this.observeSeekEvent(event);
-                    if (event.event === 'end-file')
-                        this.lifecycle = observeWasmFile(this.lifecycle, false);
-                    if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data))
-                        event.data = event.data.map(track => ({ ...track, id: String(track.id) }));
-                    if (event.event === 'command-reply' && event.id) {
-                        this.settleRequest(event.id, event.error ? new Error(event.error) : undefined, event.result);
-                    }
-                    if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data)) {
-                        let external = 0;
-                        event.data = event.data.map(t => t.external ? { ...t, 'attachment-id': wasmAttachmentIdentity(this.lifecycle, external), 'external-index': ++external } : t);
-                    }
-                    if (event.event === 'property-change' && event.name)
-                        this.properties.set(event.name, event.data);
-                    this.dispatchEvent(new CustomEvent('mpv', { detail: event }));
-                }
-            };
             void (async () => {
+                // Chromium can block module-worker responses from an iframe's initial
+                // empty document. Commit a same-origin owner before starting its tree.
+                await new Promise((done, no) => {
+                    const owner = this.workerOwner;
+                    let finished = false;
+                    const finish = (error) => { if (finished)
+                        return; finished = true; owner.removeEventListener('load', loaded); owner.removeEventListener('error', failed); this.cancelOwnerLoad = undefined; error ? no(error) : done(); };
+                    const loaded = () => finish(), failed = () => finish(new Error('Playback worker owner failed to load'));
+                    this.cancelOwnerLoad = error => finish(error);
+                    owner.addEventListener('load', loaded, { once: true });
+                    owner.addEventListener('error', failed, { once: true });
+                    owner.src = 'about:blank';
+                    document.body.append(owner);
+                });
+                if (!wasmAlive(this.lifecycle))
+                    throw this.unavailableError();
+                const owner = this.workerOwner.contentWindow;
+                this.worker = runtimeWorker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' }, owner.Worker);
+                const workerFailure = (event) => {
+                    const failure = claimWasmWorkerFailure(this.lifecycle);
+                    this.lifecycle = failure.state;
+                    if (!failure.accepted)
+                        return;
+                    event.preventDefault();
+                    clearTimeout(timeout);
+                    const error = new PlayerError('ASSET_LOAD_FAILED', 'Playback engine worker failed: ' + ('message' in event ? event.message : event.type), null, null, 'operation', true);
+                    if (this.lifecycle.phase === 'failed')
+                        this.initializationError ??= error;
+                    reject(error);
+                    this.fail(error);
+                };
+                this.worker.onerror = workerFailure;
+                this.worker.onmessageerror = workerFailure;
+                this.worker.onmessage = ({ data }) => {
+                    if ((this.destroyed || this.lifecycle.phase === 'failed') && data.type !== 'destroyed')
+                        return;
+                    if (data.type === 'provider-module') {
+                        const path = data.path;
+                        if (!providerAssets || !['web/engine-software-full/player.wasm', 'web/engine-software-yuv/player.wasm'].includes(path)) {
+                            this.worker.postMessage({ type: 'provider-module', error: 'Unexpected provider engine request' });
+                            return;
+                        }
+                        void providerAssets.module(path).then(module => { if (wasmAlive(this.lifecycle))
+                            this.worker.postMessage({ type: 'provider-module', module }); }, error => { if (wasmAlive(this.lifecycle))
+                            this.worker.postMessage({ type: 'provider-module', error: String(error) }); });
+                    }
+                    else if (data.type === 'ready') {
+                        const step = observeWasmHandshake(this.lifecycle, 'initialization', 'ready', performance.now());
+                        this.lifecycle = step.state;
+                        if (step.effect === 'reject') {
+                            clearTimeout(timeout);
+                            const error = new Error('Player initialization timed out');
+                            this.initializationError = error;
+                            reject(error);
+                            return;
+                        }
+                        if (step.effect !== 'ready')
+                            return;
+                        clearTimeout(timeout);
+                        this.browserCodecsAbsent = data.browserCodecsAbsent;
+                        this.sendTiming(true);
+                        resolve();
+                    }
+                    else if (data.type === 'error') {
+                        clearTimeout(timeout);
+                        const error = data.assetFailure ? new PlayerError('ASSET_LOAD_FAILED', data.message) : data.decoderTimeout ? new PlayerError('NETWORK_TIMEOUT', data.message, null, null, 'operation', true) : data.decoderFailure ? new PlayerError('DECODE_FAILED', data.message) : new Error(data.message);
+                        failReady(isPlayerError(error) ? error : new PlayerError('ASSET_LOAD_FAILED', 'Playback engine initialization failed: ' + error.message, null, null, 'operation', true));
+                        this.fail(error, data.id);
+                    }
+                    else if (data.type === 'destroyed') {
+                        if (this.diagnostics) {
+                            this.diagnostics.decoderStats = data.decoderStats;
+                            if (data.presentation)
+                                this.diagnostics.presentation = data.presentation;
+                        }
+                        const completed = this.onDestroyed;
+                        this.onDestroyed = undefined;
+                        completed?.();
+                    }
+                    else if (data.type === 'refresh') {
+                        void this.refreshAuthorization?.(data.resource).then(update => { if (wasmAlive(this.lifecycle))
+                            this.worker.postMessage({ type: 'refreshed', id: data.id, update }); }, () => { if (wasmAlive(this.lifecycle))
+                            this.worker.postMessage({ type: 'refreshed', id: data.id, error: true }); });
+                    }
+                    else if (data.type === 'output')
+                        this.dispatchEvent(new CustomEvent('output', { detail: data.data }));
+                    else if (data.type === 'source')
+                        this.dispatchEvent(new CustomEvent('source', { detail: data.info }));
+                    else if (data.type === 'diagnostics')
+                        this.diagnostics = { ...data.data, buffering: { ...resolveBuffering(this.buffering, 'mpv'), settings: { ...this.bufferingSettings, 'demuxer-cache-state': this.properties.get('demuxer-cache-state'), 'paused-for-cache': this.properties.get('paused-for-cache'), 'cache-buffering-state': this.properties.get('cache-buffering-state') } } };
+                    else if (data.type === 'log')
+                        this.dispatchEvent(new CustomEvent('log', { detail: data.message }));
+                    else if (data.type === 'event') {
+                        const event = data.event;
+                        if (event.event === 'start-file') {
+                            this.lifecycle = observeWasmFile(this.lifecycle, true);
+                        }
+                        this.observeSeekEvent(event);
+                        if (event.event === 'end-file')
+                            this.lifecycle = observeWasmFile(this.lifecycle, false);
+                        if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data))
+                            event.data = event.data.map(track => ({ ...track, id: String(track.id) }));
+                        if (event.event === 'command-reply' && event.id) {
+                            this.settleRequest(event.id, event.error ? new Error(event.error) : undefined, event.result);
+                        }
+                        if (event.event === 'property-change' && event.name === 'track-list' && Array.isArray(event.data)) {
+                            let external = 0;
+                            event.data = event.data.map(t => t.external ? { ...t, 'attachment-id': wasmAttachmentIdentity(this.lifecycle, external), 'external-index': ++external } : t);
+                        }
+                        if (event.event === 'property-change' && event.name)
+                            this.properties.set(event.name, event.data);
+                        this.dispatchEvent(new CustomEvent('mpv', { detail: event }));
+                    }
+                };
                 const [font] = await Promise.all([
                     prepared?.font ? Promise.resolve(prepared.font) : providerAssets ? providerAssets.bytes('fixtures/DejaVuSans.ttf') : (async () => { const response = await fetch(new URL('fixtures/DejaVuSans.ttf', assetBase), { signal: this.loading.signal }); if (!response.ok)
                         throw Error('Could not load the bundled subtitle font'); return response.arrayBuffer(); })(),
@@ -248,6 +259,11 @@ export class WasmPlayer extends EventTarget {
                 const offscreen = canvas.transferControlToOffscreen();
                 this.lifecycle = markWasmInitialized(this.lifecycle);
                 this.worker.postMessage({ type: 'init', decoderOutputWatchdog: this.lifecycle.settings.decoderOutput, compiledWasm: prepared?.module, verifiedProviderAssets: !!providerAssets, canvas: offscreen, audio, font, fonts, audioChannels: this.outputChannels, maxDecodePixels: resourceLimits.maxDecodePixels, maxAllocationBytes: resourceLimits.maxAllocationBytes, sampleRate: this.audioContext.sampleRate, disableBrowserCodecs, measureOutput, decoder, softwarePresenter, decoderFaultAfter: 0, decodeQuality, decodePolicy, adaptiveFrameDrop, videoTrack, ...(selectedDecodeIntent ? { webgpuDecodeIntent: selectedDecodeIntent } : {}), displayWidth: canvas.width, displayHeight: canvas.height }, [offscreen, font]);
+                if (this.pendingResize) {
+                    const size = this.pendingResize;
+                    this.pendingResize = undefined;
+                    this.worker.postMessage({ type: 'resize', ...size });
+                }
                 if (!wasmAlive(this.lifecycle))
                     return;
                 const timing = setInterval(() => this.sendTiming(), 20);
@@ -261,7 +277,7 @@ export class WasmPlayer extends EventTarget {
         });
     }
     sendTiming(force = false) {
-        if (this.destroyed)
+        if (this.destroyed || !this.worker)
             return;
         // Fallback latency estimate, explicitly not an independent A/V sync measurement.
         const latency = (this.audioContext.baseLatency || 0) + (this.audioContext.outputLatency || 0);
@@ -796,7 +812,10 @@ export class WasmPlayer extends EventTarget {
     subtitleVisible(visible) { return this.command('set', 'sub-visibility', visible ? 'yes' : 'no'); }
     resize(width, height) { if (this.destroyed)
         throw new Error('Player is destroyed'); if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 1920 || height > 1080)
-        throw new Error('Invalid output dimensions'); this.worker.postMessage({ type: 'resize', width, height }); }
+        throw new Error('Invalid output dimensions'); if (!this.lifecycle.initSent) {
+        this.pendingResize = { width, height };
+        return;
+    } this.worker.postMessage({ type: 'resize', width, height }); }
     startupEvidence() {
         // Read existing producer/consumer counters; no analyser or frame readback.
         const audioDecoderConfigured = !!this.properties.get('audio-codec-name');
@@ -840,7 +859,9 @@ export class WasmPlayer extends EventTarget {
         } };
         cleanup(() => this.loading.abort());
         this.refreshAuthorization = undefined;
+        this.pendingResize = undefined;
         cleanup(() => clearTimeout(this.readyTimer));
+        cleanup(() => this.cancelOwnerLoad?.(error));
         cleanup(() => this.rejectReady?.(error));
         for (const entry of pending)
             if (entry) {
@@ -863,6 +884,10 @@ export class WasmPlayer extends EventTarget {
             let timeout;
             try {
                 await new Promise((done, no) => {
+                    if (!this.worker) {
+                        done();
+                        return;
+                    }
                     this.lifecycle = beginWasmHandshake(this.lifecycle, 'retirement', performance.now());
                     const complete = (event) => { const step = observeWasmHandshake(this.lifecycle, 'retirement', event, performance.now()); this.lifecycle = step.state; if (step.effect === 'ready')
                         done();
@@ -896,7 +921,7 @@ export class WasmPlayer extends EventTarget {
                         failure = error;
                     }
                 } };
-                release(() => this.worker.terminate());
+                release(() => this.worker?.terminate());
                 release(() => this.workerOwner.remove());
                 try {
                     await this.audioContext.close();

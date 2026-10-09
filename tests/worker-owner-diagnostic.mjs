@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 // Diagnostic only: exact source assets, with a recorded optional preloaded owner overlay.
-import {chromium} from 'playwright';
+import {chromium,firefox,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
-const arm=process.env.OWNER_ARM||'original',out=`results/worker-owner/${arm}`;
+const arm=process.env.OWNER_ARM||'production',out=`results/worker-owner/${arm}`;
 await mkdir(out,{recursive:true});const report={arm,cycles:[],events:[],passed:false};const save=()=>writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
 let browser;
 try{
- browser=await chromium.launch({headless:true,args:['--autoplay-policy=no-user-gesture-required']});report.browser=browser.version();
+ const family=process.env.BROWSER||'chromium';browser=await ({chromium,firefox,webkit}[family]).launch({headless:true,...(family==='chromium'?{args:['--autoplay-policy=no-user-gesture-required']}: {})});report.family=family;report.browser=browser.version();
  const page=await browser.newPage();page.setDefaultTimeout(30000);
  page.on('console',m=>{const value=m.text();if(value.startsWith('WORKER_')){report.events.push({type:m.type(),value,time:Date.now()});console.log(value);}});
  page.on('requestfailed',r=>report.events.push({type:'requestfailed',url:r.url(),failure:r.failure(),time:Date.now()}));
@@ -32,6 +32,6 @@ try{
   finally{let timer;try{await Promise.race([page.evaluate(async()=>{await player.destroy();for(const frame of window.__diagnosticReadyOwners||[])frame.remove();}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Cleanup deadline')),15000);})]);}finally{clearTimeout(timer);await save();}}
  }
  report.failures=report.cycles.filter(row=>!row.passed).length;report.passed=report.failures===0;
- if(arm==='settled'&&!report.passed)process.exitCode=1;
+ if(arm!=='original'&&!report.passed)process.exitCode=1;
 }catch(error){report.error=String(error.stack);process.exitCode=1;}
 finally{await browser?.close().catch(()=>{});server.kill();await save();}
