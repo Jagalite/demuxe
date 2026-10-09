@@ -59,8 +59,11 @@ export class PrivateSoftwarePlayer extends EventTarget {
             throw new PlayerError('UNSUPPORTED_FEATURE', 'Requested audio layout is unavailable on this output device');
         }
         this.outputChannels = layout.channels;
+        // Preserve an already-correct layout: some WebKit ports reject a redundant
+        // stereo assignment while reporting maxChannelCount=0.
         try {
-            this.context.destination.channelCount = this.outputChannels;
+            if (this.context.destination.channelCount !== this.outputChannels)
+                this.context.destination.channelCount = this.outputChannels;
             this.context.destination.channelCountMode = 'explicit';
         }
         catch (error) {

@@ -4,17 +4,29 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
-  audio:
+  boundaries:
     runs-on: ubuntu-24.04
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
     env:
       BROWSER: ${{ matrix.browser }}
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
     steps:
       - uses: actions/checkout@v4
+      - name: Preserve corrected runtime and diagnostic harness
+        run: |
+          mkdir "$RUNNER_TEMP/audio-guard"
+          cp web/generated/internal/wasm-player.js web/generated/internal/private-software-player.js tests/api-stability/audio-guard-diagnostic.mjs "$RUNNER_TEMP/audio-guard/"
+          git rev-parse HEAD > "$RUNNER_TEMP/audio-guard/harness-commit.txt"
+      - uses: actions/checkout@v4
+        with:
+          ref: 612542a4775ab41dd78bf2c10551e5fa8c1742a8
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -23,43 +35,31 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y pulseaudio
+          sudo apt-get install -y ffmpeg pulseaudio
           bash scripts/start-ci-audio.sh
-      - name: Compare destination assignment with preservation of its existing layout
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: 37873088630
+          github-token: ${{ github.token }}
+      - name: Verify provider identity and install recorded audio guard overlay
         run: |
-          node --input-type=module <<'JS'
-          import {chromium,firefox,webkit} from 'playwright';
-          import http from 'node:http';
-          import {writeFile} from 'node:fs/promises';
-          const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html','Cross-Origin-Opener-Policy':'same-origin','Cross-Origin-Embedder-Policy':'require-corp'});res.end('<button>Activate</button>');});
-          await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-          const browser=await({chromium,firefox,webkit}[process.env.BROWSER]).launch({headless:true});
-          try{
-            const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('button').click();
-            const rows=await page.evaluate(async()=>{
-              const rows=[];
-              for(const guarded of [false,true]){
-                const context=new AudioContext({latencyHint:'interactive'}),destination=context.destination;
-                const row={guarded,maximum:destination.maxChannelCount,initialChannels:destination.channelCount};
-                try{
-                  if(!guarded||destination.channelCount!==2)destination.channelCount=2;
-                  destination.channelCountMode='explicit';
-                  const url=URL.createObjectURL(new Blob(['class Probe extends AudioWorkletProcessor{process(){return true}} registerProcessor("probe",Probe);'],{type:'text/javascript'}));
-                  try{await context.audioWorklet.addModule(url);}finally{URL.revokeObjectURL(url);}
-                  const node=new AudioWorkletNode(context,'probe',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],channelCount:2,channelCountMode:'explicit'});
-                  node.connect(destination);await context.resume();row.connected=true;row.finalChannels=destination.channelCount;node.disconnect();
-                }catch(error){row.error=String(error);}
-                finally{await context.close();row.closed=context.state==='closed';}
-                rows.push(row);
-              }
-              return rows;
-            });
-            const report={browser:process.env.BROWSER,version:browser.version(),rows};console.log(JSON.stringify(report,null,2));await writeFile('audio-diagnosis.json',JSON.stringify(report,null,2));
-            if(rows.some(row=>!row.closed)||!rows[1].connected)process.exitCode=1;
-          }finally{await browser.close();server.close();}
-          JS
+          export BUNDLE_INVENTORY_SHA256=9d75cc8479217effd7c6346547e94c366f6b6c6285d8158e210424b0e7ee34e7
+          node scripts/prepare-bundle-ci.mjs
+          cp "$RUNNER_TEMP/audio-guard/wasm-player.js" "$RUNNER_TEMP/audio-guard/private-software-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
+          cp "$RUNNER_TEMP/audio-guard/audio-guard-diagnostic.mjs" tests/api-stability/
+          node tests/api-stability/fixtures.mjs
+          mkdir -p results/audio-guard-diagnostic
+          cp "$RUNNER_TEMP/audio-guard/harness-commit.txt" results/audio-guard-diagnostic/
+          sha256sum "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/private-software-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/audio-guard-diagnostic/identities.txt
+      - name: Run unchanged live boundary scenarios against the diagnostic candidate
+        run: node tests/api-stability/audio-guard-diagnostic.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: audio-diagnosis-${{ matrix.browser }}
-          path: audio-diagnosis.json
+          name: audio-guard-boundaries-${{ matrix.browser }}
+          path: |
+            results/audio-guard-diagnostic/
+            results/api-stability/live-boundaries/
+            build/bundle-ci-consumer/candidate-admission.json
