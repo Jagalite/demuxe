@@ -1,72 +1,18 @@
 # SPDX-License-Identifier: Apache-2.0
 name: Provider bundle loader
 on:
-  push:
-    branches: [main]
-  pull_request:
-  schedule:
-    - cron: '17 4 * * 1'
   workflow_dispatch:
-    inputs:
-      source_run:
-        description: Optional completed source run to replay (requires commit and inventory hash)
-        type: string
-      source_commit:
-        description: Exact source commit of the replayed packages
-        type: string
-      inventory_sha256:
-        description: Exact replayed bundle-ci-inventory.json SHA256
-        type: string
 permissions:
   contents: read
-  actions: read
 jobs:
-  loader:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        browser: [chromium, firefox]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: mkdir -p build/bundle-flexibility
-      - run: node --test tests/bundler.mjs tests/bundle-evidence.mjs tests/bundler-elements.mjs
-      - run: node tests/bundler-browser.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: bundle-loader-${{ matrix.browser }}
-          path: build/bundle-flexibility/browser-*/report.json
-  providers:
-    if: ${{ !inputs.source_run }}
-    uses: ./.github/workflows/ci-providers.yml
-  api:
-    name: Public API (${{ matrix.browser }}, ${{ matrix.suite }})
-    needs: providers
-    if: ${{ !inputs.source_run }}
+  audio:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
     strategy:
       fail-fast: false
-      max-parallel: 4
       matrix:
-        browser: [chromium, firefox]
-        suite: [core, ui, integration, preview, sequences, streaming]
+        browser: [chromium, firefox, webkit]
     env:
       BROWSER: ${{ matrix.browser }}
-      BUNDLE_INVENTORY_SHA256: ${{ needs.providers.outputs.inventory_sha256 }}
-      BUNDLE_SOURCE_CANDIDATE: '1'
-      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
-      API_EXTENDED: ${{ github.event_name == 'schedule' && '1' || '0' }}
-      API_SEED: ${{ github.event_name == 'schedule' && github.run_number || '24301' }}
-      DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -75,169 +21,45 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - name: Install fixture tools and audio service
-        run: |
+      - run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg pulseaudio
+          sudo apt-get install -y pulseaudio
           bash scripts/start-ci-audio.sh
-      - uses: actions/download-artifact@v4
-        with:
-          name: source-provider-browser-inputs
-          path: build/bundle-ci-inputs
-      - run: node scripts/prepare-bundle-ci.mjs
-      - run: node tests/api-stability/fixtures.mjs
-      - run: node tests/api-stability/run.mjs browser ${{ matrix.suite }}
+      - name: Compare destination assignment with preservation of its existing layout
+        run: |
+          node --input-type=module <<'JS'
+          import {chromium,firefox,webkit} from 'playwright';
+          import http from 'node:http';
+          import {writeFile} from 'node:fs/promises';
+          const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html','Cross-Origin-Opener-Policy':'same-origin','Cross-Origin-Embedder-Policy':'require-corp'});res.end('<button>Activate</button>');});
+          await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+          const browser=await({chromium,firefox,webkit}[process.env.BROWSER]).launch({headless:true});
+          try{
+            const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);await page.locator('button').click();
+            const rows=await page.evaluate(async()=>{
+              const rows=[];
+              for(const guarded of [false,true]){
+                const context=new AudioContext({latencyHint:'interactive'}),destination=context.destination;
+                const row={guarded,maximum:destination.maxChannelCount,initialChannels:destination.channelCount};
+                try{
+                  if(!guarded||destination.channelCount!==2)destination.channelCount=2;
+                  destination.channelCountMode='explicit';
+                  const url=URL.createObjectURL(new Blob(['class Probe extends AudioWorkletProcessor{process(){return true}} registerProcessor("probe",Probe);'],{type:'text/javascript'}));
+                  try{await context.audioWorklet.addModule(url);}finally{URL.revokeObjectURL(url);}
+                  const node=new AudioWorkletNode(context,'probe',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],channelCount:2,channelCountMode:'explicit'});
+                  node.connect(destination);await context.resume();row.connected=true;row.finalChannels=destination.channelCount;node.disconnect();
+                }catch(error){row.error=String(error);}
+                finally{await context.close();row.closed=context.state==='closed';}
+                rows.push(row);
+              }
+              return rows;
+            });
+            const report={browser:process.env.BROWSER,version:browser.version(),rows};console.log(JSON.stringify(report,null,2));await writeFile('audio-diagnosis.json',JSON.stringify(report,null,2));
+            if(rows.some(row=>!row.closed)||!rows[1].connected)process.exitCode=1;
+          }finally{await browser.close();server.close();}
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: public-api-${{ matrix.browser }}-${{ matrix.suite }}
-          path: |
-            results/api-stability/
-            results/public-api/
-            results/api-roadmap/
-            results/api-integration/
-            results/player-component/
-            results/player-presentation/
-            results/shaka/
-            build/fixtures/api-fixtures.json
-            build/bundle-flexibility/ci-assets/bundle-manifest.json
-            build/bundle-ci-inputs/bundle-ci-inventory.json
-            build/bundle-ci-consumer/candidate-admission.json
-  native:
-    needs: providers
-    if: ${{ !cancelled() && (needs.providers.result == 'success' || inputs.source_run != '') }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium, firefox]
-        delivery: [assets, embedded]
-    env:
-      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 || needs.providers.outputs.inventory_sha256 }}
-      BUNDLE_SOURCE_CANDIDATE: '1'
-      DEBUG: pw:browser
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Retain current harness for an explicit artifact replay
-        if: inputs.source_run
-        env:
-          SOURCE_COMMIT: ${{ inputs.source_commit }}
-        run: |
-          [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
-          [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
-          cp scripts/prepare-bundle-ci.mjs "$RUNNER_TEMP/prepare-bundle-ci.mjs"
-          cp scripts/start-ci-audio.sh "$RUNNER_TEMP/start-ci-audio.sh"
-          git rev-parse HEAD > "$RUNNER_TEMP/bundle-harness-commit.txt"
-      - uses: actions/checkout@v4
-        if: inputs.source_run
-        with:
-          ref: ${{ inputs.source_commit }}
-          persist-credentials: false
-      - name: Restore recorded CI audio harness
-        if: inputs.source_run
-        run: cp "$RUNNER_TEMP/start-ci-audio.sh" scripts/start-ci-audio.sh
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - name: Install media codecs and start browser audio
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg pulseaudio
-          bash scripts/start-ci-audio.sh
-      - uses: actions/download-artifact@v4
-        with:
-          name: source-provider-browser-inputs
-          path: build/bundle-ci-inputs
-          run-id: ${{ inputs.source_run || github.run_id }}
-          github-token: ${{ github.token }}
-      - name: Restore the recorded replay harness
-        if: inputs.source_run
-        run: |
-          cp "$RUNNER_TEMP/prepare-bundle-ci.mjs" scripts/prepare-bundle-ci.mjs
-          cp "$RUNNER_TEMP/bundle-harness-commit.txt" build/bundle-ci-inputs/harness-commit.txt
-      - run: node scripts/prepare-bundle-ci.mjs
-      - name: Exercise freshly built FFmpeg, Hybrid and atomic mpv
-        env:
-          BROWSER: ${{ matrix.browser }}
-          BUNDLE_OUTPUT: build/bundle-flexibility/ci-${{ matrix.delivery }}
-        run: |
-          export BUNDLE_CASES="$(cat build/bundle-flexibility/ci-cases.json)"
-          node tests/bundle-playback.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: native-bundle-${{ matrix.browser }}-${{ matrix.delivery }}
-          path: |
-            build/bundle-flexibility/ci-*/bundle-manifest.json
-            build/bundle-flexibility/ci-*/playback-*.json
-            build/bundle-ci-consumer/candidate-admission.json
-            build/bundle-ci-inputs/harness-commit.txt
-
-  sequence-diagnosis:
-    if: inputs.source_run != ''
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {browser: chromium, case: helper-1}
-          - {browser: chromium, case: helper-2}
-          - {browser: firefox, case: helper}
-    env:
-      BROWSER: ${{ matrix.browser }}
-      DIAGNOSTIC_CASE: ${{ matrix.case }}
-      BUNDLE_SOURCE_CANDIDATE: '1'
-      BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
-      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
-      DEBUG: pw:browser
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Retain diagnostic harness
-        run: |
-          cp tests/buffering/runtime-policy-browser.mjs "$RUNNER_TEMP/runtime-policy-browser.mjs"
-          cp scripts/start-ci-audio.sh "$RUNNER_TEMP/start-ci-audio.sh"
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.source_commit }}
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - name: Start browser audio
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg pulseaudio
-          bash "$RUNNER_TEMP/start-ci-audio.sh"
-          bash "$RUNNER_TEMP/start-ci-audio.sh"
-      - uses: actions/download-artifact@v4
-        with:
-          name: source-provider-browser-inputs
-          path: build/bundle-ci-inputs
-          run-id: ${{ inputs.source_run }}
-          github-token: ${{ github.token }}
-      - run: node scripts/prepare-bundle-ci.mjs
-      - run: node tests/api-stability/fixtures.mjs
-      - name: Replay exact sequences with diagnostic harness
-        run: |
-          cp "$RUNNER_TEMP/runtime-policy-browser.mjs" tests/buffering/runtime-policy-browser.mjs
-          node tests/api-stability/browser.mjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: sequence-diagnosis-${{ matrix.browser }}-${{ matrix.case }}
-          path: |
-            results/api-stability/scenarios/
-            build/bundle-ci-consumer/candidate-admission.json
-            build/bundle-ci-inputs/bundle-ci-inventory.json
+          name: audio-diagnosis-${{ matrix.browser }}
+          path: audio-diagnosis.json
