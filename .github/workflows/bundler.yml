@@ -183,10 +183,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {browser: chromium, case: default}
-          - {browser: chromium, case: null-sink}
-          - {browser: chromium, case: extended-budget}
-          - {browser: firefox, case: default}
+          - {browser: chromium, case: helper-1}
+          - {browser: chromium, case: helper-2}
+          - {browser: firefox, case: helper}
     env:
       BROWSER: ${{ matrix.browser }}
       DIAGNOSTIC_CASE: ${{ matrix.case }}
@@ -199,7 +198,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Retain diagnostic harness
-        run: cp tests/buffering/runtime-policy-browser.mjs "$RUNNER_TEMP/runtime-policy-browser.mjs"
+        run: |
+          cp tests/buffering/runtime-policy-browser.mjs "$RUNNER_TEMP/runtime-policy-browser.mjs"
+          cp scripts/start-ci-audio.sh "$RUNNER_TEMP/start-ci-audio.sh"
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_commit }}
@@ -214,15 +215,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
-          pulseaudio --start --exit-idle-time=-1
-          pactl info
-          pactl list short sinks
-          if [[ "$DIAGNOSTIC_CASE" == "null-sink" ]]; then
-            for module in $(pactl list short modules | awk '$2 == "module-suspend-on-idle" {print $1}'); do pactl unload-module "$module"; done
-            pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2
-            pactl set-default-sink demuxe_ci
-            pactl list short sinks
-          fi
+          bash "$RUNNER_TEMP/start-ci-audio.sh"
       - uses: actions/download-artifact@v4
         with:
           name: source-provider-browser-inputs
@@ -234,9 +227,6 @@ jobs:
       - name: Replay exact sequences with diagnostic harness
         run: |
           cp "$RUNNER_TEMP/runtime-policy-browser.mjs" tests/buffering/runtime-policy-browser.mjs
-          if [[ "$DIAGNOSTIC_CASE" == "extended-budget" ]]; then
-            node --input-type=module -e 'import fs from "node:fs"; const file=process.env.DEMUXE_RUNTIME_ROOT+"/web/generated/internal/machine/playback-deadlines.js"; const before=fs.readFileSync(file,"utf8"); if (!before.includes("NATIVE_OUTPUT_TIMEOUT_MS = 2000")) throw Error("Unexpected output budget"); fs.writeFileSync(file,before.replace("NATIVE_OUTPUT_TIMEOUT_MS = 2000","NATIVE_OUTPUT_TIMEOUT_MS = 10000"));'
-          fi
           node tests/api-stability/browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()

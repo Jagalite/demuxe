@@ -27,7 +27,7 @@ export async function checkRuntimeBuffering(options={mode:'native'}) {
   await player.pause();return {pass:true,options,checks,elapsedMs:performance.now()-started,events,capability:player.current?.backend?.diagnostics?.capability};
  }catch(error){
   const backend=player.current?.backend,video=backend?.video;
-  const evidence={phase,elapsedMs:performance.now()-started,events,state:player.state,diagnostics:backend?.diagnostics,verification:backend?.native?.verification,video:video?{time:video.currentTime,paused:video.paused,seeking:video.seeking,ended:video.ended,readyState:video.readyState,networkState:video.networkState,preload:video.preload,width:video.videoWidth,height:video.videoHeight,quality:video.getVideoPlaybackQuality(),audioBytes:video.webkitAudioDecodedByteCount,rect:video.getBoundingClientRect().toJSON()}:null};
+  const evidence={phase,elapsedMs:performance.now()-started,events,state:player.state,diagnostics:backend?.diagnostics,video:video?{time:video.currentTime,paused:video.paused,seeking:video.seeking,ended:video.ended,readyState:video.readyState,networkState:video.networkState,preload:video.preload,width:video.videoWidth,height:video.videoHeight,rendered:video.getVideoPlaybackQuality().totalVideoFrames,audioBytes:video.webkitAudioDecodedByteCount}:null};
   throw Error(String(error)+'\nBUFFERING_DIAGNOSTICS '+JSON.stringify(evidence),{cause:error});
  }finally{await player.destroy();host.remove();}
 }
