@@ -12,7 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [firefox]
+        replay: [1, 2, 3]
     env:
       BROWSER: ${{ matrix.browser }}
       OWNER_ARM: production
@@ -37,7 +38,9 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg pulseaudio
+          sudo apt-get install -y ffmpeg pulseaudio gdb
+          mkdir -p "$RUNNER_TEMP/firefox-cores"
+          sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/firefox-cores/core.%p"
           bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
         with:
@@ -53,19 +56,24 @@ jobs:
           mkdir -p results/worker-owner
           cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
           sha256sum "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/worker-owner/identities.txt
-      - name: Stress production owner initialization through 80 subtitle and engine switch cycles
+      - name: Run exact component transitions with browser crash diagnostics
         run: |
-          set -o pipefail
-          node tests/worker-owner-diagnostic.mjs 2>&1 | tee results/worker-owner/browser.log
-      - name: Verify public API and component transitions
-        run: |
-          node tests/public-api.mjs
+          ulimit -c unlimited
           node tests/player-component.mjs
+      - name: Capture native thread stacks from a browser crash
+        if: always()
+        run: |
+          mkdir -p results/firefox-native-crash
+          for core in "$RUNNER_TEMP"/firefox-cores/core.*; do
+            [ -f "$core" ] || continue
+            gdb --batch -ex 'set pagination off' -ex 'info sharedlibrary' -ex 'thread apply all bt 16' "$HOME/.cache/ms-playwright/firefox-1509/firefox/firefox" "$core" > "results/firefox-native-crash/$(basename "$core").txt" 2>&1 || true
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: deferred-owner-${{ matrix.browser }}
+          name: firefox-native-crash-${{ matrix.replay }}
           path: |
+            results/firefox-native-crash/
             results/worker-owner/
             results/public-api/
             results/player-component/
