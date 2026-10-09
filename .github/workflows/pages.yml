@@ -36,6 +36,7 @@ jobs:
       DEMUXE_JOBS: '4'
       PAGES_TAG: ${{ inputs.tag || github.ref_name }}
       PAGES_EXPECT_TAG: ${{ inputs.tag || github.ref_name }}
+      DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
         with:
@@ -142,6 +143,8 @@ jobs:
             results/release-extra/
             results/api-stability/
             results/public-api-consumer/
+            results/public-api/
+            results/player-component/
       - name: Retain unqualified runtime for failed release diagnosis
         if: failure() && github.event_name == 'push'
         uses: actions/upload-artifact@v4
