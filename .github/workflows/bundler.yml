@@ -51,7 +51,7 @@ jobs:
       - run: |
           node scripts/prepare-bundle-ci.mjs
           cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
-          cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
+          cp "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
           python3 - <<'OWNER'
           import os,pathlib
           file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
