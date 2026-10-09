@@ -52,19 +52,14 @@ async function check(name,fn){
   console.log(row.passed?'PASS':'FAIL',name,row.passed?'':JSON.stringify(row));if(!row.passed)process.exitCode=1;return;
  }
 }
-async function liveWorkerURLs(page){
- const workers=page.workers(),alive=await Promise.all(workers.map(async worker=>{
-  try{await deadline(worker.evaluate(()=>true),1000);return worker.url();}
-  catch(error){return error?.message==='Live scenario deadline exceeded'?worker.url():null;}
- }));
- return alive.filter(Boolean);
-}
 async function assertWorkersRetired(page){
- // Chromium allows blocked worker execution two seconds before forced termination.
- // Use the same three-second retirement grace as the worker-tree containment gate.
- const end=Date.now()+3000;
- let workers=await liveWorkerURLs(page);
- while(workers.length&&Date.now()<end){await page.waitForTimeout(50);workers=await liveWorkerURLs(page);}
+ // Observe target closure passively. Debugger evaluation can postpone Chromium
+ // worker termination; polling with worker.evaluate changes the teardown itself.
+ // Keep the three-second grace used by the worker-tree containment gate.
+ const start=Date.now(),end=start+3000;
+ while(page.workers().length&&Date.now()<end)await page.waitForTimeout(50);
+ const workers=page.workers().map(worker=>worker.url());
+ result.checks.at(-1).retirement={elapsedMs:Date.now()-start,remaining:workers};
  assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
 }
 try{
@@ -73,7 +68,15 @@ for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/run
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{window.__consumerPhase=mode+':set-mode';await viewer.player.setMode(mode);window.__consumerPhase=mode+':open';await viewer.open({url:location.origin+'/media/movie.mp4'});window.__consumerPhase=mode+':volume';await viewer.player.setVolume(.4);window.__consumerPhase=mode+':play';await viewer.play();window.__consumerPhase=mode+':playing';},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{window.__consumerPhase='pause';await viewer.pause();window.__consumerPhase='seek';await viewer.seek(1);window.__consumerPhase='seek-done';});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
 await page.evaluate(async base=>{window.custom=new Player(document.querySelector('#custom'),{mode:'native',nativeRemux:'always',assetBase:base});await custom.open({url:location.origin+'/media/remux.mkv'});await custom.play();},base);await page.waitForFunction(()=>custom.state.currentTime>.2);await page.evaluate(()=>custom.seek(1));assert.ok(requests.some(u=>u.includes(base+'web/engine-remux/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-hybrid/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-software-yuv/')||u.includes(base+'web/engine-software-full/')));assert.ok(requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).every(u=>u.startsWith(origin+base)),requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).join('\n'));
 await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
-await assertWorkersRetired(page);
+if(process.env.RETIREMENT_NEGATIVE_CONTROL==='1'){
+ await page.evaluate(()=>{
+  window.__negativeHeartbeats=0;
+  const url=URL.createObjectURL(new Blob(["setInterval(()=>postMessage('alive'),20)"],{type:'text/javascript'}));
+  window.__negativeWorker=new Worker(url);__negativeWorker.onmessage=()=>__negativeHeartbeats++;URL.revokeObjectURL(url);
+ });
+ await page.waitForFunction(()=>__negativeHeartbeats>=5);
+}
+try{await assertWorkersRetired(page);}finally{if(process.env.RETIREMENT_NEGATIVE_CONTROL==='1')console.log('NEGATIVE LIVE HEARTBEATS',await page.evaluate(()=>__negativeHeartbeats));}
 });
 await check('copied full runtime supports explicit RGB software presentation',async page=>{
  const requests=[];page.on('request',request=>requests.push(request.url()));
@@ -105,8 +108,7 @@ await check('runtime policy separates private qualification from pthread isolati
  assert.equal(pthread,'ISOLATION_REQUIRED');
  result.runtimePolicy={capabilities,runtime,before,paused,after,pthread};
  await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
- for(let end=Date.now()+3000;page.workers().length&&Date.now()<end;)await page.waitForTimeout(50);
- assert.equal(page.workers().length,0,'Private runtime workers survive destroy');
+ await assertWorkersRetired(page);
 });
 // Actual browser policy is tested separately without the permissive autoplay flag.
 }finally{await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));result.passed=result.checks.every(c=>c.passed);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
