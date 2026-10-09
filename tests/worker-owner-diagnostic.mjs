@@ -21,7 +21,7 @@ try{
   try{
    await page.evaluate(async settled=>{
     window.__diagnosticReadyOwners=[];
-    window.prepareOwner=async()=>{if(!settled)return;const frame=document.createElement('iframe');frame.hidden=true;frame.setAttribute('aria-hidden','true');frame.src='about:blank';await new Promise((resolve,reject)=>{frame.addEventListener('load',resolve,{once:true});frame.addEventListener('error',reject,{once:true});document.body.append(frame);});__diagnosticReadyOwners.push(frame);};
+    window.prepareOwner=async()=>{if(!settled)return;const frame=document.createElement('iframe');frame.hidden=true;frame.setAttribute('aria-hidden','true');frame.src='about:blank';await new Promise((resolve,reject)=>{frame.addEventListener('load',resolve,{once:true});frame.addEventListener('error',reject,{once:true});document.body.append(frame);});frame.dataset.ownerSettled='1';__diagnosticReadyOwners.push(frame);};
     const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'hybrid'});await prepareOwner();await player.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4'));
     for(const name of ['first','second'])await player.addSubtitle(new File([`1\n00:00:00,000 --> 00:00:05,000\n${name}\n`],name+'.srt'));
     window.selectedSubtitle=player.state.subtitleTracks[1].id;await player.selectSubtitleTrack(selectedSubtitle);

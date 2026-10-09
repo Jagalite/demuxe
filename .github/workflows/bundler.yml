@@ -54,9 +54,10 @@ jobs:
           file=root/'web/generated/internal/wasm-player.js'
           text=file.read_text();before=hashlib.sha256(file.read_bytes()).hexdigest()
           text=text.replace("this.workerOwner = document.createElement('iframe');", "this.workerOwner = globalThis.__diagnosticReadyOwners?.shift() ?? document.createElement('iframe');")
+          text=text.replace('document.body.append(this.workerOwner);','if(!this.workerOwner.isConnected)document.body.append(this.workerOwner);')
           text=text.replace('const owner = this.workerOwner.contentWindow;', '''const owner = this.workerOwner.contentWindow;
           const ownerDoc = this.workerOwner.contentDocument;
-          console.log('WORKER_OWNER_CREATE', JSON.stringify({ready:ownerDoc.readyState,isolated:owner.crossOriginIsolated,mode,settled:!!globalThis.__diagnosticReadyOwners}));
+          console.log('WORKER_OWNER_CREATE', JSON.stringify({ready:ownerDoc.readyState,isolated:owner.crossOriginIsolated,mode,settled:!!this.workerOwner.dataset.ownerSettled}));
           this.workerOwner.addEventListener('load',()=>console.log('WORKER_OWNER_LOAD',JSON.stringify({sameDocument:ownerDoc===this.workerOwner.contentDocument,mode})),{once:true});''')
           text=text.replace('this.worker.onerror = workerFailure;', '''this.worker.addEventListener('error',event=>console.error('WORKER_OWNER_ERROR',JSON.stringify({mode,type:event.type,message:event.message,filename:event.filename,ready:ownerDoc.readyState,sameDocument:ownerDoc===this.workerOwner.contentDocument,connected:this.workerOwner.isConnected})));
           this.worker.onerror = workerFailure;''')
