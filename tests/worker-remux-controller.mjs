@@ -7,7 +7,7 @@ const originalLocation=Object.getOwnPropertyDescriptor(globalThis,'location');
 const originalDocument=globalThis.document;
 before(()=>{
  Object.defineProperty(globalThis,'location',{configurable:true,value:new URL(import.meta.url)});
- globalThis.document={body:{append(){}},createElement:()=>({contentWindow:{get Worker(){return globalThis.Worker;}},setAttribute(){},remove(){this.removed=true;}})};
+ globalThis.document={createElement(){throw Error('MSE workers must use the page realm');}};
 });
 after(()=>{if(originalLocation)Object.defineProperty(globalThis,'location',originalLocation);else delete globalThis.location;if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument;});
 class WorkerStub extends EventTarget {
@@ -17,8 +17,8 @@ class WorkerStub extends EventTarget {
  send(data){this.onmessage?.({data});this.dispatchEvent(new MessageEvent('message',{data}));}
 }
 function video(){return {paused:true,buffered:{length:0},getVideoPlaybackQuality:()=>({}),play(){this.paused=false;this.plays=(this.plays??0)+1;return Promise.resolve();},pause(){this.paused=true;},removeAttribute(){},load(){}};}
-// Allocate through production boot so the worker and its owning document share
-// the core's live owner identity. Physical handles alone do not grant authority.
+// Allocate through production boot so the worker shares the core's live owner
+// identity. Physical handles alone do not grant authority.
 async function bootController(t){
  const original=Object.getOwnPropertyDescriptor(globalThis,'Worker');
  Object.defineProperty(globalThis,'Worker',{configurable:true,writable:true,value:WorkerStub});
@@ -27,45 +27,55 @@ async function bootController(t){
  t.after(async()=>{const destroyed=owner.destroy();worker.send({type:'closed'});await destroyed;});
  const request=worker.messages.find(message=>message.type==='call'&&message.method==='boot');assert.ok(request);
  worker.send({type:'reply',id:request.id});await boot;
- return{owner,worker,documentOwner:owner.workerOwner};
+ return{owner,worker};
 }
 test('destroy waits for an already pending error shutdown',async t=>{
- const {owner,worker,documentOwner}=await bootController(t);
+ const {owner,worker}=await bootController(t);
  owner.abort(Error('owner failed'));let finished=false;const destroyed=owner.destroy().then(()=>{finished=true;});
- await new Promise(r=>setImmediate(r));assert.equal(finished,false);assert.equal(worker.terminated,false);assert.equal(documentOwner.removed,undefined);assert.ok(worker.messages.some(message=>message.type==='shutdown'));
- worker.send({type:'closed'});await destroyed;assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+ await new Promise(r=>setImmediate(r));assert.equal(finished,false);assert.equal(worker.terminated,false);assert.ok(worker.messages.some(message=>message.type==='shutdown'));
+ worker.send({type:'closed'});await destroyed;assert.equal(worker.terminated,true);assert.equal(owner.resourceOwner,undefined);
 });
 test('concurrent destroy calls wait for the same worker-tree teardown',async t=>{
- const {owner,worker,documentOwner}=await bootController(t);
+ const {owner,worker}=await bootController(t);
  const first=owner.destroy(),second=owner.destroy();assert.equal(first,second);
- assert.equal(documentOwner.removed,undefined);assert.equal(worker.messages.filter(message=>message.type==='shutdown').length,1);worker.send({type:'closed'});await second;
- assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+ assert.equal(worker.messages.filter(message=>message.type==='shutdown').length,1);worker.send({type:'closed'});await second;
+ assert.equal(worker.terminated,true);assert.equal(owner.resourceOwner,undefined);
 });
-test('shutdown timeout removes the worker owning document',async t=>{
+test('shutdown timeout terminates the page-owned worker',async t=>{
  t.mock.timers.enable({apis:['setTimeout']});
- const {owner,worker,documentOwner}=await bootController(t);
- const done=owner.destroy();t.mock.timers.tick(999);assert.equal(worker.terminated,false);assert.equal(documentOwner.removed,undefined);t.mock.timers.tick(1);await done;
- assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+ const {owner,worker}=await bootController(t);
+ const done=owner.destroy();t.mock.timers.tick(999);assert.equal(worker.terminated,false);t.mock.timers.tick(1);await done;
+ assert.equal(worker.terminated,true);assert.equal(owner.resourceOwner,undefined);
 });
-test('a shutdown transport error still removes the owner',async t=>{
- const {owner,worker,documentOwner}=await bootController(t);
+test('a shutdown transport error still terminates the worker',async t=>{
+ const {owner,worker}=await bootController(t);
  worker.postMessage=()=>{throw Error('closed transport');};
- await owner.destroy();assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
+ await owner.destroy();assert.equal(worker.terminated,true);assert.equal(owner.resourceOwner,undefined);
 });
-for(const fallbackFails of [false,true])test(`worker construction failure removes its document before fallback (failure: ${fallbackFails})`,async()=>{
+for(const fallbackFails of [false,true])test(`worker construction failure releases ownership before fallback (failure: ${fallbackFails})`,async()=>{
  const Original=globalThis.Worker;globalThis.Worker=class {constructor(){throw Error('blocked');}};
- const create=document.createElement;let frame,opened=0,destroyed=0;document.createElement=()=>frame=create();
+ let opened=0,destroyed=0;
  const fallbackError=Error('local fallback failed'),result={duration:12};
  const owner=new WorkerRemuxController(video(),{},()=>{
-  assert.equal(frame.removed,true,'Failed worker document must be released before fallback acquisition');
-  return{open:async()=>{opened++;assert.equal(frame.removed,true);if(fallbackFails)throw fallbackError;return result;},destroy:async()=>{destroyed++;}};
+  assert.equal(owner.resourceOwner,undefined,'Failed worker ownership must be released before fallback acquisition');
+  return{open:async()=>{opened++;if(fallbackFails)throw fallbackError;return result;},destroy:async()=>{destroyed++;}};
  });
  try{
   const opening=owner.open({kind:'local'});
   if(fallbackFails)await assert.rejects(opening,error=>error===fallbackError);else assert.equal(await opening,result);
-  assert.equal(opened,1);assert.equal(frame.removed,true);assert.equal(owner.workerOwner,undefined);assert.equal(owner.resourceOwner,undefined);
+  assert.equal(opened,1);assert.equal(owner.worker,undefined);assert.equal(owner.resourceOwner,undefined);
   await owner.destroy();assert.equal(destroyed,1);
- }finally{globalThis.Worker=Original;document.createElement=create;await owner.destroy();}
+ }finally{globalThis.Worker=Original;await owner.destroy();}
+});
+test('reentrant destruction during construction terminates the unpublished worker',async()=>{
+ const Original=globalThis.Worker;let worker;
+ const owner=new WorkerRemuxController(video(),{},()=>{});
+ globalThis.Worker=class extends WorkerStub {constructor(){super();worker=this;void owner.destroy();}};
+ try{
+  await assert.rejects(owner.boot(),error=>error.name==='AbortError');await owner.destroy();
+  assert.equal(worker.terminated,true);assert.equal(owner.worker,undefined);assert.equal(owner.resourceOwner,undefined);
+  assert.equal(owner.pending.size,0);assert.equal(owner.releases.size,0);
+ }finally{globalThis.Worker=Original;await owner.destroy();}
 });
 test('a delayed recovery play request cannot override a user pause',async()=>{
  const Original=globalThis.Worker;globalThis.Worker=WorkerStub;
