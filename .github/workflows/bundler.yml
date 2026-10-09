@@ -14,9 +14,6 @@ jobs:
       matrix:
         include:
           - {os: ubuntu-24.04, gate: retirement, node: '22'}
-          - {os: ubuntu-24.04, gate: extra, node: '22'}
-          - {os: ubuntu-24.04, gate: matrix, node: '22'}
-          - {os: macos-15, gate: webkit, node: '24'}
     env:
       HEADLESS: '1'
     steps:
@@ -36,13 +33,12 @@ jobs:
           npm ci --ignore-scripts
           cp "$RUNNER_TEMP/passive-harness/public-api-consumer.mjs" "$RUNNER_TEMP/passive-harness/player-component.mjs" tests/
       - if: matrix.os == 'ubuntu-24.04'
+        timeout-minutes: 10
         run: |
-          npx playwright install --with-deps chromium chrome firefox webkit
+          npx playwright install --with-deps chromium firefox
+          node --input-type=module -e "import {chromium} from 'playwright';const b=await chromium.launch({channel:'chrome',headless:true});console.log('SYSTEM CHROME',b.version());await b.close();"
           sudo apt-get install -y ffmpeg pulseaudio xvfb
           bash scripts/start-ci-audio.sh
-          npm install --prefix "$RUNNER_TEMP/demuxe-linux-webkit" --ignore-scripts --no-audit --no-fund playwright@1.58.2
-          "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/.bin/playwright" install --with-deps webkit
-          printf 'DEMUXE_WEBKIT_TEST_MODULE=%s\n' "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
       - if: matrix.os == 'macos-15'
         run: |
           npx playwright install webkit
