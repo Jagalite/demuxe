@@ -35,9 +35,9 @@ static void pending(void) {double deadline=emscripten_get_now()+1000;while((atom
 int main(void) {
  for(int i=0;i<100;i++){
   web_decoder_enable(2);assert(!atomic_load(&cancelled));pthread_t thread;
-  assert(!pthread_create(&thread,0,run,(void *)(intptr_t)4));pending();
+  int operation=i%2?4:5;assert(!pthread_create(&thread,0,run,(void *)(intptr_t)operation));pending();
   double started=emscripten_get_now();web_decoder_cancel();assert(!pthread_join(thread,0));
-  assert(result==AVERROR(EIO));assert(emscripten_get_now()-started<1000);assert(atomic_load(&web_decoder.state)==0);
+  assert(result==(operation==5?0:AVERROR(EIO)));assert(emscripten_get_now()-started<1000);assert(atomic_load(&web_decoder.state)==0);
   int serial=web_decoder.serial;assert(request(5)==0);assert(request(2)==AVERROR(EIO));assert(web_decoder.serial==serial);
  }
  web_decoder_enable(2);pthread_t thread;assert(!pthread_create(&thread,0,run,(void *)(intptr_t)4));pending();
