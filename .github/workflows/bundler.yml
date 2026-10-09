@@ -12,10 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [webkit]
+        arm: [baseline, production]
     env:
       BROWSER: ${{ matrix.browser }}
-      OWNER_ARM: production
+      OWNER_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
       BUNDLE_SOURCE_CANDIDATE: '1'
       BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
@@ -45,9 +46,10 @@ jobs:
           path: build/bundle-ci-inputs
           run-id: 37918659239
           github-token: ${{ github.token }}
-      - run: |
+      - id: prepare
+        run: |
           node scripts/prepare-bundle-ci.mjs
-          cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
+          if [ "$OWNER_ARM" = production ]; then cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"; fi
           cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" tests/
           node tests/api-stability/fixtures.mjs
           mkdir -p results/worker-owner
@@ -58,13 +60,14 @@ jobs:
           set -o pipefail
           node tests/worker-owner-diagnostic.mjs 2>&1 | tee results/worker-owner/browser.log
       - name: Verify public API and component transitions
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
         run: |
           node tests/public-api.mjs
           node tests/player-component.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: production-owner-${{ matrix.browser }}
+          name: webkit-cleanup-${{ matrix.arm }}
           path: |
             results/worker-owner/
             results/public-api/
