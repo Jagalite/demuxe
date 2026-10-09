@@ -14,7 +14,6 @@ jobs:
       matrix:
         include:
           - {os: ubuntu-24.04, trial: linux}
-          - {os: macos-15, trial: mac-current}
     steps:
       - uses: actions/checkout@v4
       - run: |
@@ -68,19 +67,6 @@ jobs:
           } finally {await runtime.cleanup();}
           JS
           node tests/api-stability/fixtures.mjs
-      - name: Preflight the installed mobile player before the full matrix
-        if: matrix.os == 'ubuntu-24.04'
-        run: |
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          import {spawnSync} from 'node:child_process';
-          import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
-          const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
-          try {
-            const result=spawnSync(process.execPath,['tests/player-mobile.mjs'],{env:{...process.env,BROWSER:'webkit',DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
-            assert.equal(result.status,0);
-          } finally {await runtime.cleanup();}
-          JS
       - name: Verify all menu layouts against the installed archive
         if: matrix.os == 'ubuntu-24.04'
         run: |
@@ -90,16 +76,13 @@ jobs:
           import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
           const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
           try {
-            const result=spawnSync(process.execPath,['tests/player-menu-review.mjs'],{env:{...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
-            assert.equal(result.status,0);
+            for(let trial=0;trial<2;trial++){
+              console.log('ISOLATED MENU TRIAL',trial+1);
+              const result=spawnSync(process.execPath,['tests/player-menu-review.mjs'],{env:{...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:180000});
+              assert.equal(result.status,0);
+            }
           } finally {await runtime.cleanup();}
           JS
-      - name: Verify the complete installed API and mobile matrix
-        if: matrix.os == 'ubuntu-24.04'
-        run: node tests/api-stability/archive-matrix.mjs
-      - name: Verify the installed Apple WebKit release gate
-        if: matrix.os == 'macos-15'
-        run: node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

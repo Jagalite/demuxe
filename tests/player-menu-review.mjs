@@ -13,8 +13,9 @@ try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
  for(const [name,type] of [['chrome',chromium],['firefox',firefox],['webkit',webkit]]){
   if(process.env.BROWSER&&process.env.BROWSER!==name)continue;
+  for(const mode of ['desktop','mobile']){
   const browser=await type.launch({headless:true,...(name==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
-  try{for(const mode of ['desktop','mobile']){
+  try{
    const page=await browser.newPage({viewport:{width:mode==='mobile'?390:1280,height:844}}),errors=[];
    page.on('pageerror',e=>errors.push(String(e.stack||e)));
    await page.addInitScript(()=>{window.menuMediaEvents=[];for(const name of ['loadeddata','seeked','error','ended','playing','pause'])document.addEventListener(name,event=>{if(event.target instanceof HTMLVideoElement)menuMediaEvents.push({name,time:event.target.currentTime,duration:event.target.duration,readyState:event.target.readyState});},true);});
@@ -51,7 +52,8 @@ try{
     row.passed=true;console.log(`PASS ${name} ${mode}: menu entry points, switching, Escape focus, controls cleanup, scrollable diagnostics`);
    }catch(error){row.error=String(error.stack);row.snapshot=await deadline(v.evaluate(el=>{const s=el.shadowRoot,d=s.getElementById('diagnostics-overlay');return {state:el.player?.state,video:[...s.querySelectorAll('video')].map(video=>({time:video.currentTime,duration:video.duration,readyState:video.readyState,networkState:video.networkState,paused:video.paused,error:video.error?.code})),mediaEvents:window.menuMediaEvents,focus:s.activeElement?.id,diagnostics:{text:d.textContent,height:d.clientHeight,scroll:d.scrollHeight},controls:el.controls};}),2000).catch(error=>({error:String(error)}));await save();throw error;}
    finally{let timer;try{await Promise.race([v.evaluate(el=>el.destroy()),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Player cleanup deadline exceeded')),15000);})]);}catch(error){row.cleanupError=String(error.stack);row.passed=false;throw error;}finally{clearTimeout(timer);await page.close();await save();}}
-  }}finally{await browser.close();}
+  }finally{await browser.close();}
+  }
  }
  assert.ok(report.checks.length>0,'At least one browser must be qualified');report.passed=report.checks.every(row=>row.passed);
 }finally{server.kill();await save();console.log(out);}
