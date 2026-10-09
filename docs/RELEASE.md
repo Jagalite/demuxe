@@ -127,6 +127,15 @@ engine hashes to the runtime archive. Record separate representative Native, Hyb
 CPU/memory observations and investigate any decoder, filter, threading,
 synchronization or rendering change before release.
 
+Browser engine builds follow the exact Playwright pin in `package-lock.json`.
+The current pin is 1.64.0. Record each browser's actual version with its receipts.
+The older 1.58.2 Firefox 146.0.1 build repeatedly crashed during active navigation;
+two unchanged-runtime replays on Firefox 157.0 completed 80 cycles each plus the
+public API and component suites ([diagnostic run](https://github.com/Jagalite/demuxe/actions/runs/37940178415)).
+This updates the test browser; it does not establish a production workaround for
+Firefox 146 or replace exact installed-archive qualification. Playwright WebKit
+results cover that engine build, not native Safari on macOS or iOS.
+
 The browser tests require Playwright's Firefox and local Chrome, and repository
 fixtures created by the documented fixture generators. The focused streaming test
 uses `build/fixtures/playback-performance/bbb-stream.mp4` by default, or
