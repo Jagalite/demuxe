@@ -4,93 +4,43 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
-  owner-fix:
+  native-media:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
-        playwright: ['1.64.0']
-        include:
-          - browser: firefox
-            playwright: '1.58.2'
-        arm: [current-browser]
+        arm: [base, gl]
     env:
-      BROWSER: ${{ matrix.browser }}
-      OWNER_ARM: ${{ matrix.arm }}
+      MEDIA_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
-      BUNDLE_SOURCE_CANDIDATE: '1'
-      BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
-      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
+      GST_DEBUG: '2'
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          mkdir "$RUNNER_TEMP/owner-fix"
-          cp tests/worker-owner-diagnostic.mjs tests/worker-tree-containment.mjs tests/firefox-owner-navigation.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
-          git rev-parse HEAD > "$RUNNER_TEMP/owner-fix/revision.txt"
-      - uses: actions/checkout@v4
-        with:
-          ref: fa05ccdf6055dec1e1f7c7447ec94e11c7c2b18e
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@${{ matrix.playwright }}
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.64.0
+      - run: npx playwright install --with-deps webkit
       - run: |
-          sudo apt-get install -y ffmpeg pulseaudio gdb gstreamer1.0-gl
-          mkdir -p "$RUNNER_TEMP/firefox-cores"
-          sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/firefox-cores/core.%p"
+          sudo apt-get install -y ffmpeg pulseaudio gstreamer1.0-tools
           bash scripts/start-ci-audio.sh
-      - uses: actions/download-artifact@v4
-        with:
-          name: source-provider-browser-inputs
-          path: build/bundle-ci-inputs
-          run-id: 37918659239
-          github-token: ${{ github.token }}
-      - run: |
-          node scripts/prepare-bundle-ci.mjs
-          cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
-          cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" "$RUNNER_TEMP/owner-fix/worker-tree-containment.mjs" "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
-          python3 - <<'OWNER'
-          import os,pathlib
-          file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text()
-          start=text.index('                await new Promise((done, no) => {');end=text.index('                if (!wasmAlive(this.lifecycle))',start)
-          text=text[:start]+'                await new Promise(resolve=>setTimeout(resolve,0));\n'+text[end:]
-          text=text.replace('}, owner.Worker);','}, Worker);');file.write_text(text)
-          OWNER
           node tests/api-stability/fixtures.mjs
-          mkdir -p results/worker-owner
-          cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
-          sha256sum "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/worker-owner/identities.txt
-      - name: Run exact component transitions with browser crash diagnostics
+      - name: Add missing GL video sink dependency in the diagnostic arm
+        if: matrix.arm == 'gl'
+        run: sudo apt-get install -y gstreamer1.0-gl
+      - name: Record actual system video decoders and sink availability
         run: |
-          ulimit -c unlimited
-          node tests/worker-tree-containment.mjs
-          node tests/worker-owner-diagnostic.mjs
-          node tests/public-api.mjs
-          node tests/player-component.mjs
-          if [ "$BROWSER" = firefox ]; then node tests/firefox-owner-navigation.mjs; fi
-      - name: Capture native thread stacks from a browser crash
-        if: always()
-        run: |
-          mkdir -p results/firefox-native-crash
-          for core in "$RUNNER_TEMP"/firefox-cores/core.*; do
-            [ -f "$core" ] || continue
-            gdb --batch -ex 'set pagination off' -ex 'info sharedlibrary' -ex 'info registers' -ex 'x/24i $pc-32' -ex 'thread apply all bt 16' "$HOME/.cache/ms-playwright/firefox-1509/firefox/firefox" "$core" > "results/firefox-native-crash/$(basename "$core").txt" 2>&1 || true
-          done
+          mkdir -p results/webkit-native-video
+          gst-inspect-1.0 avdec_h264 > results/webkit-native-video/avdec_h264.txt
+          gst-inspect-1.0 glimagesink > results/webkit-native-video/glimagesink.txt || true
+      - name: Isolate browser native video decoding and seek without Demuxe
+        run: node tests/webkit-native-video-isolation.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: no-iframe-worker-${{ matrix.browser }}-${{ matrix.playwright }}
-          path: |
-            results/firefox-native-crash/
-            results/worker-tree-containment/
-            results/firefox-owner-navigation/
-            results/worker-owner/
-            results/public-api/
-            results/player-component/
+          name: webkit-native-media-${{ matrix.arm }}
+          path: results/webkit-native-video/
