@@ -4,27 +4,85 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
-  isolated-worklet:
+  owner-fix:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox]
+        arm: [drop-worker-reference, audio-first, yield-before-termination]
     env:
+      BROWSER: ${{ matrix.browser }}
+      OWNER_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          mkdir "$RUNNER_TEMP/owner-fix"
+          cp tests/firefox-owner-navigation.mjs tests/public-api.mjs web/generated/internal/wasm-player.js "$RUNNER_TEMP/owner-fix/"
+          git rev-parse HEAD > "$RUNNER_TEMP/owner-fix/revision.txt"
+      - uses: actions/checkout@v4
+        with:
+          ref: fa05ccdf6055dec1e1f7c7447ec94e11c7c2b18e
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps firefox
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: |
-          sudo apt-get install -y pulseaudio
+          sudo apt-get install -y ffmpeg pulseaudio gdb
+          mkdir -p "$RUNNER_TEMP/firefox-cores"
+          sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/firefox-cores/core.%p"
           bash scripts/start-ci-audio.sh
-      - name: Isolate actual production worklet through 80 active navigation cycles
-        run: node tests/firefox-worklet-navigation.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: 37918659239
+          github-token: ${{ github.token }}
+      - run: |
+          node scripts/prepare-bundle-ci.mjs
+          cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
+          cp "$RUNNER_TEMP/owner-fix/firefox-owner-navigation.mjs" "$RUNNER_TEMP/owner-fix/public-api.mjs" tests/
+          python3 - <<'OWNER'
+          import os,pathlib
+          file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
+          if arm=='drop-worker-reference':text=text.replace('release(() => this.worker?.terminate());', 'release(() => {const worker=this.worker;if(worker){worker.onmessage=null;worker.onerror=null;worker.terminate();this.worker=undefined;}});')
+          elif arm=='audio-first':text=text.replace('release(() => this.worker?.terminate());', 'await this.audioContext.close();release(() => this.worker?.terminate());')
+          elif arm=='yield-before-termination':text=text.replace('release(() => this.worker?.terminate());', 'await new Promise(resolve=>setTimeout(resolve,50));release(() => this.worker?.terminate());')
+          if arm!='baseline':assert text!=file.read_text(),'Overlay failed'
+          file.write_text(text)
+          OWNER
+          node tests/api-stability/fixtures.mjs
+          mkdir -p results/worker-owner
+          cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
+          sha256sum "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/worker-owner/identities.txt
+      - name: Run exact component transitions with browser crash diagnostics
+        run: |
+          ulimit -c unlimited
+          node tests/firefox-owner-navigation.mjs
+      - name: Capture native thread stacks from a browser crash
+        if: always()
+        run: |
+          mkdir -p results/firefox-native-crash
+          for core in "$RUNNER_TEMP"/firefox-cores/core.*; do
+            [ -f "$core" ] || continue
+            gdb --batch -ex 'set pagination off' -ex 'info sharedlibrary' -ex 'info registers' -ex 'x/24i $pc-32' -ex 'thread apply all bt 16' "$HOME/.cache/ms-playwright/firefox-1509/firefox/firefox" "$core" > "results/firefox-native-crash/$(basename "$core").txt" 2>&1 || true
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: firefox-isolated-worklet-navigation
-          path: results/firefox-worklet-navigation/
+          name: firefox-retirement-${{ matrix.arm }}
+          path: |
+            results/firefox-native-crash/
+            results/firefox-owner-navigation/
+            results/worker-owner/
+            results/public-api/
+            results/player-component/
