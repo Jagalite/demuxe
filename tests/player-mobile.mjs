@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,webkit} from 'playwright';
+import {chromium,webkit,testBrowserRuntime} from './browser-test-runtime.mjs';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
@@ -12,7 +12,7 @@ const family=process.env.BROWSER??'chrome';
 assert.ok(['chrome','webkit'].includes(family));
 const out=`results/player-mobile/${family}-${Date.now()}`;
 await mkdir(out,{recursive:true});
-const report={passed:false,family,scope:process.env.BETA_ARCHIVE?'Installed-archive mobile player checks':'Workspace mobile player checks',testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex')};
+const report={passed:false,family,testBrowserRuntime,scope:process.env.BETA_ARCHIVE?'Installed-archive mobile player checks':'Workspace mobile player checks',testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex')};
 let browser,server,installed;
 try{
  if(process.env.BETA_ARCHIVE){installed=await installLiveRuntime(process.env.BETA_ARCHIVE);report.archiveSHA256=installed.archiveSHA256;report.runtimeFiles=installed.manifest.files;}
