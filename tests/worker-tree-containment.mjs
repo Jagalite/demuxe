@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium,firefox,webkit} from 'playwright';
+import {chromium,firefox,webkit,testBrowserRuntime} from './browser-test-runtime.mjs';
 import {createServer} from 'node:http';
 import {mkdir,writeFile} from 'node:fs/promises';
 const family=process.env.BROWSER||'firefox',out='results/worker-tree-containment/'+family;await mkdir(out,{recursive:true});
-const counts=new Map(),report={family,checks:[],passed:false},wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)),save=()=>writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
+const counts=new Map(),report={family,testBrowserRuntime,checks:[],passed:false},wait=ms=>new Promise(resolve=>setTimeout(resolve,ms)),save=()=>writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
 const server=createServer((req,res)=>{res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');if(req.url.startsWith('/heartbeat?')){const key=new URL(req.url,'http://localhost').searchParams.get('key');counts.set(key,(counts.get(key)||0)+1);res.end('ok');}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Worker subtree lifetime</title>');}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port;let browser;
 try{browser=await ({chromium,firefox,webkit}[family]).launch({headless:true});report.browser=browser.version();const page=await browser.newPage();await page.goto(origin);
 for(let cycle=0;cycle<10;cycle++){

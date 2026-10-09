@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import path from 'node:path';
 import {installLiveRuntime} from './live-runtime.mjs';
-import {chromium,firefox,webkit} from 'playwright';
+import {chromium,firefox,webkit,testBrowserRuntime} from '../browser-test-runtime.mjs';
 import {spawn,execFileSync} from 'node:child_process';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -11,14 +11,14 @@ import {startLiveFaultServer} from './live-fault-server.mjs';
 import {deadline,collectFailureDiagnostics,liveEvidenceInputs} from './live-check-helpers.mjs';
 if(process.argv.includes('--archive')&&!process.env.BETA_ARCHIVE)throw Error('Release boundary checks require BETA_ARCHIVE');
 const allCases=[...liveBoundaryCases,...liveNetworkCases];
-// Source diagnostic; installed archive qualification is required separately.
+// Exact source native runtime with a recorded JS overlay; final archive qualification remains required.
 const family=process.env.BROWSER??'chromium',type={chromium,firefox,webkit}[family];
 if(!type)throw Error('BROWSER must be chromium, firefox or webkit');
 const output=`results/api-stability/live-boundaries/${family}-${Date.now()}`;await mkdir(output,{recursive:true});
 const negativeControl=process.env.LIVE_NEGATIVE_CONTROL==='retain-preview-source';
 if(process.env.LIVE_NEGATIVE_CONTROL&&!negativeControl)throw Error('Unknown negative control');
 let installed,server;
-const report={family,negativeControl,passed:false,scope:'Fresh exact source native runtime; not installed archive qualification',revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],hashes:{}};
+const report={family,testBrowserRuntime,negativeControl,passed:false,scope:'Source-runtime live boundary checks; not installed-package or release qualification',revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),checks:[],hashes:{}};
 let browser,faultServer;
 const save=()=>writeFile(output+'/result.json',JSON.stringify(report,null,2)+'\n');
 
