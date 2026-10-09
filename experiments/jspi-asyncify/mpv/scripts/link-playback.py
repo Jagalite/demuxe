@@ -21,6 +21,26 @@ EXP = ROOT / 'experiments/jspi-asyncify'
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+def adapt_private_decoder(original):
+    start=original.index('static int request(int operation) {')
+    end=original.index('struct browser_priv {',start)
+    replacement='''__attribute__((import_module("demuxe_decoder"), import_name("demuxe_decoder_request")))
+int private_decoder_request(uintptr_t pointer, int operation);
+static int request(int operation) {
+    if(atomic_load(&cancelled))return operation==5?0:AVERROR(EIO);
+    web_decoder.operation=operation;
+    return private_decoder_request((uintptr_t)&web_decoder,operation);
+}
+'''
+    adapted=(original[:start]+replacement+original[end:]).replace('#include <emscripten/threading.h>','').replace('#include <pthread.h>','#include "osdep/threads.h"')
+    adapted=adapted.replace('pthread_mutex_t owner_lock=PTHREAD_MUTEX_INITIALIZER','mp_static_mutex owner_lock=MP_STATIC_MUTEX_INITIALIZER').replace('pthread_mutex_lock','mp_mutex_lock').replace('pthread_mutex_unlock','mp_mutex_unlock').replace('software->thread_count=2','software->thread_count=1')
+    wake='    emscripten_futex_wake(&web_decoder.state,1);'
+    # The cooperative private engine has no futex waiter; retain the terminal flag.
+    if adapted.count(wake)!=1:raise ValueError('Decoder cancellation adaptation failed')
+    adapted=adapted.replace(wake,'')
+    if any(word in adapted for word in ['pthread','futex']):raise ValueError('Threaded decoder adaptation incomplete')
+    return adapted
+
 def main(a):
     deps, sdk, out = a.deps.resolve(), a.sdk.resolve(), a.out.resolve()
     if out.exists() or out == ROOT or ROOT in out.parents:
@@ -102,18 +122,7 @@ EMSCRIPTEN_KEEPALIVE uintptr_t web_selected_snapshot(void) {
         player.write_text(text)
         decoder=inputs/'native/vd_browser.c'
         original=decoder.read_text()
-        start=original.index('static int request(int operation) {')
-        end=original.index('struct browser_priv {',start)
-        replacement='''__attribute__((import_module("demuxe_decoder"), import_name("demuxe_decoder_request")))
-int private_decoder_request(uintptr_t pointer, int operation);
-static int request(int operation) {
-    web_decoder.operation=operation;
-    return private_decoder_request((uintptr_t)&web_decoder,operation);
-}
-'''
-        adapted=(original[:start]+replacement+original[end:]).replace('#include <emscripten/threading.h>','').replace('#include <pthread.h>','#include "osdep/threads.h"')
-        adapted=adapted.replace('pthread_mutex_t owner_lock=PTHREAD_MUTEX_INITIALIZER','mp_static_mutex owner_lock=MP_STATIC_MUTEX_INITIALIZER').replace('pthread_mutex_lock','mp_mutex_lock').replace('pthread_mutex_unlock','mp_mutex_unlock').replace('software->thread_count=2','software->thread_count=1')
-        if any(word in adapted for word in ['pthread','futex']):raise ValueError('Threaded decoder adaptation incomplete')
+        adapted=adapt_private_decoder(original)
         decoder.write_text(adapted)
         imports=inputs/'experiments/jspi-asyncify/mpv/runtime/imports.js'
         imports.write_text(imports.read_text()+"\naddToLibrary({demuxe_decoder_request:function(){throw new Error('Unbound decoder import');}});\n")

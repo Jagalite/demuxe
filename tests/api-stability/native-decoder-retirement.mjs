@@ -51,3 +51,36 @@ int main(void) {
   assert.equal(execFileSync(join(directory,'test'),[],{timeout:5000,encoding:'utf8'}),'');
  }finally{await rm(directory,{recursive:true,force:true});}
 });
+
+
+test('actual cooperative decoder adaptation preserves cancellation without threaded imports',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'demuxe-private-decoder-retirement-'));
+ try{
+  const source=execFileSync('python3',['-c',"import runpy,pathlib; m=runpy.run_path('experiments/jspi-asyncify/mpv/scripts/link-playback.py'); print(m['adapt_private_decoder'](pathlib.Path('native/vd_browser.c').read_text()),end='')"],{encoding:'utf8',timeout:10000});
+  assert.equal(/pthread|futex/.test(source),false);
+  const enable=source.slice(source.indexOf('EMSCRIPTEN_KEEPALIVE void web_decoder_enable'),source.indexOf('int web_decoder_enabled'));
+  const request=source.slice(source.indexOf('static int request(int operation)'),source.indexOf('struct browser_priv'));
+  const code=`
+#include <assert.h>
+#include <stdatomic.h>
+#include <stdint.h>
+#include <errno.h>
+#define EMSCRIPTEN_KEEPALIVE
+#define AVERROR(value) (-(value))
+static _Atomic int enabled,cancelled;
+static struct { int operation; } web_decoder;
+static int calls;
+static int private_decoder_request(uintptr_t pointer,int operation) {assert(pointer==(uintptr_t)&web_decoder);calls++;return operation+40;}
+${enable}
+${request}
+int main(void) {
+ web_decoder_enable(2);assert(request(4)==44);assert(calls==1);
+ web_decoder_cancel();assert(request(5)==0);assert(request(4)==AVERROR(EIO));assert(request(2)==AVERROR(EIO));assert(calls==1);
+ web_decoder_enable(2);assert(request(5)==45);assert(calls==2);return 0;
+}
+`;
+  await writeFile(join(directory,'test.c'),code);
+  execFileSync(process.env.CC||'cc',['-std=c11','-Wall','-Wextra','-Werror',join(directory,'test.c'),'-o',join(directory,'test')],{timeout:30000});
+  assert.equal(execFileSync(join(directory,'test'),[],{timeout:5000,encoding:'utf8'}),'');
+ }finally{await rm(directory,{recursive:true,force:true});}
+});
