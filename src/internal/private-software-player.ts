@@ -55,7 +55,9 @@ export class PrivateSoftwarePlayer extends EventTarget implements Backend {
     const layout=privateSoftwareAudioLayout(this.requestedOutput,this.deviceChannels,options.audioFallback==='reject');
     if(layout.reject){void this.context.close();throw new PlayerError('UNSUPPORTED_FEATURE','Requested audio layout is unavailable on this output device');}
     this.outputChannels=layout.channels;
-    try{this.context.destination.channelCount=this.outputChannels;this.context.destination.channelCountMode='explicit';}
+    // Preserve an already-correct layout: some WebKit ports reject a redundant
+    // stereo assignment while reporting maxChannelCount=0.
+    try{if(this.context.destination.channelCount!==this.outputChannels)this.context.destination.channelCount=this.outputChannels;this.context.destination.channelCountMode='explicit';}
     catch(error){void this.context.close();throw error;}
     try {this.worker = runtimeWorker(new URL('web/private-mpv/playback-worker.js',options.assetBase),{type:'module'},Worker,new URL('web/generated/internal/runtime-worker.js',options.assetBase));}
     catch(error){void this.context.close();throw error;}

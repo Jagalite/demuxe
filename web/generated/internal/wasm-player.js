@@ -74,8 +74,11 @@ export class WasmPlayer extends EventTarget {
             throw Error('Requested audio layout is unavailable on this output device');
         }
         this.outputChannels = output.channels;
+        // Some WebKit ports report maxChannelCount=0 despite a working stereo
+        // destination, and reject even reassigning its existing channel count.
         try {
-            this.audioContext.destination.channelCount = this.outputChannels;
+            if (this.audioContext.destination.channelCount !== this.outputChannels)
+                this.audioContext.destination.channelCount = this.outputChannels;
         }
         catch (error) {
             void this.audioContext.close();

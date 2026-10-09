@@ -5,7 +5,7 @@ import {WasmPlayer} from '../../web/generated/internal/wasm-player.js';
 const turn=()=>new Promise(setImmediate);
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
 
-async function fixture(t,{ready=true,modulePending=false}={}){
+async function fixture(t,{ready=true,modulePending=false,destination,audioOutput='stereo'}={}){
  const saved=new Map(),timers=new Set(),intervals=new Set(),messages=[],log=[],module=deferred();let worker,context,hook,clearHook,now=0;
  const install=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});};
  install('performance',{now:()=>now,timeOrigin:0});
@@ -23,7 +23,7 @@ async function fixture(t,{ready=true,modulePending=false}={}){
   terminate(){log.push('terminate');}
  }
  class AudioContext{
-  destination={maxChannelCount:2};audioWorklet={addModule:()=>modulePending?module.promise:Promise.resolve()};baseLatency=0;outputLatency=0;state='running';sampleRate=48000;currentTime=0;
+  destination=destination??{maxChannelCount:2};audioWorklet={addModule:()=>modulePending?module.promise:Promise.resolve()};baseLatency=0;outputLatency=0;state='running';sampleRate=48000;currentTime=0;
   constructor(){context=this;}
   createAnalyser(){return{disconnect:()=>log.push('analyser-disconnect')};}
   close(){log.push('audio-close');return Promise.resolve();}
@@ -33,11 +33,25 @@ async function fixture(t,{ready=true,modulePending=false}={}){
  install('AudioContext',AudioContext);install('AudioWorkletNode',AudioWorkletNode);
  const owner={hidden:false,setAttribute(){},contentWindow:{Worker},remove(){log.push('owner-remove');}};
  install('document',{body:{append(){}},createElement:()=>owner});
- const player=new WasmPlayer({width:320,height:180,transferControlToOffscreen:()=>({})},{assetBase:new URL('https://example.test/'),prepared:{font:new ArrayBuffer(1)}});void player.ready.catch(()=>{});
+ let player;
+ t.after(async()=>{hook=undefined;clearHook=undefined;await player?.destroy().catch(()=>{});for(const [key,descriptor]of saved)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];});
+ player=new WasmPlayer({width:320,height:180,transferControlToOffscreen:()=>({})},{assetBase:new URL('https://example.test/'),audioOutput,prepared:{font:new ArrayBuffer(1)}});void player.ready.catch(()=>{});
  await turn();if(ready){worker.emit({type:'ready',browserCodecsAbsent:false});await player.ready;}
- t.after(async()=>{hook=undefined;clearHook=undefined;await player.destroy().catch(()=>{});for(const [key,descriptor]of saved)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];});
  return{player,worker,context,messages,log,timers,intervals,module,owner,set hook(value){hook=value;},set clearHook(value){clearHook=value;},get now(){return now;},set now(value){now=value;},fire(delay,{early=false}={}){const timer=[...timers].find(timer=>timer.delay===delay);assert.ok(timer,'missing deadline '+delay);timers.delete(timer);if(!early)now+=delay;timer.callback();}};
 }
+
+test('an existing stereo destination works when WebKit reports no configurable channels',async t=>{
+ let assignments=0;
+ const destination={maxChannelCount:0,get channelCount(){return 2;},set channelCount(value){assignments++;throw new RangeError('Channel count exceeds maximum limit');}};
+ const f=await fixture(t,{destination});
+ assert.equal(assignments,0);assert.equal(f.messages.find(message=>message.type==='init').audioChannels,2);
+ assert.equal(f.log.includes('audio-close'),false);
+});
+
+test('a supported surround layout still configures the destination and PCM output',async t=>{
+ const destination={maxChannelCount:8,channelCount:2},f=await fixture(t,{destination,audioOutput:'5.1'});
+ assert.equal(destination.channelCount,6);assert.equal(f.messages.find(message=>message.type==='init').audioChannels,6);
+});
 
 test('actual RPC commits ownership before synchronous replies and preserves IDs',async t=>{
  const f=await fixture(t);f.hook=message=>{if(message.id)f.worker.reply(message.id,'ok');};

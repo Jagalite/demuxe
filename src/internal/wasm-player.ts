@@ -75,7 +75,9 @@ export class WasmPlayer extends EventTarget {
     const output=planWasmAudioOutput(audioOutput,this.deviceChannels,audioFallback);
     if(output.unavailable){void this.audioContext.close();throw Error('Requested audio layout is unavailable on this output device');}
     this.outputChannels=output.channels;
-    try {this.audioContext.destination.channelCount=this.outputChannels;}catch(error){void this.audioContext.close();throw error;}
+    // Some WebKit ports report maxChannelCount=0 despite a working stereo
+    // destination, and reject even reassigning its existing channel count.
+    try {if(this.audioContext.destination.channelCount!==this.outputChannels)this.audioContext.destination.channelCount=this.outputChannels;}catch(error){void this.audioContext.close();throw error;}
     this.audioContext.destination.channelCountMode='explicit';
     // A disposable same-origin owner gives the browser a complete worker-tree
     // teardown boundary, including native pthread workers and decoder resources.

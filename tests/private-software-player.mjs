@@ -65,6 +65,23 @@ test('unsupported strict output layout closes its context before allocating a wo
  }finally{globalThis.AudioContext=originalAudio;globalThis.OffscreenCanvas=originalCanvas;}
 });
 
+test('private output preserves existing WebKit stereo but still configures supported surround',()=>{
+ const keys=['AudioContext','OffscreenCanvas','Worker','location'],saved=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const reachedWorker=Error('worker allocation reached'),contexts=[];let destination;
+ try{
+  globalThis.OffscreenCanvas=class{};globalThis.location={origin:'http://localhost'};
+  globalThis.Worker=class{constructor(){throw reachedWorker;}};
+  globalThis.AudioContext=class{constructor(){this.destination=destination;this.closed=false;contexts.push(this);}close(){this.closed=true;return Promise.resolve();}};
+  let assignments=0;
+  destination={maxChannelCount:0,get channelCount(){return 2;},set channelCount(value){assignments++;throw new RangeError('Channel count exceeds maximum limit');}};
+  assert.throws(()=>new PrivateSoftwarePlayer({}, {runtime:'asyncify',assetBase:new URL('http://localhost/')}),error=>error===reachedWorker);
+  assert.equal(assignments,0);assert.equal(contexts[0].closed,true);
+  destination={maxChannelCount:8,channelCount:2};
+  assert.throws(()=>new PrivateSoftwarePlayer({}, {runtime:'asyncify',assetBase:new URL('http://localhost/'),audioOutput:'5.1'}),error=>error===reachedWorker);
+  assert.equal(destination.channelCount,6);assert.equal(contexts[1].closed,true);
+ }finally{for(const [key,descriptor]of saved)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];}
+});
+
 test('initialization asset identity errors remain terminal asset failures',async()=>{
  const {player}=control();let reject;const pending=new Promise((_,no)=>reject=no);
  player.requests=admitBackendRequest({...player.requests,nextId:19},'init',0).state;
