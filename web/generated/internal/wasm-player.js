@@ -15,7 +15,6 @@ import { admitWasmAttachment, wasmAttachmentCurrent, finishWasmAttachment, wasmA
 export class WasmPlayer extends EventTarget {
     loading = new AbortController();
     worker;
-    workerOwner;
     audioContext;
     audioNode;
     selectiveGain;
@@ -37,7 +36,7 @@ export class WasmPlayer extends EventTarget {
     destruction;
     onDestroyed;
     readyTimer;
-    cancelOwnerLoad;
+    cancelWorkerStart;
     pendingResize;
     rejectReady;
     eventWaiters = new Map();
@@ -87,20 +86,15 @@ export class WasmPlayer extends EventTarget {
             throw error;
         }
         this.audioContext.destination.channelCountMode = 'explicit';
-        // A disposable same-origin owner gives the browser a complete worker-tree
-        // teardown boundary, including native pthread workers and decoder resources.
-        // The presentation may be adopted into a temporary document PiP window.
-        // Runtime ownership stays in the module's document across surface moves.
-        this.workerOwner = document.createElement('iframe');
-        this.workerOwner.hidden = true;
-        this.workerOwner.setAttribute('aria-hidden', 'true');
+        // Keep runtime ownership in the module's page when a surface moves to PiP.
+        // Terminating the root worker also terminates its nested pthread workers.
         const audio = new SharedArrayBuffer(64 + 8192 * this.outputChannels * 4 + (this.audioOnly ? 8192 * 16 : 0));
         this.audioHeader = new Int32Array(audio, 0, 16);
         this.ready = new Promise((resolve, reject) => {
             this.rejectReady = reject;
             this.lifecycle = beginWasmHandshake(this.lifecycle, 'initialization', performance.now());
             const failReady = (error) => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'failed', performance.now()); this.lifecycle = step.state; if (step.effect !== 'reject')
-                return; this.initializationError = error; this.cancelOwnerLoad?.(error); reject(error); };
+                return; this.initializationError = error; this.cancelWorkerStart?.(error); reject(error); };
             let timeout;
             const expire = () => { const step = observeWasmHandshake(this.lifecycle, 'initialization', 'deadline', performance.now()); this.lifecycle = step.state; if (step.effect === 'waiting') {
                 timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
@@ -108,29 +102,24 @@ export class WasmPlayer extends EventTarget {
             else if (step.effect === 'reject') {
                 const error = new Error('Player initialization timed out');
                 this.initializationError = error;
-                this.cancelOwnerLoad?.(error);
+                this.cancelWorkerStart?.(error);
                 reject(error);
             } };
             timeout = this.readyTimer = setTimeout(expire, Math.max(0, this.lifecycle.initialization.deadline - performance.now()));
             void (async () => {
-                // Chromium can block module-worker responses from an iframe's initial
-                // empty document. Let its load task finish before starting the worker tree.
+                // A cancellable task lets same-stack destruction prevent worker creation.
+                // Use the page realm: iframe initial documents can intermittently block
+                // module-worker responses even after their load event has completed.
                 await new Promise((done, no) => {
-                    const owner = this.workerOwner;
                     let finished = false, task;
                     const finish = (error) => { if (finished)
-                        return; finished = true; clearTimeout(task); owner.removeEventListener('load', loaded); owner.removeEventListener('error', failed); this.cancelOwnerLoad = undefined; error ? no(error) : done(); };
-                    const loaded = () => { task = setTimeout(() => finish(), 0); }, failed = () => finish(new Error('Playback worker owner failed to load'));
-                    this.cancelOwnerLoad = error => finish(error);
-                    owner.addEventListener('load', loaded, { once: true });
-                    owner.addEventListener('error', failed, { once: true });
-                    owner.src = 'about:blank';
-                    document.body.append(owner);
+                        return; finished = true; clearTimeout(task); this.cancelWorkerStart = undefined; error ? no(error) : done(); };
+                    this.cancelWorkerStart = error => finish(error);
+                    task = setTimeout(() => finish(), 0);
                 });
                 if (!wasmAlive(this.lifecycle))
                     throw this.unavailableError();
-                const owner = this.workerOwner.contentWindow;
-                this.worker = runtimeWorker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' }, owner.Worker);
+                this.worker = runtimeWorker(new URL(mode === 'hybrid' || this.audioOnly ? `web/filter-retained-engine-worker.js?mode=retained${this.audioOnly ? '&audioOnly=1' : ''}` : 'web/software-full-engine-worker.js', assetBase), { type: 'module' });
                 const workerFailure = (event) => {
                     const failure = claimWasmWorkerFailure(this.lifecycle);
                     this.lifecycle = failure.state;
@@ -861,7 +850,7 @@ export class WasmPlayer extends EventTarget {
         this.refreshAuthorization = undefined;
         this.pendingResize = undefined;
         cleanup(() => clearTimeout(this.readyTimer));
-        cleanup(() => this.cancelOwnerLoad?.(error));
+        cleanup(() => this.cancelWorkerStart?.(error));
         cleanup(() => this.rejectReady?.(error));
         for (const entry of pending)
             if (entry) {
@@ -922,7 +911,6 @@ export class WasmPlayer extends EventTarget {
                     }
                 } };
                 release(() => this.worker?.terminate());
-                release(() => this.workerOwner.remove());
                 try {
                     await this.audioContext.close();
                 }

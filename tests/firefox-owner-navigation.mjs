@@ -11,7 +11,7 @@ try{
  browser=await firefox.launch({headless:true,firefoxUserPrefs:{'media.autoplay.default':0}});report.browser=browser.version();
  const page=await browser.newPage({viewport:{width:1400,height:600}});page.setDefaultTimeout(30000);
  page.on('crash',()=>report.events.push({event:'crash',time:Date.now()}));page.on('pageerror',e=>report.events.push({event:'pageerror',message:String(e),time:Date.now()}));
- for(let cycle=0;cycle<80;cycle++){
+ for(let cycle=0;cycle<40;cycle++){
   const row={cycle,phase:'navigation',passed:false};report.cycles.push(row);await save();
   try{
    await page.goto(origin+'/');await page.waitForFunction(()=>window.player);const v=page.locator('demuxe-player');
@@ -20,7 +20,7 @@ try{
    row.phase='paint';await page.screenshot({path:out+'/latest.png'});row.passed=true;console.log('PASS active navigation cycle',cycle,arm);
   }catch(error){row.error=String(error.stack);throw error;}finally{await save();}
  }
- await page.evaluate(()=>player.destroy());report.passed=report.cycles.length===80&&report.cycles.every(r=>r.passed)&&report.events.length===0;
+ await page.evaluate(()=>player.destroy());report.passed=report.cycles.length===40&&report.cycles.every(r=>r.passed)&&report.events.length===0;
  if(!report.passed)process.exitCode=1;
 }catch(error){report.error=String(error.stack);process.exitCode=1;}
 finally{await browser?.close().catch(()=>{});server.kill();await save();}

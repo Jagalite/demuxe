@@ -3,7 +3,7 @@
 import {chromium,firefox,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
-const arm=process.env.OWNER_ARM||'production',out=`results/worker-owner/${arm}`;
+const arm=process.env.OWNER_ARM||'fresh-native',out=`results/worker-owner/${arm}`;
 await mkdir(out,{recursive:true});const report={arm,cycles:[],events:[],passed:false};const save=()=>writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
@@ -29,9 +29,9 @@ try{
    for(const mode of ['software','hybrid']){row.phase=mode;await save();await page.evaluate(async m=>{await prepareOwner();await player.setMode(m);if(player.state.mediaInfo.subtitle.id!==selectedSubtitle)throw Error('Subtitle selection changed');if(__diagnosticReadyOwners.length)throw Error('Prepared owner not consumed');},mode);}
    row.passed=true;console.log('PASS cycle',cycle,arm);
   }catch(error){row.error=String(error.stack);console.error('FAIL cycle',cycle,arm,row.error);}
-  finally{let timer;try{await Promise.race([page.evaluate(async()=>{await player.destroy();for(const frame of window.__diagnosticReadyOwners||[])frame.remove();}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Cleanup deadline')),15000);})]);}finally{clearTimeout(timer);await save();}}
+  finally{let timer;try{await Promise.race([page.evaluate(async()=>{await player.destroy();for(const frame of window.__diagnosticReadyOwners||[])frame.remove();}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Cleanup deadline')),15000);})]);}catch(error){row.passed=false;row.cleanupError=String(error.stack);throw error;}finally{clearTimeout(timer);await save();}}
  }
  report.failures=report.cycles.filter(row=>!row.passed).length;report.passed=report.failures===0;
- if(arm!=='original'&&!report.passed)process.exitCode=1;
+ if(!report.passed)process.exitCode=1;
 }catch(error){report.error=String(error.stack);process.exitCode=1;}
 finally{await browser?.close().catch(()=>{});server.kill();await save();}
