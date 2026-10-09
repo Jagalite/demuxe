@@ -86,6 +86,30 @@ jobs:
           PY
           "$DEMUXE_SDK/emsdk" install 4.0.14
           "$DEMUXE_SDK/emsdk" activate 4.0.14
+      - name: Install test browsers
+        run: npx playwright install --with-deps chromium chrome firefox webkit
+      - name: Install the independently pinned Linux WebKit media target
+        run: |
+          npm install --prefix "$RUNNER_TEMP/demuxe-linux-webkit" --ignore-scripts --no-audit --no-fund playwright@1.58.2
+          "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/.bin/playwright" install --with-deps webkit
+          printf 'DEMUXE_WEBKIT_TEST_MODULE=%s\n' "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Verify every release browser can launch before compiling engines
+        run: |
+          node --input-type=module <<'JS'
+          import * as current from 'playwright';
+          import {webkit as linuxMediaWebKit, testBrowserRuntime} from './tests/browser-test-runtime.mjs';
+          for (const [name, type, options] of [
+            ['chromium', current.chromium, {}],
+            ['chrome', current.chromium, {channel: 'chrome'}],
+            ['firefox', current.firefox, {}],
+            ['webkit-menu', current.webkit, {}],
+            ['webkit-linux-media', linuxMediaWebKit, {}],
+          ]) {
+            const browser = await type.launch({headless: true, ...options});
+            console.log(name, browser.version(), testBrowserRuntime);
+            await browser.close();
+          }
+          JS
       - name: Build all playback engines from the tag
         shell: bash
         run: |
@@ -96,13 +120,6 @@ jobs:
         run: python3 scripts/tag-release.py package --tag "$PAGES_TAG"
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
-      - name: Install test browsers
-        run: npx playwright install --with-deps chromium chrome firefox
-      - name: Install the independently pinned Linux WebKit media target
-        run: |
-          npm install --prefix "$RUNNER_TEMP/demuxe-linux-webkit" --ignore-scripts --no-audit --no-fund playwright@1.58.2
-          "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/.bin/playwright" install --with-deps webkit
-          printf 'DEMUXE_WEBKIT_TEST_MODULE=%s\n' "$RUNNER_TEMP/demuxe-linux-webkit/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
       - name: Start audio service for playback checks
         run: bash scripts/start-ci-audio.sh
       - name: Verify Chrome-family playback and record timings
