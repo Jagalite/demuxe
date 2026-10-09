@@ -12,11 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium]
-        policy: [task, srcdoc, blob, network]
+        browser: [webkit]
+        arm: [trace, yield]
     env:
       BROWSER: ${{ matrix.browser }}
-      OWNER_ARM: ${{ matrix.policy }}
+      OWNER_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
       BUNDLE_SOURCE_CANDIDATE: '1'
       BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
@@ -46,23 +46,21 @@ jobs:
           path: build/bundle-ci-inputs
           run-id: 37918659239
           github-token: ${{ github.token }}
-      - run: |
+      - id: prepare
+        run: |
           node scripts/prepare-bundle-ci.mjs
-          cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
+          if [ "$OWNER_ARM" != baseline ]; then cp "$RUNNER_TEMP/owner-fix/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"; fi
           cp "$RUNNER_TEMP/owner-fix/worker-owner-diagnostic.mjs" tests/
-          python3 - <<'POLICY'
+          python3 - <<'TRACE'
           import os,pathlib
-          file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js'
-          text=file.read_text();arm=os.environ['OWNER_ARM']
-          if arm=='task':text=text.replace('error ? no(error) : done();','error ? no(error) : setTimeout(done,0);')
-          elif arm=='srcdoc':text=text.replace("owner.src = 'about:blank';", "owner.srcdoc = '<!doctype html><html><head></head><body></body></html>';")
-          elif arm=='blob':text=text.replace("owner.src = 'about:blank';", "const blob=URL.createObjectURL(new Blob(['<!doctype html><html><head></head><body></body></html>'],{type:'text/html'}));owner.src=blob;owner.addEventListener('load',()=>URL.revokeObjectURL(blob),{once:true});")
-          elif arm=='network':
-            text=text.replace("owner.src = 'about:blank';", "owner.src = new URL('web/worker-owner-diagnostic.html',assetBase).href;")
-            (file.parents[2]/'worker-owner-diagnostic.html').write_text('<!doctype html><html><head></head><body></body></html>')
-          assert text!=file.read_text(),'Overlay substitution failed'
+          root=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT']);file=root/'web/filter-retained-engine-worker.js';text=file.read_text()
+          text=text.replace('await cleanAsync(closeIO);',"console.log('WORKER_STAGE', 'io-start',performance.now());await cleanAsync(closeIO);console.log('WORKER_STAGE','io-done',performance.now());")
+          text=text.replace('clean(()=>engine?._web_destroy());',"console.log('WORKER_STAGE','native-start',performance.now());clean(()=>engine?._web_destroy());console.log('WORKER_STAGE','native-done',performance.now());")
+          text=text.replace('clean(()=>engine?.PThread.terminateAllThreads());',"console.log('WORKER_STAGE','threads-done',performance.now());clean(()=>engine?.PThread.terminateAllThreads());")
           file.write_text(text)
-          POLICY
+          if os.environ['OWNER_ARM']=='yield':
+            file=root/'web/io-worker.js';text=file.read_text();text=text.replace('if((state&7)===1)continue;',"if((state&7)===1){await new Promise(resolve=>setTimeout(resolve,0));continue;}");file.write_text(text)
+          TRACE
           node tests/api-stability/fixtures.mjs
           mkdir -p results/worker-owner
           cp "$RUNNER_TEMP/owner-fix/revision.txt" results/worker-owner/
@@ -71,10 +69,15 @@ jobs:
         run: |
           set -o pipefail
           node tests/worker-owner-diagnostic.mjs 2>&1 | tee results/worker-owner/browser.log
+      - name: Verify public API and component transitions
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        run: |
+          node tests/public-api.mjs
+          node tests/player-component.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: owner-policy-${{ matrix.policy }}
+          name: webkit-stage-${{ matrix.arm }}
           path: |
             results/worker-owner/
             results/public-api/
