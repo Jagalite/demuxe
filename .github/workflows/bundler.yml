@@ -6,69 +6,70 @@ permissions:
   contents: read
   actions: read
 jobs:
-  menu-replay:
+  owner-replay:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox, webkit]
+        arm: [original, settled]
     env:
-      BROWSER: ${{ matrix.browser }}
+      BROWSER: chromium
+      OWNER_ARM: ${{ matrix.arm }}
       DEBUG: pw:browser
+      BUNDLE_SOURCE_CANDIDATE: '1'
+      BUNDLE_INVENTORY_SHA256: 727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af
+      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          mkdir "$RUNNER_TEMP/menu-diagnostic"
-          cp tests/player-menu-review.mjs web/generated/player/index.js "$RUNNER_TEMP/menu-diagnostic/"
-          git rev-parse HEAD > "$RUNNER_TEMP/menu-diagnostic/harness-commit.txt"
+      - run: cp tests/worker-owner-diagnostic.mjs "$RUNNER_TEMP/"
       - uses: actions/checkout@v4
         with:
-          ref: 516debbb34f469c0ccc7f3e230d7c5d3dcfb089f
+          ref: fa05ccdf6055dec1e1f7c7447ec94e11c7c2b18e
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: |
-          if [ "$BROWSER" = chrome ]; then npx playwright install --with-deps chrome chromium; else npx playwright install --with-deps "$BROWSER"; fi
+      - run: npx playwright install --with-deps chromium
       - run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
           bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
         with:
-          name: unqualified-runtime-debug
-          path: build/diagnostic-runtime
-          run-id: 37907372451
+          name: source-provider-browser-inputs
+          path: build/bundle-ci-inputs
+          run-id: 37918659239
           github-token: ${{ github.token }}
-      - name: Verify exact failed archive and preserve overlay identities
+      - run: node scripts/prepare-bundle-ci.mjs
+      - run: node tests/api-stability/fixtures.mjs
+      - name: Record the optional preloaded owner and logging overlay
         run: |
-          echo '64296b5b94d9462c3be6779a58aad6a19a0ecda45b72ac119336b0a2f6076128  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
-          mkdir -p build/diagnostic-consumer results/menu-diagnostic
-          npm install --prefix build/diagnostic-consumer --offline --ignore-scripts --no-audit --no-fund "$PWD/build/diagnostic-runtime/demuxe-1.1.1.tgz"
-          echo "DEMUXE_RUNTIME_ROOT=$PWD/build/diagnostic-consumer/node_modules/demuxe" >> "$GITHUB_ENV"
-          cp "$RUNNER_TEMP/menu-diagnostic/"* results/menu-diagnostic/
-          cp "$RUNNER_TEMP/menu-diagnostic/player-menu-review.mjs" tests/player-menu-review.mjs
-          sha256sum build/diagnostic-runtime/demuxe-1.1.1.tgz build/diagnostic-consumer/node_modules/demuxe/web/generated/player/index.js results/menu-diagnostic/index.js tests/player-menu-review.mjs > results/menu-diagnostic/identities.txt
-      - name: Negative control must reproduce mobile Escape focus failure
+          mkdir -p results/worker-owner
+          cp "$RUNNER_TEMP/worker-owner-diagnostic.mjs" tests/
+          python3 - <<'PYCODE'
+          import pathlib,hashlib,json
+          root=pathlib.Path('build/bundle-flexibility/ci-assets/assets')
+          file=root/'web/generated/internal/wasm-player.js'
+          text=file.read_text();before=hashlib.sha256(file.read_bytes()).hexdigest()
+          text=text.replace("this.workerOwner = document.createElement('iframe');", "this.workerOwner = globalThis.__diagnosticReadyOwners?.shift() ?? document.createElement('iframe');")
+          text=text.replace('const owner = this.workerOwner.contentWindow;', '''const owner = this.workerOwner.contentWindow;
+          const ownerDoc = this.workerOwner.contentDocument;
+          console.log('WORKER_OWNER_CREATE', JSON.stringify({ready:ownerDoc.readyState,isolated:owner.crossOriginIsolated,mode,settled:!!globalThis.__diagnosticReadyOwners}));
+          this.workerOwner.addEventListener('load',()=>console.log('WORKER_OWNER_LOAD',JSON.stringify({sameDocument:ownerDoc===this.workerOwner.contentDocument,mode})),{once:true});''')
+          text=text.replace('this.worker.onerror = workerFailure;', '''this.worker.addEventListener('error',event=>console.error('WORKER_OWNER_ERROR',JSON.stringify({mode,type:event.type,message:event.message,filename:event.filename,ready:ownerDoc.readyState,sameDocument:ownerDoc===this.workerOwner.contentDocument,connected:this.workerOwner.isConnected})));
+          this.worker.onerror = workerFailure;''')
+          assert 'WORKER_OWNER_CREATE' in text and '__diagnosticReadyOwners?.shift()' in text
+          file.write_text(text)
+          pathlib.Path('results/worker-owner/overlay.json').write_text(json.dumps({'sourceCommit':'fa05ccdf6055dec1e1f7c7447ec94e11c7c2b18e','inventorySHA256':'727339585c74261a68c751f748dceb721bbb1c0e0f093720426cb46edb4c30af','before':before,'after':hashlib.sha256(file.read_bytes()).hexdigest(),'scope':'Diagnostic owner preloading and logging overlay; not release qualification'},indent=2))
+          PYCODE
+      - name: Stress exact source assets with original or settled owner startup
         run: |
-          set +e
-          node tests/player-menu-review.mjs > results/menu-diagnostic/negative-control.log 2>&1
-          diagnostic_status=$?
-          set -e
-          test "$diagnostic_status" -ne 0
-          grep -F 'Escape restores focus to a visible diagnostics entry point' results/menu-diagnostic/negative-control.log
-          cp -r results/player-menu-review results/menu-diagnostic/negative-control-receipts
-      - name: Verify desktop and mobile menus with the recorded focus overlay
-        run: |
-          cp "$RUNNER_TEMP/menu-diagnostic/index.js" "$DEMUXE_RUNTIME_ROOT/web/generated/player/index.js"
           set -o pipefail
-          node tests/player-menu-review.mjs 2>&1 | tee results/menu-diagnostic/positive.log
+          node tests/worker-owner-diagnostic.mjs 2>&1 | tee results/worker-owner/browser.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: menu-focus-${{ matrix.browser }}
-          path: |
-            results/menu-diagnostic/
-            results/player-menu-review/
+          name: worker-owner-${{ matrix.arm }}
+          path: results/worker-owner/
