@@ -679,7 +679,7 @@ export class DemuxePlayerElement extends Base {
     this.$('clear-queue').onclick=()=>{if(this.showSourceControls&&!this.queueOperation&&!this.core?.state.pendingOperation){this.settings(false,false);this.$('stage').focus({preventScroll:true});this.run(this.close());}};
     this.$('retry').onclick=()=>{const error=this.lastFailure;this.clearError();if(error?.code==='AUTOPLAY_BLOCKED')this.run(this.play());else if(this.lastSource)this.run(this.queueResource(this.queueIndex)?.source===this.lastSource?this.activateQueue(this.queueIndex,()=>this.autoplay):this.open(this.lastSource,this.lastOptions));};
     this.addEventListener('keydown',event=>{
-      if(event.composedPath().includes(this.$('diagnostics-overlay'))){if(event.key==='Escape'){event.preventDefault();this.setDiagnostics(false);this.$('diagnostics-toggle').focus();}return;}
+      if(event.composedPath().includes(this.$('diagnostics-overlay'))){if(event.key==='Escape'){event.preventDefault();this.setDiagnostics(false);const trigger=this.$('diagnostics-toggle');(trigger.getClientRects().length?trigger:this.$('settings-toggle')).focus();}return;}
       const topbar=event.composedPath().includes(this.$('utility-actions')),key=shortcut(event,topbar);
       if(topbar&&key===' ')event.preventDefault();
       if(event.repeat&&!this.controlState.menuOpen&&[' ','k','m','f'].includes(key??'')){event.preventDefault();return;}

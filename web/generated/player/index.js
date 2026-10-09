@@ -1241,7 +1241,8 @@ export class DemuxePlayerElement extends Base {
                 if (event.key === 'Escape') {
                     event.preventDefault();
                     this.setDiagnostics(false);
-                    this.$('diagnostics-toggle').focus();
+                    const trigger = this.$('diagnostics-toggle');
+                    (trigger.getClientRects().length ? trigger : this.$('settings-toggle')).focus();
                 }
                 return;
             }
