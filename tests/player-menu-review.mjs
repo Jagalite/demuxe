@@ -34,15 +34,16 @@ try{
     assert.ok(await v.locator('#source-options').isVisible());await page.keyboard.press('Escape');
     assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),mode==='mobile'?'settings-toggle':'open-menu');
     row.phase='load';await save();await openSource();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
-    // Pin playback so End tests scrolling independently of the media clock.
-    await page.evaluate(async()=>{await player.pause();await player.seek(0);});
+    // Pause so End tests panel scrolling against the actual playback position.
+    // Seeking to zero is unrelated to this menu check and is tested separately.
+    await page.evaluate(()=>player.pause());
     await page.setViewportSize({width:mode==='mobile'?390:1280,height:390});
     row.phase='diagnostics';await save();await openDiagnostics();await stats.waitFor({state:'visible'});assert.equal(await stats.getAttribute('role'),'region');
     // Native may report few fields; constrain the real panel to exercise overflow in both presentations.
     await stats.evaluate(el=>el.style.maxHeight='64px');
     await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay');return el.scrollHeight>el.clientHeight;});
     await stats.hover();await page.mouse.wheel(0,500);await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay').scrollTop>0);
-    await stats.focus();await page.keyboard.press('End');assert.equal(await page.evaluate(()=>player.state.currentTime),0);assert.ok(await stats.isVisible());
+    await stats.focus();const pausedPosition=await page.evaluate(()=>player.state.currentTime);await page.keyboard.press('End');assert.equal(await page.evaluate(()=>player.state.currentTime),pausedPosition);assert.ok(await stats.isVisible());
     await page.keyboard.press('Escape');await stats.waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');
     assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),mode==='mobile'?'settings-toggle':'diagnostics-toggle','Escape restores focus to a visible diagnostics entry point');
     row.phase='controls cleanup';await save();await openDiagnostics();await openSource();await v.evaluate(el=>el.controls=false);
