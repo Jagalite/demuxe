@@ -6,60 +6,66 @@ permissions:
   contents: read
   actions: read
 jobs:
-  boundaries:
+  archive-replay:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: [chrome, firefox, webkit]
     env:
       BROWSER: ${{ matrix.browser }}
-      BUNDLE_SOURCE_CANDIDATE: '1'
-      DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
+      BETA_ARCHIVE: build/diagnostic-runtime/demuxe-1.1.1.tgz
     steps:
       - uses: actions/checkout@v4
-      - name: Preserve corrected runtime and diagnostic harness
+      - name: Preserve diagnostic harness identity
         run: |
-          mkdir "$RUNNER_TEMP/audio-guard"
-          cp web/generated/internal/wasm-player.js web/generated/internal/private-software-player.js tests/api-stability/audio-guard-diagnostic.mjs "$RUNNER_TEMP/audio-guard/"
-          git rev-parse HEAD > "$RUNNER_TEMP/audio-guard/harness-commit.txt"
+          mkdir "$RUNNER_TEMP/consumer-diagnostic"
+          cp tests/public-api-consumer.mjs "$RUNNER_TEMP/consumer-diagnostic/"
+          git rev-parse HEAD > "$RUNNER_TEMP/consumer-diagnostic/harness-commit.txt"
       - uses: actions/checkout@v4
         with:
-          ref: 612542a4775ab41dd78bf2c10551e5fa8c1742a8
+          ref: f15253f7d4c409f259e6e15a32d7e585d6a3ee91
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: |
+      - name: Install browsers
+        run: |
+          if [ "$BROWSER" = chrome ]; then npx playwright install --with-deps chrome chromium; else npx playwright install --with-deps "$BROWSER"; fi
+      - name: Install fixture tools and stable audio output
+        run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
           bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
         with:
-          name: source-provider-browser-inputs
-          path: build/bundle-ci-inputs
-          run-id: 37873088630
+          name: unqualified-runtime-debug
+          path: build/diagnostic-runtime
+          run-id: 37887309494
           github-token: ${{ github.token }}
-      - name: Verify provider identity and install recorded audio guard overlay
+      - name: Verify exact failed archive and prepare its consumer fixture
         run: |
-          export BUNDLE_INVENTORY_SHA256=9d75cc8479217effd7c6346547e94c366f6b6c6285d8158e210424b0e7ee34e7
-          node scripts/prepare-bundle-ci.mjs
-          cp "$RUNNER_TEMP/audio-guard/wasm-player.js" "$RUNNER_TEMP/audio-guard/private-software-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/"
-          cp "$RUNNER_TEMP/audio-guard/audio-guard-diagnostic.mjs" tests/api-stability/
-          node tests/api-stability/fixtures.mjs
-          mkdir -p results/audio-guard-diagnostic
-          cp "$RUNNER_TEMP/audio-guard/harness-commit.txt" results/audio-guard-diagnostic/
-          sha256sum "$DEMUXE_RUNTIME_ROOT/web/generated/internal/wasm-player.js" "$DEMUXE_RUNTIME_ROOT/web/generated/internal/private-software-player.js" build/bundle-ci-inputs/bundle-ci-inventory.json > results/audio-guard-diagnostic/identities.txt
-      - name: Run unchanged live boundary scenarios against the diagnostic candidate
-        run: node tests/api-stability/audio-guard-diagnostic.mjs
+          echo '693ac46e717b64b3d6f619edb1ca18aff0bfc692f02e997b62366dfc92a2a11f  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
+          python3 experiments/optimization-integration/fixtures.py
+          mkdir -p build/routing-completion/fixtures results/consumer-diagnostic
+          ffmpeg -nostdin -v error -n -i build/optimization-fixtures/gain.mp4 -c:v libvpx-vp9 -deadline realtime -cpu-used 6 -threads 2 -c:a libopus build/routing-completion/fixtures/vp9-opus.mkv
+          cp "$RUNNER_TEMP/consumer-diagnostic/"* results/consumer-diagnostic/
+          cp "$RUNNER_TEMP/consumer-diagnostic/public-api-consumer.mjs" tests/public-api-consumer.mjs
+          sha256sum "$BETA_ARCHIVE" fixtures/example.mp4 build/routing-completion/fixtures/vp9-opus.mkv tests/public-api-consumer.mjs > results/consumer-diagnostic/identities.txt
+          git diff -- tests/public-api-consumer.mjs > results/consumer-diagnostic/harness-overlay.patch
+      - name: Replay the package consumer with bounded diagnostics
+        if: matrix.browser != 'webkit'
+        run: node tests/public-api-consumer.mjs
+      - name: Verify all WebKit boundaries against the exact archive
+        if: matrix.browser == 'webkit'
+        run: node tests/api-stability/live-boundaries.mjs --archive
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: audio-guard-boundaries-${{ matrix.browser }}
+          name: consumer-archive-diagnostic-${{ matrix.browser }}
           path: |
-            results/audio-guard-diagnostic/
+            results/consumer-diagnostic/
+            results/public-api-consumer/
             results/api-stability/live-boundaries/
-            build/bundle-ci-consumer/candidate-admission.json
