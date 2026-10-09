@@ -6,6 +6,7 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {installLiveRuntime} from './api-stability/live-runtime.mjs';
 import {closeTestBrowser} from './head-to-head/browser-exit.mjs';
+import {deadline} from './api-stability/live-check-helpers.mjs';
 
 const family=process.env.BROWSER??'chrome';
 assert.ok(['chrome','webkit'].includes(family));
@@ -306,13 +307,16 @@ try{
   window.subtitleLayer=document.createElement('canvas');subtitleLayer.dataset.testSubtitle='';subtitleLayer.style.position='absolute';$('surface').append(subtitleLayer);
  });
  // Observe continuity in the page, before slow automation round trips can outlast the fixture.
- const expansionPlayback=await page.evaluate(async()=>{
-  await viewer.seek(0);await viewer.play();viewer.revealControls();
+ report.phase='expanded playback';await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
+ const expansionPlayback=await deadline(page.evaluate(async()=>{
+  window.mobileExpansionPhase='seek';await viewer.seek(0);
+  window.mobileExpansionPhase='play';await viewer.play();viewer.revealControls();
+  window.mobileExpansionPhase='expand';
   const start=viewer.player.state.currentTime,deadline=performance.now()+5000;
-  $('fullscreen').click();
+  $('fullscreen').click();window.mobileExpansionPhase='progress';
   while(viewer.player.state.currentTime<=start+.2&&performance.now()<deadline)await new Promise(resolve=>setTimeout(resolve,25));
   return {sameCore:viewer.player===expansionCore,intent:viewer.player.state.playbackIntent,expanded:$('shell').matches(':popover-open'),advanced:viewer.player.state.currentTime>start+.2};
- });
+ }),20000);
  assert.deepEqual(expansionPlayback,{sameCore:true,intent:'play',expanded:true,advanced:true});
  await page.evaluate(async()=>{await viewer.pause();viewer.controlsAutoHideDelay=expansionAutoHideDelay;});
  for(let i=0;i<12;i++){await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>$('shell').contains(viewer.shadowRoot.activeElement)),true);}
@@ -387,7 +391,13 @@ try{
  assert.deepEqual(errors,[]);
  console.log(`PASS ${family}: embedded modal focus, transformed embedding, disconnect and teardown; screenshots ${out}`);
  report.passed=true;
-}catch(error){report.error=String(error.stack);process.exitCode=1;}
+}catch(error){
+ report.error=String(error.stack);process.exitCode=1;
+ if(browser){
+  const page=browser.contexts()[0]?.pages()[0];
+  if(page)report.failureDiagnostics=await deadline(page.evaluate(()=>({phase:window.mobileExpansionPhase,state:window.viewer?.player?.state,video:window.viewer?.player?.surface instanceof HTMLVideoElement?{readyState:viewer.player.surface.readyState,networkState:viewer.player.surface.networkState,paused:viewer.player.surface.paused,currentTime:viewer.player.surface.currentTime,error:viewer.player.surface.error?.code}:null})),2000).catch(error=>({error:String(error)}));
+ }
+}
 finally{
  try{if(browser)await closeTestBrowser(browser,family);}catch(error){report.passed=false;report.cleanupError=String(error.stack);process.exitCode=1;}
  finally{server?.kill();try{await installed?.cleanup();}catch(error){report.passed=false;report.cleanupError=String(error.stack);process.exitCode=1;}finally{await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');console.log('Mobile player report: '+out);}}

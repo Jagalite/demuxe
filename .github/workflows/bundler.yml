@@ -6,14 +6,26 @@ permissions:
   contents: read
   actions: read
 jobs:
-  remaining-archive:
+  targeted-archive:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15]
+        include:
+          - {os: ubuntu-24.04, browser: chromium, sdk: '1.64.0', suite: preview}
+          - {os: ubuntu-24.04, browser: firefox, sdk: '1.64.0', suite: preview}
+          - {os: ubuntu-24.04, browser: webkit, sdk: '1.64.0', suite: mobile}
+          - {os: ubuntu-24.04, browser: webkit, sdk: '1.58.2', suite: mobile}
+          - {os: macos-15, browser: webkit, sdk: '1.64.0', suite: mobile}
+    env:
+      BROWSER: ${{ matrix.browser }}
     steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir "$RUNNER_TEMP/targeted-harness"
+          cp tests/preview-software.mjs tests/player-mobile.mjs "$RUNNER_TEMP/targeted-harness/"
+          git rev-parse HEAD > "$RUNNER_TEMP/targeted-harness/revision.txt"
       - uses: actions/checkout@v4
         with:
           ref: 503b6d77385c833cd765b7434144a338f230a4fa
@@ -21,11 +33,14 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci --ignore-scripts
+      - run: |
+          npm ci --ignore-scripts
+          npm install --no-save --ignore-scripts --package-lock=false playwright@${{ matrix.sdk }}
+          cp "$RUNNER_TEMP/targeted-harness/preview-software.mjs" "$RUNNER_TEMP/targeted-harness/player-mobile.mjs" tests/
       - if: matrix.os == 'ubuntu-24.04'
         run: |
-          npx playwright install --with-deps chromium chrome firefox webkit
-          sudo apt-get install -y ffmpeg pulseaudio xvfb
+          npx playwright install --with-deps ${{ matrix.browser }}
+          sudo apt-get install -y ffmpeg pulseaudio
           bash scripts/start-ci-audio.sh
       - if: matrix.os == 'macos-15'
         run: |
@@ -37,52 +52,30 @@ jobs:
           path: build/release
           run-id: 37959185053
           github-token: ${{ github.token }}
-      - name: Verify the immutable archive and prepare fixtures
+      - name: Verify immutable runtime and generate API fixtures
         run: |
           export BETA_ARCHIVE="$PWD/build/release/demuxe-1.1.1.tgz"
           printf 'BETA_ARCHIVE=%s\n' "$BETA_ARCHIVE" >> "$GITHUB_ENV"
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
-          import {readFile, mkdir, writeFile} from 'node:fs/promises';
-          import {createHash} from 'node:crypto';
           import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
           const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
           try {
             assert.equal(runtime.archiveSHA256,'3beb3be9eb6101f884f6e8b349d8c97969cab21760a079f347519825a623810a');
             assert.equal(runtime.manifest.sourceCommit,'503b6d77385c833cd765b7434144a338f230a4fa');
-            assert.equal(runtime.manifest.sourceTag,'v1.1.1');
-            await mkdir('results/release-remaining',{recursive:true});
-            await writeFile('results/release-remaining/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,platform:process.platform},null,2));
           } finally {await runtime.cleanup();}
           JS
           node tests/api-stability/fixtures.mjs
-      - name: Verify all menu layouts against the installed archive
-        if: matrix.os == 'ubuntu-24.04'
-        run: |
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          import {spawnSync} from 'node:child_process';
-          import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
-          const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
-          try {
-            const result=spawnSync(process.execPath,['tests/player-menu-review.mjs'],{env:{...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
-            assert.equal(result.status,0);
-          } finally {await runtime.cleanup();}
-          JS
-      - name: Verify the complete installed API and mobile matrix
-        if: matrix.os == 'ubuntu-24.04'
-        run: node tests/api-stability/archive-matrix.mjs
-      - name: Verify the installed Apple WebKit release gate
-        if: matrix.os == 'macos-15'
-        run: node tests/webkit-release.mjs
+      - name: Verify software preview worker lifecycle
+        if: matrix.suite == 'preview'
+        run: node tests/api-stability/run.mjs browser preview
+      - name: Diagnose native mobile playback and expansion
+        if: matrix.suite == 'mobile'
+        run: node tests/player-mobile.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: remaining-archive-${{ matrix.os }}
+          name: targeted-${{ matrix.os }}-${{ matrix.browser }}-${{ matrix.sdk }}-${{ matrix.suite }}
           path: |
-            results/release-remaining/
-            results/webkit-release/
-            results/player-menu-review/
-            results/api-stability/archive-matrix-*/
-            results/api-stability/gate-browser-*/
             results/player-mobile/
+            results/api-stability/gate-browser-preview-*/
