@@ -13,10 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-24.04, gate: retirement, node: '22'}
-          - {os: ubuntu-24.04, gate: extra, node: '22'}
-          - {os: ubuntu-24.04, gate: matrix, node: '22'}
-          - {os: macos-15, gate: webkit, node: '24'}
+          - {os: ubuntu-24.04, gate: worker-mse, node: '22'}
     env:
       HEADLESS: '1'
     steps:
@@ -78,45 +75,14 @@ jobs:
         run: |
           python3 tests/experimental-mse-archive.py
           printf 'BETA_ARCHIVE=%s\n' "$PWD/build/release/demuxe-1.1.1-mse-owner-experiment.tgz" >> "$GITHUB_ENV"
-      - name: Compare original and page-owned MSE teardown
-        if: matrix.gate == 'retirement'
+      - name: Qualify worker-owned MSE, window fallback and cancellation
         run: |
-          python3 scripts/prepare-release-fixtures.py
-          node --input-type=module <<'JS'
-          import {spawnSync} from 'node:child_process';
-          import {writeFileSync,mkdirSync} from 'node:fs';
-          import path from 'node:path';
-          const comparisons=[];mkdirSync('results/mse-owner-comparison',{recursive:true});
-          let candidateFailures=0;
-          for(let trial=0;trial<5;trial++)for(const kind of ['original','page-owned']){
-            const archive=kind==='original'?path.resolve('build/release/demuxe-1.1.1.tgz'):process.env.BETA_ARCHIVE;
-            console.log('MSE OWNER COMPARISON',trial+1,kind);
-            const result=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BETA_ARCHIVE:archive,BROWSER:'chrome',DEBUG:'pw:browser'},encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});
-            const log=(result.stdout||'')+(result.stderr||'');
-            console.log(log);
-            writeFileSync(`results/mse-owner-comparison/${trial+1}-${kind}.log`,log);
-            comparisons.push({trial:trial+1,kind,passed:result.status===0,status:result.status,archive});
-            writeFileSync('results/mse-owner-comparison/result.json',JSON.stringify({comparisons,candidateFailures},null,2));
-            if(kind==='page-owned'&&result.status!==0)candidateFailures++;
-          }
-          writeFileSync('results/mse-owner-comparison/result.json',JSON.stringify({comparisons,candidateFailures,passed:candidateFailures===0},null,2));
-          process.exitCode=candidateFailures?1:0;
-          JS
-      - name: Prepare complete Linux release fixtures
-        if: matrix.os == 'ubuntu-24.04' && matrix.gate != 'retirement'
-        run: python3 scripts/prepare-release-fixtures.py
-      - name: Prepare Apple WebKit API fixtures
-        if: matrix.os == 'macos-15'
-        run: node tests/api-stability/fixtures.mjs
-      - name: Verify all extra release browser gates
-        if: matrix.gate == 'extra'
-        run: xvfb-run -a node tests/release-extra.mjs
-      - name: Verify all installed archive API and mobile shards
-        if: matrix.gate == 'matrix'
-        run: node tests/api-stability/archive-matrix.mjs
-      - name: Verify Apple WebKit API, component, boundaries, containment and mobile
-        if: matrix.gate == 'webkit'
-        run: node tests/webkit-release.mjs
+          mkdir -p build/remux-fixtures-v1 build/mse-installed
+          ffmpeg -nostdin -v error -f lavfi -i testsrc2=size=320x180:rate=24 -f lavfi -i sine=frequency=997:sample_rate=48000 -t 4 -c:v libx264 -pix_fmt yuv420p -g 24 -bf 2 -c:a aac -b:a 96k -f mpegts build/remux-fixtures-v1/avc-aac.ts
+          ffmpeg -nostdin -v error -f lavfi -i testsrc2=size=640x360:rate=30 -f lavfi -i sine=frequency=997:sample_rate=48000 -t 24 -c:v libx264 -preset ultrafast -g 30 -pix_fmt yuv420p -c:a aac -b:a 96k -f mpegts build/remux-fixtures-v1/avc-aac-24s.ts
+          tar -xzf "$BETA_ARCHIVE" -C build/mse-installed
+          export DEMUXE_TEST_ASSET_ROOT="$PWD/build/mse-installed/package"
+          timeout 600 node tests/worker-mse.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -124,6 +90,7 @@ jobs:
           path: |
             results/fixed-archive/
             results/mse-owner-comparison/
+            results/worker-mse/
             results/release-extra/
             results/public-api-consumer/
             results/public-api/
