@@ -11,7 +11,18 @@ const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,P
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
  browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});
- const page=await browser.newPage();await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
+ const page=await browser.newPage();
+ // Observe real page-realm worker creation and retirement. Nested pthread
+ // termination is checked separately with heartbeat-based containment tests.
+ await page.addInitScript(()=>{
+  const OriginalWorker=globalThis.Worker,active=new Set();
+  globalThis.Worker=class extends OriginalWorker {
+   constructor(...args){super(...args);active.add(this);}
+   terminate(){try{return super.terminate();}finally{active.delete(this);}}
+  };
+  globalThis.previewWorkerCount=()=>active.size;
+ });
+ await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');await page.waitForFunction(()=>window.player);
  const result=await page.evaluate(async ({fixture,codec})=>{
   await window.player.destroy();const {Player,SoftwarePreviewProvider}=await import('/web/generated/index.js');
   const p=new Player(document.querySelector('#surface'),{mode:'software',automaticSelection:false,preview:{debounceMs:5}});
@@ -21,7 +32,7 @@ try{
   // for that codec; FFV1 exercises the accepted-engine production provider.
   if(codec==='hevc')p.preview.setProviders([new SoftwarePreviewProvider(()=>previewInput,document,new URL('/',location.href))]);
   let seeks=0,errors=0;p.addEventListener('seeking',()=>seeks++);p.addEventListener('error',()=>errors++);
-  const before={time:p.state.currentTime,intent:p.state.playbackIntent},owners=document.querySelectorAll('iframe').length;
+  const before={time:p.state.currentTime,intent:p.state.playbackIntent},workers=previewWorkerCount();
   const frame=await p.preview.getFrame({time:2.2,width:160});if(!frame)throw Error(JSON.stringify(p.preview.diagnostics));
   const after={time:p.state.currentTime,intent:p.state.playbackIntent};
   const bitmap=await createImageBitmap(frame.image.blob),canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);bitmap.close();const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;const nonblack=pixels.some((v,i)=>i%4!==3&&v>100);
@@ -34,29 +45,29 @@ try{
   const buffering=value=>{const backend=p.current.backend;backend.properties.set('paused-for-cache',value);backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'paused-for-cache',data:value}}));};
   // Let the reusable production child retire, then begin fresh decoder work.
   const idleDeadline=performance.now()+7000;
-  while(document.querySelectorAll('iframe').length>owners&&performance.now()<idleDeadline)await new Promise(r=>setTimeout(r,10));
-  if(document.querySelectorAll('iframe').length!==owners)throw Error('Idle preview worker did not retire');
+  while(previewWorkerCount()>workers&&performance.now()<idleDeadline)await new Promise(r=>setTimeout(r,10));
+  if(previewWorkerCount()!==workers)throw Error('Idle preview worker did not retire');
   // Buffering must preempt previews regardless of the playback admission policy.
   const pressureRequest=p.preview.getFrame({time:0}).catch(e=>e.name);
   const deadline=performance.now()+5000;
-  while(document.querySelectorAll('iframe').length===owners&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
-  if(document.querySelectorAll('iframe').length===owners)throw Error('Preview worker did not start: '+JSON.stringify({preview:p.preview.diagnostics,state:p.state,result:await pressureRequest}));
+  while(previewWorkerCount()===workers&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
+  if(previewWorkerCount()===workers)throw Error('Preview worker did not start: '+JSON.stringify({preview:p.preview.diagnostics,state:p.state,result:await pressureRequest}));
   await p.play();buffering(true);const preempted=await pressureRequest;
   const cleanupDeadline=performance.now()+5000;
-  while(document.querySelectorAll('iframe').length>owners&&performance.now()<cleanupDeadline)await new Promise(r=>setTimeout(r,10));
+  while(previewWorkerCount()>workers&&performance.now()<cleanupDeadline)await new Promise(r=>setTimeout(r,10));
   const blocked=await p.preview.getFrame({time:5}),cachedDuringBuffering=await p.preview.getFrame({time:2,width:160});
-  const ownersDuringBuffering=document.querySelectorAll('iframe').length;
+  const workersDuringBuffering=previewWorkerCount();
   buffering(false);await p.pause();const resumed=await p.preview.getFrame({time:0});
   const retiredDeadline=performance.now()+7000;
-  while(document.querySelectorAll('iframe').length>owners&&performance.now()<retiredDeadline)await new Promise(r=>setTimeout(r,10));
-  const leakedOwners=document.querySelectorAll('iframe').length-owners;
+  while(previewWorkerCount()>workers&&performance.now()<retiredDeadline)await new Promise(r=>setTimeout(r,10));
+  const leakedWorkers=previewWorkerCount()-workers;
   await p.open(file);const invalidated=p.preview.diagnostics.cacheEntries===0;
   const remote={url:new URL('/'+fixture,location.href).href,immutable:true};await p.openRemote(remote);previewInput={remote};const remoteFrame=await p.preview.getFrame({time:2,width:160});
   const pending=p.preview.getFrame({time:3}).catch(e=>e.name);await new Promise(r=>setTimeout(r,50));await p.destroy();await pending;
-  return {preempted,blocked,bufferingHit:cachedDuringBuffering?.cache,ownersDuringBuffering,owners,resumed:!!resumed,remotePath:remoteFrame?.path,before,after,path:frame.path,time:frame.time,actualTime:frame.actualTime,accuracy:frame.temporalAccuracy,dimensions:[frame.width,frame.height],nonblack,cache:hit.cache,cancelled,aborted,latest:latest?.time,advanced,seeks,errors,leakedOwners,invalidated,ownersAfterDestroy:document.querySelectorAll('iframe').length,latencyMs:frame.metrics.totalMs};
+  return {preempted,blocked,bufferingHit:cachedDuringBuffering?.cache,workersDuringBuffering,workers,resumed:!!resumed,remotePath:remoteFrame?.path,before,after,path:frame.path,time:frame.time,actualTime:frame.actualTime,accuracy:frame.temporalAccuracy,dimensions:[frame.width,frame.height],nonblack,cache:hit.cache,cancelled,aborted,latest:latest?.time,advanced,seeks,errors,leakedWorkers,invalidated,workersAfterDestroy:previewWorkerCount(),latencyMs:frame.metrics.totalMs};
  },{fixture,codec});
- assert.equal(result.preempted,'AbortError');assert.equal(result.blocked,null);assert.equal(result.bufferingHit,'hit');assert.equal(result.ownersDuringBuffering,result.owners);assert.equal(result.resumed,true);
- assert.deepEqual(result.before,result.after);assert.equal(result.remotePath,codec==='hevc'?'software':'software-pthread');if(codec==='ffv1')assert.equal(result.path,'software-pthread');assert.equal(result.nonblack,true);assert.deepEqual(result.dimensions,[160,90]);assert.equal(result.cache,'hit');assert.equal(result.cancelled,'AbortError');assert.equal(result.aborted,'AbortError');assert.ok(Math.abs(result.time-2)<.2);assert.ok(Math.abs(result.latest-4)<.2);assert.equal(result.actualTime,null);assert.equal(result.accuracy,'approximate');assert.equal(result.advanced,true);assert.equal(result.seeks,0);assert.equal(result.errors,0);assert.equal(result.leakedOwners,0);assert.equal(result.invalidated,true);assert.equal(result.ownersAfterDestroy,0);
+ assert.equal(result.preempted,'AbortError');assert.equal(result.blocked,null);assert.equal(result.bufferingHit,'hit');assert.equal(result.workersDuringBuffering,result.workers);assert.equal(result.resumed,true);
+ assert.deepEqual(result.before,result.after);assert.equal(result.remotePath,codec==='hevc'?'software':'software-pthread');if(codec==='ffv1')assert.equal(result.path,'software-pthread');assert.equal(result.nonblack,true);assert.deepEqual(result.dimensions,[160,90]);assert.equal(result.cache,'hit');assert.equal(result.cancelled,'AbortError');assert.equal(result.aborted,'AbortError');assert.ok(Math.abs(result.time-2)<.2);assert.ok(Math.abs(result.latest-4)<.2);assert.equal(result.actualTime,null);assert.equal(result.accuracy,'approximate');assert.equal(result.advanced,true);assert.equal(result.seeks,0);assert.equal(result.errors,0);assert.equal(result.leakedWorkers,0);assert.equal(result.invalidated,true);assert.equal(result.workersAfterDestroy,0);
  // An idle primary player tears down quickly; its destroy promise must still
  // join a software preview that has just started allocating its worker tree.
  const teardown=await page.evaluate(async fixture=>{
@@ -65,9 +76,9 @@ try{
   const file=new File([await(await fetch('/'+fixture)).blob()],'teardown.mkv');
   p.preview.setProviders([new SoftwarePreviewProvider(()=>({file}),document,new URL('/',location.href))]);
   const work=p.preview.getFrame({time:2}).catch(e=>e.name),deadline=performance.now()+5000;
-  while(!document.querySelector('iframe')&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
-  if(!document.querySelector('iframe'))throw Error('Preview owner did not start');
-  await p.destroy();const owners=document.querySelectorAll('iframe').length;await work;return owners;
+  while(previewWorkerCount()===0&&performance.now()<deadline)await new Promise(r=>setTimeout(r,1));
+  if(previewWorkerCount()===0)throw Error('Preview worker did not start');
+  await p.destroy();const workers=previewWorkerCount();await work;return workers;
  },fixture);assert.equal(teardown,0);
  await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async fixture=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/'+fixture)).blob()],'hover.mkv'));},fixture);
