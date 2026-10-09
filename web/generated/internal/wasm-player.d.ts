@@ -91,6 +91,8 @@ export declare class WasmPlayer extends EventTarget {
     private destruction?;
     private onDestroyed?;
     private readyTimer?;
+    private cancelOwnerLoad?;
+    private pendingResize?;
     private rejectReady?;
     private eventWaiters;
     private refreshAuthorization?;
