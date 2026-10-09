@@ -202,6 +202,8 @@ jobs:
         with:
           name: qualified-release
           path: build/release
+      - name: Generate the browser API fixtures
+        run: node tests/api-stability/fixtures.mjs
       - name: Qualify Apple WebKit against the exact installed release archive
         run: |
           export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
