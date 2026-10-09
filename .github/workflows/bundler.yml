@@ -68,6 +68,19 @@ jobs:
           } finally {await runtime.cleanup();}
           JS
           node tests/api-stability/fixtures.mjs
+      - name: Preflight the installed mobile player before the full matrix
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {spawnSync} from 'node:child_process';
+          import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
+          const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
+          try {
+            const result=spawnSync(process.execPath,['tests/player-mobile.mjs'],{env:{...process.env,BROWSER:'webkit',DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
+            assert.equal(result.status,0);
+          } finally {await runtime.cleanup();}
+          JS
       - name: Verify all menu layouts against the installed archive
         if: matrix.os == 'ubuntu-24.04'
         run: |
