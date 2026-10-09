@@ -6,19 +6,22 @@ permissions:
   contents: read
   actions: read
 jobs:
-  component-replay:
+  menu-replay:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        repeat: [1, 2, 3]
+        browser: [chrome, firefox, webkit]
     env:
-      BROWSER: chromium
+      BROWSER: ${{ matrix.browser }}
       DEBUG: pw:browser
     steps:
       - uses: actions/checkout@v4
-      - run: cp tests/player-component.mjs "$RUNNER_TEMP/component-diagnostic.mjs"
+      - run: |
+          mkdir "$RUNNER_TEMP/menu-diagnostic"
+          cp tests/player-menu-review.mjs web/generated/player/index.js "$RUNNER_TEMP/menu-diagnostic/"
+          git rev-parse HEAD > "$RUNNER_TEMP/menu-diagnostic/harness-commit.txt"
       - uses: actions/checkout@v4
         with:
           ref: 516debbb34f469c0ccc7f3e230d7c5d3dcfb089f
@@ -27,7 +30,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
+      - run: |
+          if [ "$BROWSER" = chrome ]; then npx playwright install --with-deps chrome chromium; else npx playwright install --with-deps "$BROWSER"; fi
       - run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
@@ -36,25 +40,35 @@ jobs:
         with:
           name: unqualified-runtime-debug
           path: build/diagnostic-runtime
-          run-id: 37897612923
+          run-id: 37907372451
           github-token: ${{ github.token }}
-      - name: Verify and install the exact failed release archive
+      - name: Verify exact failed archive and preserve overlay identities
         run: |
-          echo '3535aa9e63e25965f0216249be217d5cbafb5d8fa3b77c190939576ef9f4bff2  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
-          mkdir -p build/diagnostic-consumer results/component-diagnostic
+          echo '64296b5b94d9462c3be6779a58aad6a19a0ecda45b72ac119336b0a2f6076128  build/diagnostic-runtime/demuxe-1.1.1.tgz' | sha256sum -c -
+          mkdir -p build/diagnostic-consumer results/menu-diagnostic
           npm install --prefix build/diagnostic-consumer --offline --ignore-scripts --no-audit --no-fund "$PWD/build/diagnostic-runtime/demuxe-1.1.1.tgz"
           echo "DEMUXE_RUNTIME_ROOT=$PWD/build/diagnostic-consumer/node_modules/demuxe" >> "$GITHUB_ENV"
-          python3 experiments/optimization-integration/fixtures.py
-          sha256sum build/diagnostic-runtime/demuxe-1.1.1.tgz tests/player-component.mjs > results/component-diagnostic/identities.txt
-      - name: Replay original component checks with browser stderr
+          cp "$RUNNER_TEMP/menu-diagnostic/"* results/menu-diagnostic/
+          cp "$RUNNER_TEMP/menu-diagnostic/player-menu-review.mjs" tests/player-menu-review.mjs
+          sha256sum build/diagnostic-runtime/demuxe-1.1.1.tgz build/diagnostic-consumer/node_modules/demuxe/web/generated/player/index.js results/menu-diagnostic/index.js tests/player-menu-review.mjs > results/menu-diagnostic/identities.txt
+      - name: Negative control must reproduce mobile Escape focus failure
         run: |
+          set +e
+          node tests/player-menu-review.mjs > results/menu-diagnostic/negative-control.log 2>&1
+          diagnostic_status=$?
+          set -e
+          test "$diagnostic_status" -ne 0
+          grep -F 'Escape restores focus to a visible diagnostics entry point' results/menu-diagnostic/negative-control.log
+          cp -r results/player-menu-review results/menu-diagnostic/negative-control-receipts
+      - name: Verify desktop and mobile menus with the recorded focus overlay
+        run: |
+          cp "$RUNNER_TEMP/menu-diagnostic/index.js" "$DEMUXE_RUNTIME_ROOT/web/generated/player/index.js"
           set -o pipefail
-          cp "$RUNNER_TEMP/component-diagnostic.mjs" tests/player-component.mjs
-          node tests/player-component.mjs 2>&1 | tee results/component-diagnostic/browser.log
+          node tests/player-menu-review.mjs 2>&1 | tee results/menu-diagnostic/positive.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: component-chromium-worker-${{ matrix.repeat }}
+          name: menu-focus-${{ matrix.browser }}
           path: |
-            results/component-diagnostic/
-            results/player-component/
+            results/menu-diagnostic/
+            results/player-menu-review/

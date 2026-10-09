@@ -1,31 +1,53 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox,webkit} from 'playwright';
 import {spawn} from 'node:child_process';
+import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+const out=`results/player-menu-review/${new Date().toISOString().replaceAll(':','-')}`;
+await mkdir(out,{recursive:true});
+const report={checks:[],passed:false};
+const save=()=>writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
  for(const [name,type] of [['chrome',chromium],['firefox',firefox],['webkit',webkit]]){
-  const browser=await type.launch({headless:true,...(name==='chrome'?{channel:'chrome'}:{})});
-  try{
-   const page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(String(e)));
-   await page.goto(origin);await page.waitForFunction(()=>window.player);const v=page.locator('demuxe-player');
-   await v.locator('#open-menu').click();assert.ok(await v.locator('#source-options').isVisible());assert.ok(await v.locator('#subtitleFile').isVisible());
-   await v.locator('#settings-toggle').click();assert.ok(await v.locator('#playback-options').isVisible());assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');
-   await v.locator('#open-menu').click();assert.ok(await v.locator('#source-options').isVisible());await page.keyboard.press('Escape');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'open-menu');
-   await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
-   // The demo autoplays; pin the clock to test that End scrolls without seeking.
-   await page.evaluate(async()=>{await player.pause();await player.seek(0);});
-   await page.setViewportSize({width:390,height:390});
-   await v.locator('#diagnostics-toggle').click();const stats=v.locator('#diagnostics-overlay');await stats.waitFor({state:'visible'});await page.waitForTimeout(300);assert.equal(await stats.getAttribute('role'),'region');
-   const sizes=await stats.evaluate(el=>({height:el.clientHeight,scroll:el.scrollHeight}));assert.ok(sizes.scroll>sizes.height);
-   await stats.hover();await page.mouse.wheel(0,500);await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay').scrollTop>0);
-   await stats.focus();await page.keyboard.press('End');assert.equal(await page.evaluate(()=>player.state.currentTime),0);assert.ok(await stats.isVisible());
-   await page.keyboard.press('Escape');await stats.waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');
-   await v.locator('#diagnostics-toggle').click();await v.locator('#open-menu').click();await v.evaluate(el=>el.controls=false);
-   await stats.waitFor({state:'hidden'});await v.locator('#settings').waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');
-   await v.evaluate(el=>el.controls=true);await v.locator('#open-menu').click();assert.ok(await v.locator('#source-options').isVisible());assert.deepEqual(errors,[]);await v.evaluate(el=>el.destroy());
-   console.log(`PASS ${name}: explicit menu triggers, menu switching, controls cleanup, scrollable diagnostics`);
-  }finally{await browser.close();}
+  if(process.env.BROWSER&&process.env.BROWSER!==name)continue;
+  const browser=await type.launch({headless:true,...(name==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{})});
+  try{for(const mode of ['desktop','mobile']){
+   const page=await browser.newPage({viewport:{width:mode==='mobile'?390:1280,height:844}}),errors=[];
+   page.on('pageerror',e=>errors.push(String(e)));
+   const row={family:name,browser:browser.version(),mode,phase:'open',passed:false};report.checks.push(row);await save();
+   const v=page.locator('demuxe-player'),stats=v.locator('#diagnostics-overlay');
+   const openSource=async()=>{if(mode==='mobile'){await v.locator('#settings-toggle').click();await v.locator('#settings-source').click();}else await v.locator('#open-menu').click();};
+   const openDiagnostics=async()=>{if(mode==='mobile'){await v.locator('#settings-toggle').click();await v.locator('#settings-diagnostics').click();}else await v.locator('#diagnostics-toggle').click();};
+   try{
+    await page.goto(origin);await page.waitForFunction(()=>window.player);
+    assert.equal(await v.locator('#open-menu').isVisible(),mode==='desktop');
+    assert.equal(await v.locator('#diagnostics-toggle').isVisible(),mode==='desktop');
+    await openSource();assert.ok(await v.locator('#source-options').isVisible());assert.ok(await v.locator('#subtitleFile').isVisible());
+    assert.equal(await v.locator('#settings').evaluate(el=>el.matches(':modal')),mode==='mobile');
+    if(mode==='mobile')await page.keyboard.press('Escape');
+    await v.locator('#settings-toggle').click();assert.ok(await v.locator('#playback-options').isVisible());assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');
+    if(mode==='mobile')await v.locator('#settings-source').click();else await v.locator('#open-menu').click();
+    assert.ok(await v.locator('#source-options').isVisible());await page.keyboard.press('Escape');
+    assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),mode==='mobile'?'settings-toggle':'open-menu');
+    row.phase='load';await save();await openSource();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+    // Pin playback so End tests scrolling independently of the media clock.
+    await page.evaluate(async()=>{await player.pause();await player.seek(0);});
+    await page.setViewportSize({width:mode==='mobile'?390:1280,height:390});
+    row.phase='diagnostics';await save();await openDiagnostics();await stats.waitFor({state:'visible'});assert.equal(await stats.getAttribute('role'),'region');
+    await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay');return el.scrollHeight>el.clientHeight;});
+    await stats.hover();await page.mouse.wheel(0,500);await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay').scrollTop>0);
+    await stats.focus();await page.keyboard.press('End');assert.equal(await page.evaluate(()=>player.state.currentTime),0);assert.ok(await stats.isVisible());
+    await page.keyboard.press('Escape');await stats.waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');
+    assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),mode==='mobile'?'settings-toggle':'diagnostics-toggle','Escape restores focus to a visible diagnostics entry point');
+    row.phase='controls cleanup';await save();await openDiagnostics();await openSource();await v.evaluate(el=>el.controls=false);
+    await stats.waitFor({state:'hidden'});await v.locator('#settings').waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),'stage');
+    await v.evaluate(el=>el.controls=true);await openSource();assert.ok(await v.locator('#source-options').isVisible());assert.deepEqual(errors,[]);
+    row.passed=true;console.log(`PASS ${name} ${mode}: menu entry points, switching, Escape focus, controls cleanup, scrollable diagnostics`);
+   }catch(error){row.error=String(error.stack);throw error;}
+   finally{let timer;try{await Promise.race([v.evaluate(el=>el.destroy()),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Player cleanup deadline exceeded')),15000);})]);}catch(error){row.cleanupError=String(error.stack);row.passed=false;throw error;}finally{clearTimeout(timer);await page.close();await save();}}
+  }}finally{await browser.close();}
  }
-}finally{server.kill();}
+ assert.ok(report.checks.length>0,'At least one browser must be qualified');report.passed=report.checks.every(row=>row.passed);
+}finally{server.kill();await save();console.log(out);}
