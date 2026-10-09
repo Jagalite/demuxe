@@ -205,6 +205,7 @@ try{
  assert.equal(await page.evaluate(()=>$('error').hidden),true);
  await page.evaluate(async()=>{viewer.setPlaybackRate=originalRate;viewer.player.open=originalOpen;await viewer.pause();});
  await page.keyboard.press('Escape');
+ await page.locator('#viewer #settings').waitFor({state:'hidden'});
  assert.equal(await page.evaluate(()=>$('error').parentElement===$('shell')&&$('status').parentElement===$('shell')),true);
  console.log('PASS rejected settings operations show an accessible message and clickable Retry inside the modal; closing restores overlay ownership');
 

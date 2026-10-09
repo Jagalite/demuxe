@@ -13,7 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: macos-15, trial: tracks-stress}
+          - {os: ubuntu-24.04, trial: linux}
+          - {os: macos-15, trial: mac-current}
     steps:
       - uses: actions/checkout@v4
       - run: |
@@ -67,24 +68,25 @@ jobs:
           } finally {await runtime.cleanup();}
           JS
           node tests/api-stability/fixtures.mjs
-      - name: Stress the previously aborted source-scoped track transition
+      - name: Verify all menu layouts against the installed archive
+        if: matrix.os == 'ubuntu-24.04'
         run: |
-          python3 - <<'PYTEST'
-          from pathlib import Path
-          p=Path('tests/public-api.mjs')
-          s=p.read_text().replace('try{await fn();result.checks.push','try{for(let trial=0;trial<20;trial++){console.log("TRACK TRANSITION TRIAL",trial+1);await fn();}result.checks.push')
-          p.write_text(s)
-          PYTEST
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {spawnSync} from 'node:child_process';
           import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
           const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
           try {
-            const result=spawnSync(process.execPath,['tests/public-api.mjs'],{env:{...process.env,BROWSER:'webkit',ONLY:'stable source-scoped tracks',DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
+            const result=spawnSync(process.execPath,['tests/player-menu-review.mjs'],{env:{...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:'inherit',timeout:600000});
             assert.equal(result.status,0);
           } finally {await runtime.cleanup();}
           JS
+      - name: Verify the complete installed API and mobile matrix
+        if: matrix.os == 'ubuntu-24.04'
+        run: node tests/api-stability/archive-matrix.mjs
+      - name: Verify the installed Apple WebKit release gate
+        if: matrix.os == 'macos-15'
+        run: node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
