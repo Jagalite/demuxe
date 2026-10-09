@@ -182,9 +182,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox]
+        include:
+          - {browser: chromium, case: default}
+          - {browser: chromium, case: null-sink}
+          - {browser: chromium, case: extended-budget}
+          - {browser: firefox, case: default}
     env:
       BROWSER: ${{ matrix.browser }}
+      DIAGNOSTIC_CASE: ${{ matrix.case }}
       BUNDLE_SOURCE_CANDIDATE: '1'
       BUNDLE_INVENTORY_SHA256: ${{ inputs.inventory_sha256 }}
       DEMUXE_RUNTIME_ROOT: build/bundle-flexibility/ci-assets/assets
@@ -210,6 +215,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
           pulseaudio --start --exit-idle-time=-1
+          pactl info
+          pactl list short sinks
+          if [[ "$DIAGNOSTIC_CASE" == "null-sink" ]]; then
+            for module in $(pactl list short modules | awk '$2 == "module-suspend-on-idle" {print $1}'); do pactl unload-module "$module"; done
+            pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2
+            pactl set-default-sink demuxe_ci
+            pactl list short sinks
+          fi
       - uses: actions/download-artifact@v4
         with:
           name: source-provider-browser-inputs
@@ -221,11 +234,14 @@ jobs:
       - name: Replay exact sequences with diagnostic harness
         run: |
           cp "$RUNNER_TEMP/runtime-policy-browser.mjs" tests/buffering/runtime-policy-browser.mjs
+          if [[ "$DIAGNOSTIC_CASE" == "extended-budget" ]]; then
+            node --input-type=module -e 'import fs from "node:fs"; const file=process.env.DEMUXE_RUNTIME_ROOT+"/web/generated/internal/machine/playback-deadlines.js"; const before=fs.readFileSync(file,"utf8"); if (!before.includes("NATIVE_OUTPUT_TIMEOUT_MS = 2000")) throw Error("Unexpected output budget"); fs.writeFileSync(file,before.replace("NATIVE_OUTPUT_TIMEOUT_MS = 2000","NATIVE_OUTPUT_TIMEOUT_MS = 10000"));'
+          fi
           node tests/api-stability/browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sequence-diagnosis-${{ matrix.browser }}
+          name: sequence-diagnosis-${{ matrix.browser }}-${{ matrix.case }}
           path: |
             results/api-stability/scenarios/
             build/bundle-ci-consumer/candidate-admission.json
