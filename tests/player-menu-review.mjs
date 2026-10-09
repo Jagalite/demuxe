@@ -36,6 +36,8 @@ try{
     await page.evaluate(async()=>{await player.pause();await player.seek(0);});
     await page.setViewportSize({width:mode==='mobile'?390:1280,height:390});
     row.phase='diagnostics';await save();await openDiagnostics();await stats.waitFor({state:'visible'});assert.equal(await stats.getAttribute('role'),'region');
+    // Native may report few fields; constrain the real panel to exercise overflow in both presentations.
+    await stats.evaluate(el=>el.style.maxHeight='64px');
     await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay');return el.scrollHeight>el.clientHeight;});
     await stats.hover();await page.mouse.wheel(0,500);await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('diagnostics-overlay').scrollTop>0);
     await stats.focus();await page.keyboard.press('End');assert.equal(await page.evaluate(()=>player.state.currentTime),0);assert.ok(await stats.isVisible());
@@ -45,7 +47,7 @@ try{
     await stats.waitFor({state:'hidden'});await v.locator('#settings').waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),'stage');
     await v.evaluate(el=>el.controls=true);await openSource();assert.ok(await v.locator('#source-options').isVisible());assert.deepEqual(errors,[]);
     row.passed=true;console.log(`PASS ${name} ${mode}: menu entry points, switching, Escape focus, controls cleanup, scrollable diagnostics`);
-   }catch(error){row.error=String(error.stack);throw error;}
+   }catch(error){row.error=String(error.stack);row.snapshot=await v.evaluate(el=>{const s=el.shadowRoot,d=s.getElementById('diagnostics-overlay');return {focus:s.activeElement?.id,diagnostics:{text:d.textContent,height:d.clientHeight,scroll:d.scrollHeight},controls:el.controls};}).catch(()=>null);throw error;}
    finally{let timer;try{await Promise.race([v.evaluate(el=>el.destroy()),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Player cleanup deadline exceeded')),15000);})]);}catch(error){row.cleanupError=String(error.stack);row.passed=false;throw error;}finally{clearTimeout(timer);await page.close();await save();}}
   }}finally{await browser.close();}
  }
