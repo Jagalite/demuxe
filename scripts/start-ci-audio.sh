@@ -17,7 +17,7 @@ done <<< "$audio_modules"
 
 audio_sinks=$(pactl list short sinks)
 if ! awk '$2 == "demuxe_ci" {found=1} END {exit !found}' <<< "$audio_sinks"; then
-  pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2
+  pactl load-module module-null-sink sink_name=demuxe_ci rate=48000 channels=2 norewinds=1
 fi
 pactl set-default-sink demuxe_ci
 pactl info

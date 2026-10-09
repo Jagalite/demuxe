@@ -79,7 +79,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
-          pulseaudio --start --exit-idle-time=-1
+          bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
         with:
           name: source-provider-browser-inputs
@@ -129,12 +129,16 @@ jobs:
           [[ "$SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
           [[ "$BUNDLE_INVENTORY_SHA256" =~ ^[a-f0-9]{64}$ ]]
           cp scripts/prepare-bundle-ci.mjs "$RUNNER_TEMP/prepare-bundle-ci.mjs"
+          cp scripts/start-ci-audio.sh "$RUNNER_TEMP/start-ci-audio.sh"
           git rev-parse HEAD > "$RUNNER_TEMP/bundle-harness-commit.txt"
       - uses: actions/checkout@v4
         if: inputs.source_run
         with:
           ref: ${{ inputs.source_commit }}
           persist-credentials: false
+      - name: Restore recorded CI audio harness
+        if: inputs.source_run
+        run: cp "$RUNNER_TEMP/start-ci-audio.sh" scripts/start-ci-audio.sh
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -145,7 +149,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
-          pulseaudio --start --exit-idle-time=-1
+          bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
         with:
           name: source-provider-browser-inputs
@@ -215,6 +219,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
+          bash "$RUNNER_TEMP/start-ci-audio.sh"
           bash "$RUNNER_TEMP/start-ci-audio.sh"
       - uses: actions/download-artifact@v4
         with:
