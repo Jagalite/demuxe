@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [webkit]
-        arm: [trace, yield]
+        arm: [trace, cancel-ack]
     env:
       BROWSER: ${{ matrix.browser }}
       OWNER_ARM: ${{ matrix.arm }}
@@ -55,10 +55,13 @@ jobs:
           import os,pathlib
           root=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT']);file=root/'web/filter-retained-engine-worker.js';text=file.read_text()
           text=text.replace('await cleanAsync(closeIO);',"console.log('WORKER_STAGE', 'io-start',performance.now());await cleanAsync(closeIO);console.log('WORKER_STAGE','io-done',performance.now());")
-          text=text.replace('clean(()=>engine?._web_destroy());',"console.log('WORKER_STAGE','native-start',performance.now());clean(()=>engine?._web_destroy());console.log('WORKER_STAGE','native-done',performance.now());")
+          text=text.replace('clean(()=>engine?._web_destroy());',"console.log('WORKER_STAGE','native-start',performance.now(),JSON.stringify(Array.from(new Int32Array(engine.HEAPU8.buffer,engine._web_decoder_ptr(),4))));clean(()=>engine?._web_destroy());console.log('WORKER_STAGE','native-done',performance.now(),JSON.stringify(Array.from(new Int32Array(engine.HEAPU8.buffer,engine._web_decoder_ptr(),4))));")
           text=text.replace('clean(()=>engine?.PThread.terminateAllThreads());',"console.log('WORKER_STAGE','threads-done',performance.now());clean(()=>engine?.PThread.terminateAllThreads());")
           file.write_text(text)
-          if os.environ['OWNER_ARM']=='yield':
+          if os.environ['OWNER_ARM']=='cancel-ack':
+            file=root/'web/retained-decoder-worker.js';text=file.read_text().replace("postMessage({stats:{...stats,outstanding:0,queued:0,active:false}});","postMessage({stats:{...stats,outstanding:0,queued:0,active:false}});postMessage({type:'cancelled'});");file.write_text(text)
+            file=root/'web/filter-retained-engine-worker.js';text=file.read_text().replace("clean(()=>decoderWorker?.postMessage({type:'cancel'}));","await cleanAsync(()=>decoderWorker?new Promise((resolve,reject)=>{const worker=decoderWorker;let timer;const cancelled=({data})=>{if(data.type!=='cancelled')return;clearTimeout(timer);worker.removeEventListener('message',cancelled);console.log('WORKER_STAGE','decoder-cancelled',performance.now());resolve();};worker.addEventListener('message',cancelled);timer=setTimeout(()=>{worker.removeEventListener('message',cancelled);reject(Error('Decoder cancellation timed out'));},2000);worker.postMessage({type:'cancel'});}):undefined);");file.write_text(text)
+          if False:
             file=root/'web/io-worker.js';text=file.read_text();text=text.replace('if((state&7)===1)continue;',"if((state&7)===1){await new Promise(resolve=>setTimeout(resolve,0));continue;}");file.write_text(text)
           TRACE
           node tests/api-stability/fixtures.mjs
@@ -77,7 +80,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: webkit-stage-${{ matrix.arm }}
+          name: decoder-close-${{ matrix.arm }}
           path: |
             results/worker-owner/
             results/public-api/
