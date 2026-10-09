@@ -12,23 +12,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cleanup: ['0', '1']
+        repeat: [1, 2, 3]
     env:
-      BROWSER: firefox
+      BROWSER: chromium
       DEBUG: pw:browser
-      NAV_CLEANUP: ${{ matrix.cleanup }}
     steps:
       - uses: actions/checkout@v4
-      - run: cp tests/component-navigation-diagnostic.mjs "$RUNNER_TEMP/"
+      - run: cp tests/player-component.mjs "$RUNNER_TEMP/component-diagnostic.mjs"
       - uses: actions/checkout@v4
         with:
-          ref: bea9b234e1a0ea13b77db7906b097e504545eb7e
+          ref: 516debbb34f469c0ccc7f3e230d7c5d3dcfb089f
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps firefox
+      - run: npx playwright install --with-deps chromium
       - run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg pulseaudio
@@ -50,12 +49,12 @@ jobs:
       - name: Replay original component checks with browser stderr
         run: |
           set -o pipefail
-          cp "$RUNNER_TEMP/component-navigation-diagnostic.mjs" tests/
-          node tests/component-navigation-diagnostic.mjs 2>&1 | tee results/component-diagnostic/browser.log
+          cp "$RUNNER_TEMP/component-diagnostic.mjs" tests/player-component.mjs
+          node tests/player-component.mjs 2>&1 | tee results/component-diagnostic/browser.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: component-navigation-${{ matrix.cleanup }}
+          name: component-chromium-worker-${{ matrix.repeat }}
           path: |
             results/component-diagnostic/
-            results/component-navigation/
+            results/player-component/
