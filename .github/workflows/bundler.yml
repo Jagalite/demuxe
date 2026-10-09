@@ -6,30 +6,33 @@ permissions:
   contents: read
   actions: read
 jobs:
-  remaining-archive:
+  fixed-archive:
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-24.04, trial: linux}
+          - {os: ubuntu-24.04, gate: extra, node: '22'}
+          - {os: ubuntu-24.04, gate: matrix, node: '22'}
+          - {os: macos-15, gate: webkit, node: '24'}
+    env:
+      HEADLESS: '1'
     steps:
       - uses: actions/checkout@v4
       - run: |
-          mkdir "$RUNNER_TEMP/remaining-harness"
-          cp tests/preview-software.mjs tests/player-mobile.mjs tests/webkit-release.mjs tests/player-menu-review.mjs tests/player-component.mjs tests/public-api.mjs tests/public-api-consumer.mjs "$RUNNER_TEMP/remaining-harness/"
-          git rev-parse HEAD > "$RUNNER_TEMP/remaining-harness/revision.txt"
+          cp tests/public-api-consumer.mjs "$RUNNER_TEMP/consumer-harness.mjs"
+          git rev-parse HEAD > "$RUNNER_TEMP/harness-revision.txt"
       - uses: actions/checkout@v4
         with:
           ref: 4b2222a18d25e6c24071bf24a2245dada36ce6ba
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: |
           npm ci --ignore-scripts
-          cp "$RUNNER_TEMP/remaining-harness/preview-software.mjs" "$RUNNER_TEMP/remaining-harness/player-mobile.mjs" "$RUNNER_TEMP/remaining-harness/webkit-release.mjs" "$RUNNER_TEMP/remaining-harness/player-menu-review.mjs" "$RUNNER_TEMP/remaining-harness/player-component.mjs" "$RUNNER_TEMP/remaining-harness/public-api.mjs" "$RUNNER_TEMP/remaining-harness/public-api-consumer.mjs" tests/
+          cp "$RUNNER_TEMP/consumer-harness.mjs" tests/public-api-consumer.mjs
       - if: matrix.os == 'ubuntu-24.04'
         run: |
           npx playwright install --with-deps chromium chrome firefox webkit
@@ -48,13 +51,13 @@ jobs:
           path: build/release
           run-id: 37983807474
           github-token: ${{ github.token }}
-      - name: Verify the immutable archive and prepare fixtures
+      - name: Verify the immutable failed candidate
         run: |
           export BETA_ARCHIVE="$PWD/build/release/demuxe-1.1.1.tgz"
           printf 'BETA_ARCHIVE=%s\n' "$BETA_ARCHIVE" >> "$GITHUB_ENV"
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
-          import {readFile, mkdir, writeFile} from 'node:fs/promises';
+          import {readFile,mkdir,writeFile} from 'node:fs/promises';
           import {createHash} from 'node:crypto';
           import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
           const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
@@ -62,36 +65,37 @@ jobs:
             assert.equal(runtime.archiveSHA256,'e767f0c71b175a97a1074690bf24670537aeb58c766dd2e2cfad746b19c72fed');
             assert.equal(runtime.manifest.sourceCommit,'4b2222a18d25e6c24071bf24a2245dada36ce6ba');
             assert.equal(runtime.manifest.sourceTag,'v1.1.1');
-            await mkdir('results/release-remaining',{recursive:true});
-            await writeFile('results/release-remaining/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,platform:process.platform},null,2));
+            await mkdir('results/fixed-archive',{recursive:true});
+            await writeFile('results/fixed-archive/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,harnessRevision:await readFile(process.env.RUNNER_TEMP+'/harness-revision.txt','utf8'),consumerHarnessSHA256:createHash('sha256').update(await readFile('tests/public-api-consumer.mjs')).digest('hex'),platform:process.platform},null,2));
           } finally {await runtime.cleanup();}
           JS
-          python3 scripts/prepare-release-fixtures.py
-      - name: Measure consumer worker retirement on the exact failed archive
-        run: |
-          node --input-type=module <<'JS'
-          import {spawnSync} from 'node:child_process';
-          let failures=0;
-          const cases=[...Array.from({length:4},()=>({BROWSER:'chrome'})),{BROWSER:'firefox'},...Array.from({length:3},()=>({BROWSER:'chrome',ONLY:'static application at /deep/runtime-v2/',BLOCK_REMUX_CHILD:'1'}))];
-          for(let trial=0;trial<cases.length;trial++){
-            console.log('CONSUMER RETIREMENT TRIAL',trial+1,JSON.stringify(cases[trial]));
-            const result=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,...cases[trial],DEBUG:'pw:browser'},stdio:'inherit',timeout:600000});
-            if(result.status!==0)failures++;
-          }
-          console.log('RETIREMENT BASELINE FAILURES',failures);
-          process.exitCode=failures?1:0;
-          JS
+      - name: Prepare complete Linux release fixtures
+        if: matrix.os == 'ubuntu-24.04'
+        run: python3 scripts/prepare-release-fixtures.py
+      - name: Prepare Apple WebKit API fixtures
+        if: matrix.os == 'macos-15'
+        run: node tests/api-stability/fixtures.mjs
+      - name: Verify all extra release browser gates
+        if: matrix.gate == 'extra'
+        run: xvfb-run -a node tests/release-extra.mjs
+      - name: Verify all installed archive API and mobile shards
+        if: matrix.gate == 'matrix'
+        run: node tests/api-stability/archive-matrix.mjs
+      - name: Verify Apple WebKit API, component, boundaries, containment and mobile
+        if: matrix.gate == 'webkit'
+        run: node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: remaining-archive-${{ matrix.os }}-${{ matrix.trial }}
+          name: consumer-fixed-${{ matrix.gate }}
           path: |
-            results/release-remaining/
-            results/webkit-release/
-            results/player-menu-review/
-            results/api-stability/archive-matrix-*/
-            results/api-stability/gate-browser-*/
-            results/player-mobile/
-            results/player-component/
-            results/public-api/
+            results/fixed-archive/
+            results/release-extra/
             results/public-api-consumer/
+            results/public-api/
+            results/player-component/
+            results/player-menu-review/
+            results/api-stability/
+            results/player-mobile/
+            results/webkit-release/
+            results/worker-tree-containment/

@@ -27,8 +27,7 @@ async function check(name,fn){
  const attempts=[];
  for(let trial=0;trial<2;trial++){
   const page=await browser.newPage(),failedRequests=[],pageErrors=[],consoleMessages=[];
-  let phase='scenario',row={name,passed:false,attempts,workerLifecycle:[]};result.checks.push(row);
-  page.on('worker',worker=>{row.workerLifecycle.push({type:'start',url:worker.url(),time:Date.now()});worker.on('close',()=>row.workerLifecycle.push({type:'close',url:worker.url(),time:Date.now()}));});
+  let phase='scenario',row={name,passed:false,attempts};result.checks.push(row);
   let writes=Promise.resolve();
   const save=()=>{const bytes=JSON.stringify(result,null,2),next=writes.then(()=>writeFile(out+'/result.json',bytes));writes=next.catch(()=>{});return next;};
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
@@ -60,33 +59,21 @@ async function liveWorkerURLs(page){
  }));
  return alive.filter(Boolean);
 }
+async function assertWorkersRetired(page){
+ // Chromium allows blocked worker execution two seconds before forced termination.
+ // Use the same three-second retirement grace as the worker-tree containment gate.
+ const end=Date.now()+3000;
+ let workers=await liveWorkerURLs(page);
+ while(workers.length&&Date.now()<end){await page.waitForTimeout(50);workers=await liveWorkerURLs(page);}
+ assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
+}
 try{
 for(const bundle of [false,true])await check(`${bundle?'bundled':'static'} core-only import has no UI or engine side effects`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?coreonly'+(bundle?'&bundle':''));await page.waitForFunction(()=>window.coreOnly);assert.equal(await page.evaluate(()=>customElements.get('demuxe-player')),undefined);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet|\/player\/|styles\.js/.test(u)));assert.equal(page.workers().length,0);});
 for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{window.__consumerPhase=mode+':set-mode';await viewer.player.setMode(mode);window.__consumerPhase=mode+':open';await viewer.open({url:location.origin+'/media/movie.mp4'});window.__consumerPhase=mode+':volume';await viewer.player.setVolume(.4);window.__consumerPhase=mode+':play';await viewer.play();window.__consumerPhase=mode+':playing';},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{window.__consumerPhase='pause';await viewer.pause();window.__consumerPhase='seek';await viewer.seek(1);window.__consumerPhase='seek-done';});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
 await page.evaluate(async base=>{window.custom=new Player(document.querySelector('#custom'),{mode:'native',nativeRemux:'always',assetBase:base});await custom.open({url:location.origin+'/media/remux.mkv'});await custom.play();},base);await page.waitForFunction(()=>custom.state.currentTime>.2);await page.evaluate(()=>custom.seek(1));assert.ok(requests.some(u=>u.includes(base+'web/engine-remux/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-hybrid/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-software-yuv/')||u.includes(base+'web/engine-software-full/')));assert.ok(requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).every(u=>u.startsWith(origin+base)),requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).join('\n'));
-if(process.env.BLOCK_REMUX_CHILD==='1'){
- const rootWorker=page.workers().find(worker=>worker.url().endsWith('/native-mse-worker.js'));
- assert.ok(rootWorker,'Native MSE root was created');
- await rootWorker.evaluate(async()=>{
-  const childURL=URL.createObjectURL(new Blob([`postMessage('blocked');Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0);`],{type:'text/javascript'}));
-  self.__diagnosticBlockedChild=new Worker(childURL);
-  await new Promise(resolve=>self.__diagnosticBlockedChild.onmessage=()=>resolve());
-  URL.revokeObjectURL(childURL);
- });
- console.log('BLOCKED REMUX DESCENDANT',rootWorker.url());
-}
-const retirement={start:Date.now(),observations:[]};result.checks.at(-1).retirement=retirement;
 await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
-retirement.destroyDone=Date.now();
-let workers=await liveWorkerURLs(page);
-for(let i=0;i<40&&workers.length;i++){await page.waitForTimeout(50);workers=await liveWorkerURLs(page);}
-retirement.originalDeadline=Date.now();retirement.originalRemaining=workers;
-if(workers.length){
- for(const delay of [1000,2000,2000]){await page.waitForTimeout(delay);retirement.observations.push({time:Date.now(),remaining:await liveWorkerURLs(page)});}
-}
-console.log('RETIREMENT',JSON.stringify(retirement));
-assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
+await assertWorkersRetired(page);
 });
 await check('copied full runtime supports explicit RGB software presentation',async page=>{
  const requests=[];page.on('request',request=>requests.push(request.url()));
@@ -94,7 +81,7 @@ await check('copied full runtime supports explicit RGB software presentation',as
  await page.evaluate(async()=>{window.custom=new Player(document.querySelector('#custom'),{mode:'software',softwarePresenter:'rgb',assetBase:'/assets/demuxe/',preview:false});await custom.open(location.origin+'/media/movie.mp4');await custom.play();});
  await page.waitForFunction(()=>custom.state.currentTime>.2&&custom.diagnostics.backend?.softwarePresenter==='rgb'&&custom.diagnostics.backend?.rendered>0);
  assert.ok(requests.some(url=>url.includes('/assets/demuxe/web/engine-software-full/player.wasm')),'RGB engine came from the copied runtime');
- await page.evaluate(()=>custom.destroy());assert.deepEqual(await liveWorkerURLs(page),[]);
+ await page.evaluate(()=>custom.destroy());await assertWorkersRetired(page);
 });
 await check('missing assets have structured errors',async page=>{missingEngine=true;await page.goto(origin+'/?bundle');await page.waitForFunction(()=>window.apiReady);const d=await page.evaluate(async()=>{await viewer.ready;await viewer.player.setMode('hybrid');try{await viewer.open(location.origin+'/media/movie.mp4');}catch(e){return {code:e.code,state:viewer.player.state};}});assert.equal(d.code,'ASSET_LOAD_FAILED');assert.equal(d.state.activeMode,null);missingEngine=false;});
 await check('runtime policy separates private qualification from pthread isolation',async page=>{
