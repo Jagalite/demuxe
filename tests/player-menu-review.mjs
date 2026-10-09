@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import {chromium,firefox,webkit,testBrowserRuntime} from './browser-test-runtime.mjs';
 import {spawn} from 'node:child_process';
+import {deadline} from './api-stability/live-check-helpers.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const out=`results/player-menu-review/${new Date().toISOString().replaceAll(':','-')}`;
@@ -17,7 +18,7 @@ try{
    const page=await browser.newPage({viewport:{width:mode==='mobile'?390:1280,height:844}}),errors=[];
    page.on('pageerror',e=>errors.push(String(e.stack||e)));
    await page.addInitScript(()=>{window.menuMediaEvents=[];for(const name of ['loadeddata','seeked','error','ended','playing','pause'])document.addEventListener(name,event=>{if(event.target instanceof HTMLVideoElement)menuMediaEvents.push({name,time:event.target.currentTime,duration:event.target.duration,readyState:event.target.readyState});},true);});
-   const row={family:name,browser:browser.version(),mode,phase:'open',passed:false};report.checks.push(row);await save();
+   const row={family:name,browser:browser.version(),mode,phase:'open',passed:false,browserEvents:[]};for(const event of ['crash','close'])page.on(event,()=>row.browserEvents.push({event,time:Date.now()}));report.checks.push(row);await save();
    const v=page.locator('demuxe-player'),stats=v.locator('#diagnostics-overlay');
    const openSource=async()=>{if(mode==='mobile'){await v.locator('#settings-toggle').click();await v.locator('#settings-source').click();}else await v.locator('#open-menu').click();};
    const openDiagnostics=async()=>{if(mode==='mobile'){await v.locator('#settings-toggle').click();await v.locator('#settings-diagnostics').click();}else await v.locator('#diagnostics-toggle').click();};
@@ -48,7 +49,7 @@ try{
     await stats.waitFor({state:'hidden'});await v.locator('#settings').waitFor({state:'hidden'});assert.equal(await v.locator('#diagnostics-toggle').getAttribute('aria-pressed'),'false');assert.equal(await v.locator('#open-menu').getAttribute('aria-expanded'),'false');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),'stage');
     await v.evaluate(el=>el.controls=true);await openSource();assert.ok(await v.locator('#source-options').isVisible());assert.deepEqual(errors,[]);
     row.passed=true;console.log(`PASS ${name} ${mode}: menu entry points, switching, Escape focus, controls cleanup, scrollable diagnostics`);
-   }catch(error){row.error=String(error.stack);row.snapshot=await v.evaluate(el=>{const s=el.shadowRoot,d=s.getElementById('diagnostics-overlay');return {mediaEvents:window.menuMediaEvents,focus:s.activeElement?.id,diagnostics:{text:d.textContent,height:d.clientHeight,scroll:d.scrollHeight},controls:el.controls};}).catch(()=>null);throw error;}
+   }catch(error){row.error=String(error.stack);row.snapshot=await deadline(v.evaluate(el=>{const s=el.shadowRoot,d=s.getElementById('diagnostics-overlay');return {state:el.player?.state,video:[...s.querySelectorAll('video')].map(video=>({time:video.currentTime,duration:video.duration,readyState:video.readyState,networkState:video.networkState,paused:video.paused,error:video.error?.code})),mediaEvents:window.menuMediaEvents,focus:s.activeElement?.id,diagnostics:{text:d.textContent,height:d.clientHeight,scroll:d.scrollHeight},controls:el.controls};}),2000).catch(error=>({error:String(error)}));await save();throw error;}
    finally{let timer;try{await Promise.race([v.evaluate(el=>el.destroy()),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Player cleanup deadline exceeded')),15000);})]);}catch(error){row.cleanupError=String(error.stack);row.passed=false;throw error;}finally{clearTimeout(timer);await page.close();await save();}}
   }}finally{await browser.close();}
  }
