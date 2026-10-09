@@ -159,11 +159,44 @@ jobs:
         with:
           path: build/pages-site
 
+  webkit:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ github.ref_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install webkit
+      - run: command -v ffmpeg || brew install ffmpeg
+      - uses: actions/download-artifact@v4
+        with:
+          name: qualified-release
+          path: build/release
+      - name: Qualify Apple WebKit against the exact installed release archive
+        run: |
+          export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          node tests/webkit-release.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-macos-release-evidence
+          path: results/webkit-release/
+          if-no-files-found: error
+
   deploy:
     concurrency:
       group: github-pages
       cancel-in-progress: false
-    needs: build
+    needs: [build, webkit]
+    if: always() && needs.build.result == 'success' && (github.event_name != 'push' || needs.webkit.result == 'success')
     runs-on: ubuntu-24.04
     permissions:
       pages: write
@@ -178,7 +211,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   release:
-    needs: [build, providers]
+    needs: [build, providers, webkit]
     if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 30

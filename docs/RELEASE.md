@@ -286,3 +286,5 @@ qualification. Cases include output, seeking, pause/resume, rate, EOF and cleanu
 as applicable; live media uses its bounded progression checks. No CPU benchmark
 rounds, warmup windows or performance measurement windows run in release CI.
 See [tag release workflow](TAG-RELEASE.md).
+
+Tagged releases also require a macOS WebKit job against the exact installed archive before GitHub publication or Pages deployment. It runs all 21 public API checks, 61 component checks, 19 live boundary checks, and 10 worker containment trials. Linux WebKit remains in the boundary and worker tests; its GStreamer media backend can fail Blob and local File playback even in a plain HTML video element. Apple WebKit is qualified separately because macOS uses a different native media backend. Playwright WebKit is not a manual Safari or iOS Safari qualification.
