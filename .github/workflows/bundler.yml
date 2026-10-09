@@ -12,11 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repeat: [1, 2, 3]
+        cleanup: ['0', '1']
     env:
       BROWSER: firefox
       DEBUG: pw:browser
+      NAV_CLEANUP: ${{ matrix.cleanup }}
     steps:
+      - uses: actions/checkout@v4
+      - run: cp tests/component-navigation-diagnostic.mjs "$RUNNER_TEMP/"
       - uses: actions/checkout@v4
         with:
           ref: bea9b234e1a0ea13b77db7906b097e504545eb7e
@@ -47,11 +50,12 @@ jobs:
       - name: Replay original component checks with browser stderr
         run: |
           set -o pipefail
-          node tests/player-component.mjs 2>&1 | tee results/component-diagnostic/browser.log
+          cp "$RUNNER_TEMP/component-navigation-diagnostic.mjs" tests/
+          node tests/component-navigation-diagnostic.mjs 2>&1 | tee results/component-diagnostic/browser.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: component-firefox-${{ matrix.repeat }}
+          name: component-navigation-${{ matrix.cleanup }}
           path: |
             results/component-diagnostic/
-            results/player-component/
+            results/component-navigation/
