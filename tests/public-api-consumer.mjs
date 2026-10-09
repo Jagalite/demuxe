@@ -27,7 +27,8 @@ async function check(name,fn){
  const attempts=[];
  for(let trial=0;trial<2;trial++){
   const page=await browser.newPage(),failedRequests=[],pageErrors=[],consoleMessages=[];
-  let phase='scenario',row={name,passed:false,attempts};result.checks.push(row);
+  let phase='scenario',row={name,passed:false,attempts,workerLifecycle:[]};result.checks.push(row);
+  page.on('worker',worker=>{row.workerLifecycle.push({type:'start',url:worker.url(),time:Date.now()});worker.on('close',()=>row.workerLifecycle.push({type:'close',url:worker.url(),time:Date.now()}));});
   let writes=Promise.resolve();
   const save=()=>{const bytes=JSON.stringify(result,null,2),next=writes.then(()=>writeFile(out+'/result.json',bytes));writes=next.catch(()=>{});return next;};
   page.on('requestfailed',request=>failedRequests.push({url:request.url(),failure:request.failure()}));
@@ -64,9 +65,16 @@ for(const bundle of [false,true])await check(`${bundle?'bundled':'static'} core-
 for(const bundle of [false,true])for(const base of ['/assets/demuxe/','/deep/runtime-v2/'])await check(`${bundle?'bundled':'static'} application at ${base}`,async page=>{const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto(origin+'/?base='+base+(bundle?'&bundle':''));await page.waitForFunction(()=>window.apiReady);await page.evaluate(()=>viewer.ready);assert.ok(!requests.some(u=>/\.wasm|engine-worker|audio-worklet/.test(u)));
 for(const mode of ['native','hybrid','software']){await page.evaluate(async({mode,base})=>{window.__consumerPhase=mode+':set-mode';await viewer.player.setMode(mode);window.__consumerPhase=mode+':open';await viewer.open({url:location.origin+'/media/movie.mp4'});window.__consumerPhase=mode+':volume';await viewer.player.setVolume(.4);window.__consumerPhase=mode+':play';await viewer.play();window.__consumerPhase=mode+':playing';},{mode,base});await page.waitForFunction(()=>viewer.player.state.status==='playing'&&viewer.player.state.currentTime>.2);await page.evaluate(async()=>{window.__consumerPhase='pause';await viewer.pause();window.__consumerPhase='seek';await viewer.seek(1);window.__consumerPhase='seek-done';});assert.ok(await page.evaluate(()=>Math.abs(viewer.player.state.currentTime-1)<.15));}
 await page.evaluate(async base=>{window.custom=new Player(document.querySelector('#custom'),{mode:'native',nativeRemux:'always',assetBase:base});await custom.open({url:location.origin+'/media/remux.mkv'});await custom.play();},base);await page.waitForFunction(()=>custom.state.currentTime>.2);await page.evaluate(()=>custom.seek(1));assert.ok(requests.some(u=>u.includes(base+'web/engine-remux/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-hybrid/')));assert.ok(requests.some(u=>u.includes(base+'web/engine-software-yuv/')||u.includes(base+'web/engine-software-full/')));assert.ok(requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).every(u=>u.startsWith(origin+base)),requests.filter(u=>/\.wasm|engine-worker|audio-worklet|DejaVuSans/.test(u)).join('\n'));
+const retirement={start:Date.now(),observations:[]};result.checks.at(-1).retirement=retirement;
 await page.evaluate(async()=>{window.__consumerPhase='destroy';await Promise.all([viewer.destroy(),custom.destroy()]);window.__consumerPhase='destroy-done';});
+retirement.destroyDone=Date.now();
 let workers=await liveWorkerURLs(page);
 for(let i=0;i<40&&workers.length;i++){await page.waitForTimeout(50);workers=await liveWorkerURLs(page);}
+retirement.originalDeadline=Date.now();retirement.originalRemaining=workers;
+if(workers.length){
+ for(const delay of [1000,2000,2000]){await page.waitForTimeout(delay);retirement.observations.push({time:Date.now(),remaining:await liveWorkerURLs(page)});}
+}
+console.log('RETIREMENT',JSON.stringify(retirement));
 assert.equal(workers.length,0,`Workers still executing after destroy: ${workers.join(', ')}`);
 });
 await check('copied full runtime supports explicit RGB software presentation',async page=>{
