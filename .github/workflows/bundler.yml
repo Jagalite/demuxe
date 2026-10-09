@@ -55,7 +55,7 @@ jobs:
           import os,pathlib
           file=pathlib.Path(os.environ['DEMUXE_RUNTIME_ROOT'])/'web/generated/internal/wasm-player.js';text=file.read_text();arm=os.environ['OWNER_ARM']
           if arm.startswith('audio-first'):
-              marker='release(() => this.worker?.terminate());release(() => this.workerOwner.remove());'
+              marker='release(() => this.worker?.terminate());'
               first=text.index(marker);begin=text.index('try {',first);last=text.index('this.lifecycle = finishWasmRetirement',begin)
               audio=text[begin:last];workers=text[first:begin];text=text[:first]+audio+workers+text[last:]
           if arm!='baseline':assert text!=file.read_text(),'Overlay failed'
