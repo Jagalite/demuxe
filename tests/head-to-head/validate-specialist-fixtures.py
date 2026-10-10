@@ -102,7 +102,11 @@ def main():
                 stereo_channels = pcm_reference(stereo, 2)
                 assert all(c['rms'] > .003 for c in stereo_channels), 'Silent stereo reference channel'
                 (directory / f'{target}s-stereo.f32le').write_bytes(stereo)
-                frame = run(prefix + ['-map','0:v:0','-frames:v','1','-an','-f','framemd5','-'])
+                # Decode from the beginning so in-band HEVC parameter sets are
+                # available at the reference time. Input seeking can lose them
+                # in hev1 Dolby Vision clips even though the full clip decodes.
+                frame = run(['ffmpeg','-nostdin','-v','error','-xerror','-i',str(media),
+                             '-ss',str(target),'-map','0:v:0','-frames:v','1','-an','-f','framemd5','-'])
                 assert any(line and not line.startswith(b'#') for line in frame.splitlines()), 'Missing frame reference'
                 (directory / f'{target}s-base-video.framemd5').write_bytes(frame)
                 references.append({'target': target, 'duration': .5, 'sampleRate': int(audio['sample_rate']),

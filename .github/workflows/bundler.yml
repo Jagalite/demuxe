@@ -3,45 +3,62 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
-  specialist-host-reference:
+  catalogue-diagnostic:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 120
     steps:
+      - uses: actions/checkout@v4
+      - run: cp tests/head-to-head/validate-specialist-fixtures.py "$RUNNER_TEMP/validate-specialist-fixtures.py"
       - uses: actions/checkout@v4
         with:
           ref: e8542ccb79752d0e3869273ba09f91aa3158a0ae
-      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
-      - name: Reproduce the exact Dolby Vision reference command
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: |
+          npm ci --ignore-scripts
+          cp "$RUNNER_TEMP/validate-specialist-fixtures.py" tests/head-to-head/validate-specialist-fixtures.py
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y ffmpeg pulseaudio xvfb
+          /opt/google/chrome/chrome --version
+          bash scripts/start-ci-audio.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: unqualified-runtime-debug
+          path: build/release
+          run-id: 38012356998
+          github-token: ${{ github.token }}
+      - name: Verify the unchanged failed candidate archive
         run: |
-          python3 - <<'PY2'
-          import pathlib,json,urllib.request,hashlib,subprocess
-          out=pathlib.Path('evidence');out.mkdir()
-          lock=json.load(open('tests/head-to-head/specialist-sources.json'))['sources']['dv5.mp4'];source=out/'source-dv5.mp4'
-          with urllib.request.urlopen(lock['url'],timeout=120) as r:source.write_bytes(r.read())
-          assert source.stat().st_size==lock['bytes'] and hashlib.sha256(source.read_bytes()).hexdigest()==lock['sha256']
-          media=out/'dv5.mp4'
-          cmd=['ffmpeg','-nostdin','-v','warning','-i',str(source),'-f','lavfi','-i','aevalsrc=0.15*sin(2*PI*440*t)|0.15*sin(2*PI*880*t):s=48000:d=36:c=stereo','-map','0:v:0','-map','1:a:0','-c:v','copy','-c:a','eac3','-b:a','384k','-t','36','-tag:v','hev1','-movflags','+faststart','-strict','unofficial',str(media)]
-          p=subprocess.run(cmd,capture_output=True);(out/'prepare.stderr').write_bytes(p.stderr);p.check_returncode()
-          (out/'version.txt').write_bytes(subprocess.check_output(['ffmpeg','-version']))
-          cases=[]
-          for trial in range(1,4):
-              for target in [1,10]:
-                  for variant in ['original','sequential-decode']:
-                      cmd=['ffmpeg','-nostdin','-v','error','-ss',str(target)]+(['-threads','1'] if variant=='single-decoder-and-output-thread' else [])+['-i',str(media),'-map','0:v:0','-frames:v','1','-an']+(['-threads:v','1'] if variant!='original' else [])+['-f','framemd5','-']
-                      if variant=='sequential-decode':cmd=['ffmpeg','-nostdin','-v','error','-xerror','-i',str(media),'-ss',str(target),'-map','0:v:0','-frames:v','1','-an','-f','framemd5','-']
-                      r=subprocess.run(cmd,capture_output=True,timeout=120);stem=str(trial)+'-'+str(target)+'-'+variant
-                      (out/(stem+'.stdout')).write_bytes(r.stdout);(out/(stem+'.stderr')).write_bytes(r.stderr)
-                      cases.append({'trial':trial,'target':target,'variant':variant,'command':cmd,'exit':r.returncode,'stderr':r.stderr.decode(errors='replace'),'frameRows':[l for l in r.stdout.decode(errors='replace').splitlines() if l and not l.startswith('#')]})
-                      print(cases[-1],flush=True)
-                      (out/'result.json').write_text(json.dumps({'fixtureSHA256':hashlib.sha256(media.read_bytes()).hexdigest(),'sourceSHA256':lock['sha256'],'cases':cases},indent=2))
-          PY2
+          python3 - <<'PY'
+          import pathlib,hashlib,tarfile,json
+          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz');assert hashlib.sha256(archive.read_bytes()).hexdigest()=='4736a6477712e66d5a4166926e114edc765a464664839a3840d57323f964ce94'
+          with tarfile.open(archive) as tar:
+              manifest=json.load(tar.extractfile('package/release-manifest.json'));assert manifest['sourceCommit']=='e8542ccb79752d0e3869273ba09f91aa3158a0ae' and manifest['dirtySource'] is False
+              for name,v in manifest['files'].items():assert hashlib.sha256(tar.extractfile('package/'+name).read()).hexdigest()==v['sha256'],name
+          print('Diagnostic uses exact candidate bytes with a reference-validator overlay; no publication')
+          PY
+      - name: Validate all specialist fixtures and complete both catalogues
+        run: |
+          python3 - <<'PY'
+          import importlib.util,pathlib
+          spec=importlib.util.spec_from_file_location('tag_release','scripts/tag-release.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+          m.fetch_baseline();baseline,assets=m.catalogue(pathlib.Path('build/release/demuxe-1.1.1.tgz').resolve());m.run_catalogue_correctness(baseline,assets)
+          m.run(['python3','scripts/compare-lgpl-catalogue.py','--baseline',m.WORK/'baseline/summary.json','--candidate',m.WORK/'candidate/summary.json','--output',m.WORK/'catalogue-comparison.json'])
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: specialist-host-reference
+          name: catalogue-diagnostic
           path: |
-            evidence/result.json
-            evidence/*.stderr
-            evidence/*.stdout
-            evidence/version.txt
+            build/tag-release/catalogue-comparison.json
+            build/tag-release/baseline/*.json
+            build/tag-release/candidate/*.json
+            build/tag-release/specialist-validation/*.json
+            build/tag-release/specialist-validation/*/*.json
+            build/tag-release/specialist-validation/*/*.framemd5
+            build/tag-release/candidate-assets/specialist.json
+            build/tag-release/candidate-assets/fixtures/specialist/commands.json
