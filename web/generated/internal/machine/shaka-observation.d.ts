@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import type { StreamingState } from '../../types.js';
+import type { StreamingState, NetworkRecoveryState } from '../../types.js';
 import { type ShakaBackendState, type ShakaVariantFacts } from './shaka-backend.js';
 import { type ShakaAudioFacts } from './shaka-selection.js';
 export type ShakaObservedVariant = ShakaVariantFacts & Readonly<{
@@ -24,6 +24,7 @@ export declare function shakaStreamingProjection(state: ShakaBackendState, track
     time: number;
     now: number;
     playheadDate: number | null;
+    recovery?: NetworkRecoveryState;
 }>): StreamingState;
 export declare function shakaTrackProjection(state: ShakaBackendState, audio: readonly ShakaAudioFacts[], texts: readonly ShakaObservedText[], variants: readonly ShakaObservedVariant[]): Array<Record<string, unknown>>;
 export declare function shakaSeekTarget(start: number, end: number, seconds: number): number | null;

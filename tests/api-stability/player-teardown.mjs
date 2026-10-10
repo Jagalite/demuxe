@@ -46,3 +46,11 @@ test('active PiP rejects source selection before inspection or route fallback',a
  assert.equal(inspections,0);assert.equal(f.player.current,current);assert.deepEqual(f.calls,[]);
  await f.player.close();
 });
+test('closing publication and cleanup reentry never observe a retired streaming backend',async()=>{
+ const f=await fixture();let reads=0;const observations=[];
+ f.session.backend.streamingState=()=>{reads++;assert.equal(f.session.retired,false,'retired backend must not be observed');return {qualities:[],requested:{mode:'auto'},selectedId:null,presentedId:null,recovery:{status:'retrying',retryingRequests:1}};};
+ assert.equal(f.player.getStreamingState().recovery.status,'retrying');
+ f.player.publish=function(){observations.push(this.getStreamingState());};
+ f.session.backend.destroy=async()=>{f.calls.push('backend');observations.push(f.player.getStreamingState());};
+ await f.player.close();assert.equal(reads,1);assert.ok(observations.length>=2);assert.ok(observations.every(value=>value===null));assert.equal(f.player.current,undefined);assert.deepEqual(f.calls,['backend','surface']);
+});

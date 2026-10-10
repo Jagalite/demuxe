@@ -10,6 +10,7 @@ import type {Backend} from './backend.js';
 import type {RemoteSource,TextTrackSource,SubtitleAsset,TrackType} from '../types.js';
 import {NativePlayer} from './native-player.js';
 import {ShakaNetworkPolicy} from './shaka-network.js';
+import {ShakaRecovery} from './shaka-recovery.js';
 import {PlayerError,isPlayerError} from './errors.js';
 import {rasterizePreview} from '../preview/images.js';
 import {runtimeAt} from './shaka-runtime.js';
@@ -31,6 +32,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   private native:NativePlayer;
   private player?:Shaka.Player;
   private policy?:ShakaNetworkPolicy;
+  private recovery?:ShakaRecovery;
   private runtime?:typeof Shaka;
   private control:ShakaBackendState;
   private get stopped(){return this.control.phase==='closed';}
@@ -167,8 +169,13 @@ export class ShakaBackend extends EventTarget implements Backend {
       const network=player.getNetworkingEngine();this.check(lease);if(!network)throw new PlayerError('ASSET_LOAD_FAILED','Shaka networking engine is unavailable');
       network.registerRequestFilter(this.policy.filter);this.check(lease);
       const epoch=lease.epoch;const changed=()=>{if(!this.stopped&&this.control.epoch===epoch){this.refresh();if(this.stopped||this.control.epoch!==epoch)return;this.emit('mpv',{event:'property-change',name:'track-list',data:this.properties.get('track-list')});}};
+      const recovery=new ShakaRecovery(player,network,runtime.util.Error.Code.TIMEOUT,()=>{
+        if(this.stopped||this.control.epoch!==epoch)return;
+        this.emit('mpv',{event:'property-change',name:'network-recovery',data:this.recovery?.snapshot});
+      });
+      if(!shakaLeaseCurrent(this.control,lease)){recovery.destroy();this.check(lease);}this.recovery=recovery;
       for(const name of ['trackschanged','adaptation','variantchanged','textchanged','texttrackvisibility','streaming','loaded','buffering'])this.listen(player,name,changed,lease);
-      const failed=(event:Event)=>{const detail=(event as Event&{detail:{severity?:number}}).detail;if(detail.severity!==runtime.util.Error.Severity.CRITICAL)return;if(this.stopped||this.control.epoch!==epoch)return;const error=this.mapped(detail);this.move({type:'failure',epoch});this.failure=error;if(!this.opening)this.emit('error',error);};
+      const failed=(event:Event)=>{const detail=(event as Event&{detail:{severity?:number}}).detail;if(detail.severity!==runtime.util.Error.Severity.CRITICAL)return;if(this.stopped||this.control.epoch!==epoch)return;const error=this.mapped(detail);this.recovery?.destroy();this.move({type:'failure',epoch});this.failure=error;if(!this.opening)this.emit('error',error);};
       this.listen(player,'error',failed,lease);
       const observed=(event:Event)=>{const e=event as Event&{mediaQuality?:Record<string,unknown>;position?:number};if(!this.stopped&&this.control.epoch===epoch&&e.mediaQuality&&Number.isFinite(e.position)){const q=e.mediaQuality,number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)?v:null;this.move({type:'observed',epoch,value:{observation:'playhead-buffer',position:e.position!,contentType:String(q.contentType??'unknown'),width:number(q.width),height:number(q.height),bandwidth:number(q.bandwidth),codec:typeof q.codecs==='string'?q.codecs:null}});changed();}};
       this.listen(player,'mediaqualitychanged',observed,lease);
@@ -190,7 +197,7 @@ export class ShakaBackend extends EventTarget implements Backend {
         const track=variants[facts.findIndex(track=>track.id===id)],select=player.selectVariantTrack;this.check(lease);select.call(player,track,true);this.check(lease);this.move({type:'quality',lease,value:{mode:'manual',id:`variant:${id}`},runtime:false});
       }
       this.check(lease);this.applyText();this.check(lease);this.refresh();this.check(lease);this.emit('mpv',{event:'file-loaded'});this.check(lease);this.move({type:'opened',lease});
-    }catch(error){this.move({type:'failed',lease});throw this.mapped(error);}finally{this.finishControl(lease);}
+    }catch(error){this.recovery?.destroy();this.move({type:'failed',lease});throw this.mapped(error);}finally{this.finishControl(lease);}
   }
   private refresh(){
     const player=this.player,state=this.control;
@@ -254,7 +261,7 @@ export class ShakaBackend extends EventTarget implements Backend {
     const tracks=player.getVariantTracks();check();const facts=this.observedVariants(tracks);check();
     const live=player.isDynamic();check();const observed=player.seekRange();check();const start=observed.start,end=observed.end;check();
     const date=live?player.getPlayheadTimeAsDate?.():null;check();const playheadDate=date?.getTime()??null;check();const time=live&&end>start?this.video.currentTime:0,now=playheadDate!==null?Date.now():0;check();
-    return shakaStreamingProjection(state,facts,{live,start,end,time,now,playheadDate});
+    return shakaStreamingProjection(state,facts,{live,start,end,time,now,playheadDate,recovery:this.recovery?.snapshot});
   }
   async setQuality(policy:import('../types.js').QualityPolicy){
     const lease=this.begin('quality');try{await this.enter(lease);this.check(lease);const player=this.loaded(),tracks=player.getVariantTracks(),plan=shakaQualityPlan(this.control,this.variantFacts(tracks),policy);this.check(lease);
@@ -380,7 +387,7 @@ export class ShakaBackend extends EventTarget implements Backend {
   get diagnostics():Record<string,unknown>{const native=this.native.diagnostics;return {...native,buffering:{...resolveBuffering(this.buffering,'shaka'),settings:this.player?.getConfiguration?.().streaming?{bufferingGoal:this.player.getConfiguration().streaming.bufferingGoal,rebufferingGoal:this.player.getConfiguration().streaming.rebufferingGoal,bufferBehind:this.player.getConfiguration().streaming.bufferBehind}:shakaBufferingOptions(this.buffering)},path:'shaka-mse',plan:'shaka-mse',packaging:'shaka',streaming:{engine:'shaka',version:this.runtime?.Player.version,format:this.control.source?.format,live:this.player?.isDynamic()??false,seekRange:this.player?.seekRange(),abr:this.qualityPolicy.mode==='auto',maxBandwidth:this.control.source?.maxBandwidth,variants:this.player?.getVariantTracks().map(t=>({id:`variant:${t.id}`,representation:t.originalVideoId??t.originalAudioId,active:t.active,bandwidth:t.bandwidth,width:t.width,height:t.height,audioCodec:t.audioCodec,videoCodec:t.videoCodec})),network:this.policy?.diagnostics},capability:this.startupEvidence()};}
   destroy(){
     if(this.disposal)return this.disposal;
-    this.move({type:'close'});this.pumpControls();
+    this.move({type:'close'});this.recovery?.destroy();this.pumpControls();
     let resolve!:()=>void,reject!:(error:unknown)=>void;const disposal=this.disposal=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
     void this.dispose().then(resolve,reject);return disposal;
   }

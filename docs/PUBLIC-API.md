@@ -504,3 +504,39 @@ These are playback-selection restrictions, not access control or a promise to
 avoid reading other streams from the container.
 
 See [integration contracts and compatibility profiles](API-INTEGRATION.md) for public structural interfaces, explicit binding ownership, stable presentation hosting, and external UI limits.
+
+## Source-scoped network recovery
+
+For accepted Shaka HLS/DASH sources, `state.streaming.recovery` (also available
+through `player.getStreamingState()`) is an immutable `NetworkRecoveryState`:
+
+```ts
+player.subscribe(state => {
+  const recovery = state.streaming?.recovery;
+  const retrying = recovery?.status === 'retrying';
+  // Render this alongside playback status, not as a replacement for it.
+  renderConnection({sourceId: state.sourceId, retrying});
+});
+```
+
+`status` is `idle` or `retrying`. `retryingRequests` counts **logical requests
+currently in automatic retry**, including backoff and subsequent attempts. It
+is not an attempt counter, a progress percentage, or a retry countdown. One
+successful request cannot clear another request's recovery. Success, exhaustion,
+or cancellation settles that request; terminal failure and source teardown
+retire all of its recovery observations. No URLs, headers, or raw error payloads
+are exposed by this contract.
+
+Retries are observed from the pinned Shaka runtime, not guessed from buffering.
+Buffered playback can remain `playing` during `retrying`; conversely, buffering
+alone does not establish a network retry. `idle` does **not** claim that the
+connection is healthy. The contract reports Shaka's automatic network retries,
+not application-managed authorization refreshes, backend-selection attempts,
+or native-browser/Wasm transports whose retry state is not observable here.
+
+The enclosing `sourceId` owns the observation. Closing clears `streaming` to
+`null`; a replacement source cannot receive the previous source's late retry or
+completion events. An unaccepted opening candidate is not exposed as the
+accepted source's recovery state. Existing subscriptions and `statechange` events
+publish changes; no polling of diagnostic errors or timer estimates is needed.
+The built-in element uses the localizable `recovering` label, “Retrying stream…”.

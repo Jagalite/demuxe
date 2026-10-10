@@ -102,3 +102,43 @@ test('scrubber timer failure retires presentation metadata without escaping asyn
 test('scrubber URL acquisition reentry revokes the late URL without publishing',async t=>{
  const {preview,image}=fixture(),revoked=[];t.mock.method(URL,'createObjectURL',()=>{preview.destroy();return 'blob:late';});t.mock.method(URL,'revokeObjectURL',url=>revoked.push(url));await preview.show(frame({blob:new Blob([previewPNG()],{type:'image/png'})}));assert.deepEqual(revoked,['blob:late']);assert.equal(image.src,undefined);assert.equal(preview.presentations.size,0);
 });
+
+function hoverFixture(t, getFrame) {
+ const calls=[];const api={strategy:{type:'demuxe'},getFrame:request=>{calls.push(request);return getFrame(request);}};
+ const f=fixture(undefined,()=>api),{preview,timeline,panel}=f;
+ Object.assign(timeline,{min:'0',max:'100',step:'1',getBoundingClientRect:()=>({left:0,width:100})});
+ panel.style={};panel.parentElement={getBoundingClientRect:()=>({left:0,width:100})};
+ t.mock.method(globalThis,'getComputedStyle',()=>({width:'100',getPropertyValue:()=> '0'}));
+ preview.show=async()=>{};preview.observe(1,true);t.after(()=>preview.destroy());
+ return {...f,api,calls};
+}
+// Node has no getComputedStyle. Install only the narrow DOM fact used by the fixture.
+if(!globalThis.getComputedStyle)globalThis.getComputedStyle=()=>({width:'100',getPropertyValue:()=> '0'});
+test('stationary hover resumes once after buffering cancels generation, including late completion',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});let complete;const shown=[];
+ const {preview,calls}=hoverFixture(t,r=>r.cacheOnly?Promise.resolve(null):calls.filter(x=>!x.cacheOnly).length===1?new Promise(resolve=>complete=resolve):Promise.resolve({...frame({}),time:r.time}));
+ preview.show=async f=>shown.push(f.time);
+ preview.move({pointerType:'mouse',clientX:20});await new Promise(setImmediate);t.mock.timers.tick(180);await new Promise(setImmediate);
+ assert.equal(calls.filter(r=>!r.cacheOnly).length,1);
+ preview.observe(1,false);assert.equal(calls.find(r=>r.signal)?.signal.aborted,true);
+ preview.observe(1,true);await new Promise(setImmediate);
+ assert.deepEqual(calls.filter(r=>!r.cacheOnly).map(r=>r.time),[20,20]);assert.deepEqual(shown,[20]);
+ complete({...frame({}),time:99});await new Promise(setImmediate);assert.deepEqual(shown,[20]);
+ preview.observe(1,true);preview.observe(1,true);await new Promise(setImmediate);assert.equal(calls.filter(r=>!r.cacheOnly).length,2);
+});
+test('hover movement while suspended retains only the latest intent and does not decode',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const {preview,calls}=hoverFixture(t,r=>Promise.resolve(r.cacheOnly?null:{...frame({}),time:r.time}));
+ preview.observe(1,false);
+ preview.move({pointerType:'mouse',clientX:20});await new Promise(setImmediate);
+ preview.move({pointerType:'mouse',clientX:70});await new Promise(setImmediate);t.mock.timers.tick(200);await new Promise(setImmediate);
+ assert.equal(calls.filter(r=>!r.cacheOnly).length,0);
+ preview.observe(1,true);await new Promise(setImmediate);assert.deepEqual(calls.filter(r=>!r.cacheOnly).map(r=>r.time),[70]);
+});
+for(const retirement of ['leave','cancel','source','destroy'])test(`buffered hover intent is cancelled by ${retirement}`,async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const {preview,timeline,calls}=hoverFixture(t,()=>Promise.resolve(null));
+ preview.observe(1,false);preview.move({pointerType:'mouse',clientX:30});await new Promise(setImmediate);
+ if(retirement==='leave'||retirement==='cancel')timeline.dispatchEvent(new Event(retirement==='leave'?'pointerleave':'pointercancel'));
+ else if(retirement==='source')preview.observe(2,false);else preview.destroy();
+ preview.observe(retirement==='source'?2:1,true);t.mock.timers.tick(200);await new Promise(setImmediate);
+ assert.equal(calls.filter(r=>!r.cacheOnly).length,0);
+});

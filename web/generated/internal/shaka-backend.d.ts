@@ -31,6 +31,7 @@ export declare class ShakaBackend extends EventTarget implements Backend {
     private native;
     private player?;
     private policy?;
+    private recovery?;
     private runtime?;
     private control;
     private get stopped();

@@ -84,3 +84,17 @@ contexts do not imply cold OS, compiler or browser-process caches. Loopback
 measurements do not establish GitHub CDN latency or production performance.
 
 See the [2026-09-28 local validation and timing report](PAGES-VALIDATION-20260928.md).
+
+## Public demo asset verification
+
+Run `node scripts/verify-demo-assets.mjs --output results/demo-assets.json`
+to fetch the live deployment manifest and verify six served entry assets against
+its byte counts and hashes. Add `--all` to verify all listed Wasm/MJS assets and
+generated player files too. The report records the observed tag, commit and
+manifest hash; it does not require a particular release to remain deployed.
+
+This read-only check verifies consistency with the served manifest. It does not
+establish that the intended release was deployed, qualify playback, or publish
+anything. The Pages smoke suite performs the same byte checks alongside its
+Chromium/Firefox playback tests. Newly assembled pages visibly show their tag
+and commit.

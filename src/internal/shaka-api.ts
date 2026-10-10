@@ -23,6 +23,10 @@ export declare namespace Shaka {
       drmInfo?:unknown;streamDataCallback?:((data:ArrayBuffer|ArrayBufferView)=>Promise<unknown>)|null;
     };
     type Response = {uri:string;originalUri:string;data:ArrayBuffer|ArrayBufferView;headers:Record<string,string>;status?:number;timeMs?:number;originalRequest?:Request};
+    interface NetworkingEngine extends EventTarget {
+      registerRequestFilter(filter:RequestFilter):void;
+      request(type:number,request:Request,context?:object):util.AbortableOperation<Response>;
+    }
     type RequestFilter = (type:number,request:Request)=>void|Promise<void>;
     type SchemePlugin = (uri:string,request:Request,type:number,
       progress:(elapsed:number,bytes:number,remaining:number)=>void,
@@ -46,7 +50,7 @@ export declare namespace Shaka {
     destroy():Promise<void>;
     configure(configuration:object):boolean;
     getConfiguration():extern.Configuration;
-    getNetworkingEngine():{registerRequestFilter(filter:extern.RequestFilter):void}|null;
+    getNetworkingEngine():extern.NetworkingEngine|null;
     getLoadMode():number;
     isDynamic():boolean;
     isBuffering():boolean;

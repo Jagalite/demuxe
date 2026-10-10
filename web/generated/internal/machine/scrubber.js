@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-export function initialScrubber() { return Object.freeze({ terminal: false, hover: 0, serial: 0, nextResource: 1, nextPresentation: 1, pending: null, generation: null, presentation: null, displayedImage: null, visible: false }); }
+export function initialScrubber() { return Object.freeze({ sourceId: null, eligible: true, intent: null, terminal: false, hover: 0, serial: 0, nextResource: 1, nextPresentation: 1, pending: null, generation: null, presentation: null, displayedImage: null, visible: false }); }
 function clear(state) {
     return Object.freeze({ state: Object.freeze({ ...state, presentation: null, displayedImage: null, visible: false }), accepted: true, clear: true, abortPresentation: state.presentation?.id });
 }
@@ -10,20 +10,32 @@ export function transitionScrubber(state, command) {
     }
     if (command.type === 'hide' || command.type === 'destroy') {
         const result = clear(state);
-        return Object.freeze({ ...result, state: Object.freeze({ ...result.state, terminal: state.terminal || command.type === 'destroy', hover: state.hover + 1, serial: state.serial + 1, pending: null, generation: null }), abortGeneration: state.generation?.id });
+        return Object.freeze({ ...result, state: Object.freeze({ ...result.state, terminal: state.terminal || command.type === 'destroy', hover: state.hover + 1, serial: state.serial + 1, pending: null, generation: null, intent: null }), abortGeneration: state.generation?.id });
     }
     if (state.terminal)
         return Object.freeze({ state, accepted: false });
     switch (command.type) {
-        case 'hover': return Object.freeze({ state: Object.freeze({ ...state, hover: state.hover + 1, visible: true }), id: state.hover + 1, placeholder: !state.visible });
+        case 'observe': {
+            if (command.sourceId === state.sourceId && command.eligible === state.eligible)
+                return Object.freeze({ state, accepted: false });
+            const replaced = command.sourceId !== state.sourceId;
+            if (replaced || !command.eligible) {
+                const result = clear(state);
+                return Object.freeze({ ...result, state: Object.freeze({ ...result.state, sourceId: command.sourceId, eligible: command.eligible, intent: replaced ? null : state.intent, hover: state.hover + 1, serial: state.serial + 1, pending: null, generation: null }), abortGeneration: state.generation?.id });
+            }
+            // Retry on the eligibility edge only. A cache miss must not form a retry loop.
+            const hover = state.hover + 1;
+            return Object.freeze({ state: Object.freeze({ ...state, eligible: true, hover }), accepted: true, id: hover, retry: state.intent ?? undefined });
+        }
+        case 'hover': return Object.freeze({ state: Object.freeze({ ...state, hover: state.hover + 1, visible: true, intent: command.target ? Object.freeze({ ...command.target }) : state.intent }), id: state.hover + 1, placeholder: !state.visible });
         case 'cache': {
             if (command.hover !== state.hover)
                 return Object.freeze({ state, accepted: false });
-            const pending = !command.defer && (!command.hit || command.refine) ? Object.freeze({ ...command.target }) : null;
+            const pending = state.eligible && !command.defer && (!command.hit || command.refine) ? Object.freeze({ ...command.target }) : null;
             return Object.freeze({ state: Object.freeze({ ...state, serial: state.serial + (command.hit ? 1 : 0), pending }), accepted: true, show: command.hit });
         }
         case 'generate': {
-            if (state.generation || !state.pending)
+            if (!state.eligible || state.generation || !state.pending)
                 return Object.freeze({ state, accepted: false });
             const generation = Object.freeze({ ...state.pending, id: state.serial + 1 });
             return Object.freeze({ state: Object.freeze({ ...state, serial: generation.id, generation, pending: null }), accepted: true, generate: generation });

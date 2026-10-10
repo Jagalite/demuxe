@@ -395,3 +395,16 @@ test('replacement resumes after cancelling a held seek in fallback selection',as
  const successor=p.seek(6,{policy:'latest'});release();await Promise.all([rejected,successor]);
  assert.equal(p.settings.pause,false);assert.deepEqual(calls,['pause','pause',['seek',6],'play']);
 });
+
+// Characterization only: an earlier routing index is not proof of a usable
+// replacement with the same source/representation/authentication constraints.
+test('investigation: failed streaming seek restoration currently loses its route-zero context',()=>{
+ for(const [mode,providerPreferences,restoredStart] of [['hybrid',[],2],['hybrid',softwareFirst,1],['software',softwareFirst,1]]){
+  const ordinary=model({mode,providerPreferences}),first=ordinary.seek().id;
+  const normal=ordinary.send({type:'transport.seek.failed',id:first,boundary:false,terminal:false,code:'DECODE_FAILED',invalidPosition:false,streaming:true});
+  const restoring=model({mode,providerPreferences}),second=restoring.seek().id;
+  restoring.send({type:'transport.seek.failed',id:second,boundary:true,terminal:false,code:'INVALID_ARGUMENT',invalidPosition:false,streaming:true});
+  const restored=restoring.send({type:'transport.seek.restore-failed',id:second,code:'DECODE_FAILED'});
+  assert.equal(normal.transportEffect.start,0);assert.equal(restored.transportEffect.start,restoredStart);
+ }
+});

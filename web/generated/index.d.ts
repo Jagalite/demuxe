@@ -20,7 +20,7 @@ export type { PlayerPreview } from './preview/player-preview.js';
 export type { ModeChangeDetail, SelectionChangeDetail, PlaybackStats, PlaybackExplanation, PlaybackDecisionCode } from './types.js';
 export type { AttachmentHandle, SubtitleStyle, TimingSettings } from './types.js';
 export type { Chapter } from './types.js';
-export type { QualityPolicy, StreamingQuality, StreamingState } from './types.js';
+export type { QualityPolicy, StreamingQuality, StreamingState, NetworkRecoveryState } from './types.js';
 export type { QualitySelectionContext, QualitySelectionDecision, QualitySelector } from './types.js';
 export { defaultQualitySelection } from './internal/machine/quality-switching.js';
 export { inspectMedia, CUSTOM_SOURCE_PLAYBACK_LIMIT } from './sources.js';

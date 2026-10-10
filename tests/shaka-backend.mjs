@@ -8,7 +8,7 @@ const schemes=new Map();let pendingLoad=false,live=false,inProgress=false,varian
 class FakePlayer extends EventTarget {
   static version='test';static LoadMode={MEDIA_SOURCE:2};static isBrowserSupported(){return true;}
   constructor(){super();this.audio=[{active:true,id:1,language:'en',label:'English',roles:[],channelsCount:2,codecs:'mp4a.40.2',audioSamplingRate:48000,spatialAudio:false},{active:false,id:2,language:'fr',label:'French',roles:[],channelsCount:2,codecs:'mp4a.40.2',audioSamplingRate:48000,spatialAudio:false}];this.text=[{active:true,id:20,language:'en',label:'English',codecs:'wvtt'},{active:false,id:21,language:'fr',label:'French',codecs:'wvtt'}];}
-  getNetworkingEngine(){return {registerRequestFilter:filter=>this.filter=filter};}
+  getNetworkingEngine(){return this.network??=Object.assign(new EventTarget(),{registerRequestFilter:filter=>this.filter=filter,request:()=>({promise:Promise.resolve({}),abort:async()=>{}})});}
   configure(value){this.config={...this.config,...value};return true;}
   getConfiguration(){return this.config??{};}
   async attach(video){this.video=video;}
@@ -335,7 +335,7 @@ test('Shaka audio selection supersedes a pending quality change without restorin
 for(const phase of ['network','filter','listener','configure'])test(`Shaka ${phase} acquisition retirement prevents subsequent load and releases late registration`,async()=>{
  const backend=new ShakaBackend(video(),new URL('https://app.test/'));let cleanup,loads=0,adds=0,removes=0;
  const prototype=FakePlayer.prototype,original={getNetworkingEngine:prototype.getNetworkingEngine,addEventListener:prototype.addEventListener,removeEventListener:prototype.removeEventListener,configure:prototype.configure,load:prototype.load};
- prototype.getNetworkingEngine=function(){if(phase==='network')cleanup=backend.destroy();return {registerRequestFilter(){if(phase==='filter')cleanup=backend.destroy();}};};
+ prototype.getNetworkingEngine=function(){if(phase==='network')cleanup=backend.destroy();return Object.assign(original.getNetworkingEngine.call(this),{registerRequestFilter(){if(phase==='filter')cleanup=backend.destroy();}});};
  prototype.addEventListener=function(...args){adds++;if(phase==='listener')cleanup=backend.destroy();return original.addEventListener.apply(this,args);};
  prototype.removeEventListener=function(...args){removes++;return original.removeEventListener.apply(this,args);};
  prototype.configure=function(...args){if(phase==='configure')cleanup=backend.destroy();return original.configure.apply(this,args);};prototype.load=async()=>{loads++;};

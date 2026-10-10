@@ -64,6 +64,7 @@ export declare const defaultLabels: Readonly<{
     switching: "Updating playback…";
     seeking: "Seeking…";
     buffering: "Buffering…";
+    recovering: "Retrying stream…";
     live: "LIVE";
     unknown: "Unknown duration";
     retry: "Retry";

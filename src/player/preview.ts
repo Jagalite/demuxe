@@ -12,6 +12,7 @@ export class ScrubberPreview {
   private ownerIds=new WeakMap<PlayerPreview,number>();
   private imageIds=new WeakMap<PreviewFrame['image'],number>();
   private pendingApi?:PlayerPreview;
+  private intentApi?:PlayerPreview;
   private displayedURL?:{url:string;release:()=>void};
   private settleTimer?:ReturnType<typeof setTimeout>;
   private cancelSettle(){const handle=this.settleTimer;this.settleTimer=undefined;if(handle!==undefined)clearTimeout(handle);}
@@ -27,7 +28,7 @@ export class ScrubberPreview {
   }
   private readonly move=(event:PointerEvent)=>{
     if(event.pointerType==='touch'||this.timeline.disabled){this.hide();return;}
-    const api=this.api();if(!api)return;
+    const api=this.api();if(!api){this.hide();return;}
     const rect=this.timeline.getBoundingClientRect(),parent=this.panel.parentElement!.getBoundingClientRect();
     const style=getComputedStyle(this.timeline),scale=rect.width/parseFloat(style.width);
     const thumbWidth=parseFloat(style.getPropertyValue('--timeline-thumb-size'))*scale;
@@ -35,7 +36,8 @@ export class ScrubberPreview {
     if(pointer.time===undefined)return;
     this.panel.style.left=`${pointer.left}px`;
     if(this.targetLabel)this.targetLabel.textContent=formatTime(pointer.time);
-    const hover=this.transition({type:'hover'});if(hover.id===undefined)return;
+    this.intentApi=api;
+    const hover=this.transition({type:'hover',target:{owner:this.identity(this.ownerIds,api),time:pointer.time}});if(hover.id===undefined)return;
     this.cancelSettle();
     if(api.strategy?.type==='demuxe'){
       const id=hover.id;
@@ -52,6 +54,21 @@ export class ScrubberPreview {
   };
   constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined,private targetLabel?:HTMLElement){
     try{timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);}catch(error){this.destroy();throw error;}
+  }
+  /** The component publishes source identity and decoder eligibility after its
+   * timeline attributes are current. Retain intent, never a stale DOM event. */
+  observe(sourceId:number|null,eligible:boolean){
+    const replaced=sourceId!==this.control.sourceId;
+    const decision=this.transition({type:'observe',sourceId,eligible});
+    if(!decision.accepted)return;
+    if(replaced)this.intentApi=undefined;
+    if(replaced||!eligible){this.cancelSettle();this.pendingApi=undefined;}
+    this.applyClear(decision);
+    const api=this.intentApi,target=decision.retry,hover=decision.id;
+    if(target&&hover!==undefined&&this.control.hover===hover){
+      if(!api||this.api()!==api||this.timeline.disabled){this.hide();return;}
+      void this.sample(api,target.time,hover,true).catch(()=>{});
+    }
   }
   private distance(api:PlayerPreview,generation=false){return scrubberDistance(api.strategy,Number(this.timeline.max)-Number(this.timeline.min),generation);}
   private async sample(api:PlayerPreview,time:number,hover:number,settled=false){
@@ -129,6 +146,6 @@ export class ScrubberPreview {
     }
   }
   private clearImage(){this.applyClear(this.transition({type:'clear'}));}
-  readonly hide=()=>{this.cancelSettle();this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
-  destroy(){this.cancelSettle();this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
+  readonly hide=()=>{this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
+  destroy(){this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
 }
