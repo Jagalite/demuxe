@@ -44,6 +44,25 @@ jobs:
           shutil.copytree('build/catalogue-installed/package/web','web',dirs_exist_ok=True)
           print('Diagnostic uses exact candidate bytes with a reference-validator overlay; no publication')
           PY
+      - name: Inspect Chrome automation flags
+        env:
+          DEBUG: pw:browser
+        run: |
+          node --input-type=module <<'JS'
+          import {chromium} from 'playwright';
+          for (const args of [[],['--enable-automation']]) {
+            const b=await chromium.launch({channel:'chrome',headless:true,args});
+            try { const c=await b.newBrowserCDPSession(); console.log(JSON.stringify({args,command:await c.send('Browser.getBrowserCommandLine')})); }
+            catch(e) { console.log(JSON.stringify({args,error:String(e)})); }
+            finally {await b.close();}
+          }
+          JS
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/head-to-head/benchmark-browser.mjs')
+          s=p.read_text().replace("export const launchArgs=['--autoplay-policy=no-user-gesture-required'];", "export const launchArgs=['--enable-automation','--autoplay-policy=no-user-gesture-required'];")
+          p.write_text(s)
+          PY
       - name: Validate all specialist fixtures and complete both catalogues
         run: |
           python3 - <<'PY'
