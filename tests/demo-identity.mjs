@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {sha256,verifyDemoIdentity,verifyDemoAssets,demoAssetURL} from '../scripts/verify-demo-assets.mjs';
+import {sha256,verifyDemoManifest,verifyDemoAssets,demoAssetURL} from '../scripts/verify-demo-assets.mjs';
 const data=Buffer.from('actual executable bytes'),entry={bytes:data.length,sha256:sha256(data)};
 const manifest={status:'tagged-development-demo',sourceTag:'v-test',sourceCommit:'a'.repeat(40),dirtySource:false,files:{'web/player.js':entry}};
-const bytes=Buffer.from(JSON.stringify(manifest)),pin={...manifest,manifestSHA256:sha256(bytes)};
-test('demo qualification binds the selected tag, commit and manifest bytes',()=>{
- assert.deepEqual(verifyDemoIdentity(bytes,pin),manifest);
- for(const changed of [{sourceTag:'v-other'},{sourceCommit:'b'.repeat(40)},{manifestSHA256:'0'.repeat(64)}])assert.throws(()=>verifyDemoIdentity(bytes,{...pin,...changed}));
+test('demo verification accepts clean tagged deployments without pinning a release',()=>{
+ for(const changes of [{},{sourceTag:'v-next',sourceCommit:'b'.repeat(40)}]){
+  const current={...manifest,...changes};assert.deepEqual(verifyDemoManifest(Buffer.from(JSON.stringify(current))),current);
+ }
+ for(const changes of [{status:'preview'},{dirtySource:true},{sourceTag:''},{sourceCommit:'invalid'}])assert.throws(()=>verifyDemoManifest(Buffer.from(JSON.stringify({...manifest,...changes}))));
 });
 test('demo verification hashes served bytes, not just copied manifest entries',async()=>{
  const read=async()=>data;assert.deepEqual(await verifyDemoAssets('https://demo.test/project/',manifest,['web/player.js'],read),{'web/player.js':entry});

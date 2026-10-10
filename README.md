@@ -16,16 +16,14 @@ representative coverage, with broader browser and device support still unqualifi
 Cooperative non-isolated Hybrid/Software playback is included in this source
 candidate and requires matching, verified runtime assets.
 
-[Older pinned demo: v0.3.0-beta.5-rc.1](https://jagalite.github.io/demuxe/) · [Capabilities](#what-you-can-build) ·
+[Live demo](https://jagalite.github.io/demuxe/) · [Capabilities](#what-you-can-build) ·
 [Technologies](#technologies) · [Non-isolated playback](#playback-without-cross-origin-isolation) ·
 [Tested coverage](#what-has-been-tested) · [Quick start](#quick-start) ·
 [Custom UI](#build-your-own-ui) · [Deployment](#deployment-and-compatibility) ·
 [Demo builds](docs/PAGES.md) · [Media comparison](#media-comparison) · [Documentation](#documentation)
 
-**Public demo status:** the hosted demo is intentionally retained at
-`v0.3.0-beta.5-rc.1`, not the current source candidate. Its manifest and entry
-assets can be checked without publishing anything; see [demo identity and
-promotion requirements](docs/PAGES.md#public-demo-pin).
+The hosted demo records its deployed tag and commit in `deployment-manifest.json`.
+See [demo asset verification](docs/PAGES.md#public-demo-asset-verification).
 
 ## What you can build
 

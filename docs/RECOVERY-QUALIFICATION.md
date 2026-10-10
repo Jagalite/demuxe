@@ -37,7 +37,7 @@ stationary hover, stale completion, latest intent during suspension, and each
 retirement boundary. `tests/shaka-recovery.mjs` checks the logical operation
 contract and exhaustively replays all command traces through depth five.
 Existing Shaka backend/network, scrubber and transport tests remain in the API
-gate. `tests/demo-identity.mjs` rejects stale assets, changed pins and unsafe paths.
+gate. `tests/demo-identity.mjs` rejects stale assets, invalid deployment metadata and unsafe paths.
 
 The maintained **Streaming recovery and replay** workflow runs Chromium and
 Firefox against generated HLS media. It retains JSON evidence and request logs.
@@ -93,11 +93,11 @@ both failures in a real Wasm backend, demonstrate successful output at the
 requested target on an earlier eligible route, and then add a regression that
 fails under the current routing. A mocked successful backend is not that evidence.
 
-## Demo status
+## Demo asset verification
 
-The existing hosted demo is explicitly labeled as an older pinned development
-demo in the README and [Pages documentation](PAGES.md#public-demo-pin). Its
-manifest identity is pinned separately from the current source package version.
-Read-only asset verification does not claim live playback qualification. The
-Pages smoke suite now verifies fetched asset bytes against the same manifest
-recorded with its playback results; newly assembled pages visibly show their tag.
+The [Pages documentation](PAGES.md#public-demo-asset-verification) describes
+checking served asset bytes against the live deployment manifest. The report
+records the observed tag, commit and manifest hash without pinning a historical
+release. This establishes asset consistency, not intended-release identity or
+live playback qualification. The Pages smoke suite performs the same byte checks
+alongside its playback tests; newly assembled pages visibly show their tag.
