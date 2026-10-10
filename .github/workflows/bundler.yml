@@ -1,85 +1,33 @@
-# SPDX-License-Identifier: Apache-2.0
 name: Provider bundle loader
 on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
-  tail-diagnostic:
+  fixture-packet-order:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - {browser: chrome, variant: original}
-          - {browser: chrome, variant: candidate}
-          - {browser: firefox, variant: candidate}
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
       - run: |
-          cp tests/unequal-tail-windows.mjs "$RUNNER_TEMP/unequal-tail-windows.mjs"
-          cp scripts/tail-candidate-patch.py "$RUNNER_TEMP/tail-candidate-patch.py"
-      - uses: actions/checkout@v4
-        with:
-          ref: d5781f8be49da77f9247f11fd686f6e19643c53d
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: |
-          npm ci --ignore-scripts
-          cp "$RUNNER_TEMP/unequal-tail-windows.mjs" tests/unequal-tail-windows.mjs
-          npx playwright install --with-deps ${{ matrix.browser }}
-          sudo apt-get install -y ffmpeg pulseaudio xvfb
-          bash scripts/start-ci-audio.sh
-      - uses: actions/download-artifact@v4
-        with:
-          name: unqualified-runtime-debug
-          path: build/release
-          run-id: 37999741973
-          github-token: ${{ github.token }}
-      - name: Verify and install the exact failed archive
-        run: |
-          python3 - <<'PY'
-          import pathlib,hashlib,tarfile,json
-          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz')
-          assert hashlib.sha256(archive.read_bytes()).hexdigest()=='4e934eec21c254eb20a970edab6613b654d77f6228ad118db1b6406551cfe9a2'
-          with tarfile.open(archive) as tar:
-            manifest=json.load(tar.extractfile('package/release-manifest.json'))
-            assert manifest['sourceCommit']=='d5781f8be49da77f9247f11fd686f6e19643c53d'
-            for name,expected in manifest['files'].items():assert hashlib.sha256(tar.extractfile('package/'+name).read()).hexdigest()==expected['sha256'],name
-            tar.extractall('build/tail-installed',filter='data')
-          PY
-          printf 'BETA_ARCHIVE=%s/build/release/demuxe-1.1.1.tgz\nDEMUXE_RUNTIME_ROOT=%s/build/tail-installed/package\nENGINE_BUILD=%s/build/tail-installed/package/web/engine-adaptation\n' "$PWD" "$PWD" "$PWD" >> "$GITHUB_ENV"
-      - name: Apply the declared diagnostic runtime patch
-        if: matrix.variant == 'candidate'
-        run: python3 "$RUNNER_TEMP/tail-candidate-patch.py"
-      - name: Prepare the same release fixtures
-        run: python3 scripts/prepare-release-fixtures.py
-      - name: Reproduce all tail cases with state and source-frame evidence
-        env:
-          BROWSER: ${{ matrix.browser }}
-          SEEKS: '1'
-          COMBINATION: '1'
-          REMOTE: '1'
-        run: |
-          node --input-type=module <<'JS'
-          import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync,copyFileSync} from 'node:fs';
-          mkdirSync('results/tail-diagnostic',{recursive:true});const checks=[];
-          for(let trial=1;trial<=3;trial++){
-            const run=spawnSync(process.execPath,['tests/unequal-tail-windows.mjs'],{env:process.env,encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});const log=(run.stdout||'')+(run.stderr||'');
-            console.log(log);writeFileSync(`results/tail-diagnostic/${trial}.log`,log);
-            const directory=log.match(/Evidence: (results\/optimization-final\/tail-controller-[^\s]+)/)?.[1];
-            if(directory)copyFileSync(directory+'/result.json',`results/tail-diagnostic/${trial}.json`);
-            checks.push({trial,passed:run.status===0,status:run.status,signal:run.signal,directory});writeFileSync('results/tail-diagnostic/summary.json',JSON.stringify({checks},null,2));
-          }
-          if(checks.some(c=>!c.passed))process.exitCode=1;
-          JS
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          mkdir evidence
+          ffmpeg -v error -nostdin -n -f lavfi -i testsrc2=size=160x90:rate=30:duration=1 -f lavfi -i sine=frequency=440:sample_rate=48000:duration=30 -c:v libx264 -preset veryfast -g 30 -bf 2 -c:a pcm_s24le -threads 2 evidence/original.mkv
+          ffmpeg -v error -nostdin -n -i evidence/original.mkv -map 0 -c copy evidence/reinterleaved.mkv
+          ffprobe -v error -show_packets -show_entries packet=stream_index,pts_time,dts_time,pos -of json evidence/original.mkv > evidence/original-packets.json
+          ffprobe -v error -show_packets -show_entries packet=stream_index,pts_time,dts_time,pos -of json evidence/reinterleaved.mkv > evidence/reinterleaved-packets.json
+          ffmpeg -version > evidence/version.txt
+          python3 - <<'PY2'
+          import json
+          for name in ['original','reinterleaved']:
+              packets=json.load(open('evidence/'+name+'-packets.json'))['packets']
+              print(name,'video packets with preceding audio position')
+              last=None
+              for index,p in enumerate(packets):
+                  if p['stream_index']==1:last=p.get('pts_time')
+                  else: print(index,p,'precedingAudio',last)
+          PY2
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: tail-diagnostic-${{ matrix.browser }}-${{ matrix.variant }}
-          path: results/tail-diagnostic/
-          if-no-files-found: error
+          name: fixture-packet-order
+          path: evidence/
