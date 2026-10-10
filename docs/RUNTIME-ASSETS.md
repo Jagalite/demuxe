@@ -2,17 +2,15 @@
 
 # Runtime assets and package integration
 
-The assetBase/copy-assets interfaces are implemented in this working candidate.
-The project is not yet published to npm. Install the locally assembled archive:
+Install the published package and copy its runtime assets into your application:
 
 ```sh
-npm run build
-# First install verified private remux/adaptation builds; see REMUX-RUNTIME.md.
-python3 scripts/package-beta.py --output build/my-candidate
-# In a clean application:
-npm install /absolute/path/to/demuxe-0.3.0-beta.4.tgz
+npm install demuxe
 npx demuxe copy-assets public/assets/demuxe
 ```
+
+To build and install a package from source, follow the [release recipe](RELEASE.md).
+
 
 ```js
 import {Player} from 'demuxe';
