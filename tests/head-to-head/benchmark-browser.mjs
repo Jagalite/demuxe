@@ -9,7 +9,8 @@ export const benchmarkPolicy={schema:4,browserLifetime:'caller-declared comparis
   startupGateSeconds:150,startupGate:'macOS Chrome hardware-key task completion; tracing off before measurement',startupIdleSeconds:20,warmupSeconds:5,measureSeconds:20,sampleIntervalSeconds:2,
   clock:'monotonic CPU-query midpoint; fixed sample deadlines',
   viewport:{width:960,height:540},deviceScaleFactor:1};
-export const launchArgs=['--autoplay-policy=no-user-gesture-required'];
+// Browser.getBrowserCommandLine requires this flag; browser defaults may omit it.
+export const launchArgs=['--enable-automation','--autoplay-policy=no-user-gesture-required'];
 const hash=b=>createHash('sha256').update(b).digest('hex');
 export async function launchBenchmarkChrome({headless=false,channel='chrome',startupGate=false,progress=null}={}){
   const browser=await chromium.launch({channel,headless,args:launchArgs,timeout:30000});
