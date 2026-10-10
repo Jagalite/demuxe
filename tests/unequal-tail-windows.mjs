@@ -109,7 +109,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
      state.components=await page.evaluate(()=>{const c=document.querySelector('.demuxe-native-ass'),p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let green=0;for(let i=0;i<p.length;i+=4)if(p[i+1]>150&&p[i]<50&&p[i+2]<50&&p[i+3]>200)green++;return {green,gain:player.current.backend.gainNode.gain.value,plan:player.diagnostics.plan.id};});
      assert.ok(state.components.green>200);assert.equal(state.components.gain,.5);assert.equal(state.components.plan,'native-flac-ass-gain');
     }
-    item.phase='play-after-seek:'+target;await save();await page.evaluate(()=>player.play());if(target>29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
+    item.phase='play-after-seek:'+target;await save();await page.evaluate(()=>player.play());if(target>=29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
     if(process.env.COMBINATION==='1'&&target===24){state.audioRMS=await page.evaluate(async()=>{const b=player.current.backend,a=b.gainContext.createAnalyser();a.fftSize=2048;b.gainNode.connect(a);await new Promise(r=>setTimeout(r,100));const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);b.gainNode.disconnect(a);return Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length);});if(fixture.startsWith('audio-tail'))assert.ok(state.audioRMS>.03&&state.audioRMS<.06);else assert.ok(state.audioRMS<.0001);}
     await page.evaluate(()=>player.pause());
    }
