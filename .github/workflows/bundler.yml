@@ -12,10 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox]
+        include:
+          - {browser: chrome, variant: original}
+          - {browser: chrome, variant: candidate}
+          - {browser: firefox, variant: candidate}
     steps:
       - uses: actions/checkout@v4
-      - run: cp tests/unequal-tail-windows.mjs "$RUNNER_TEMP/unequal-tail-windows.mjs"
+      - run: |
+          cp tests/unequal-tail-windows.mjs "$RUNNER_TEMP/unequal-tail-windows.mjs"
+          cp scripts/tail-candidate-patch.py "$RUNNER_TEMP/tail-candidate-patch.py"
       - uses: actions/checkout@v4
         with:
           ref: d5781f8be49da77f9247f11fd686f6e19643c53d
@@ -26,7 +31,7 @@ jobs:
       - run: |
           npm ci --ignore-scripts
           cp "$RUNNER_TEMP/unequal-tail-windows.mjs" tests/unequal-tail-windows.mjs
-          npx playwright install --with-deps chrome firefox
+          npx playwright install --with-deps ${{ matrix.browser }}
           sudo apt-get install -y ffmpeg pulseaudio xvfb
           bash scripts/start-ci-audio.sh
       - uses: actions/download-artifact@v4
@@ -48,6 +53,9 @@ jobs:
             tar.extractall('build/tail-installed',filter='data')
           PY
           printf 'BETA_ARCHIVE=%s/build/release/demuxe-1.1.1.tgz\nDEMUXE_RUNTIME_ROOT=%s/build/tail-installed/package\nENGINE_BUILD=%s/build/tail-installed/package/web/engine-adaptation\n' "$PWD" "$PWD" "$PWD" >> "$GITHUB_ENV"
+      - name: Apply the declared diagnostic runtime patch
+        if: matrix.variant == 'candidate'
+        run: python3 "$RUNNER_TEMP/tail-candidate-patch.py"
       - name: Prepare the same release fixtures
         run: python3 scripts/prepare-release-fixtures.py
       - name: Reproduce all tail cases with state and source-frame evidence
@@ -72,6 +80,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: tail-diagnostic-${{ matrix.browser }}
+          name: tail-diagnostic-${{ matrix.browser }}-${{ matrix.variant }}
           path: results/tail-diagnostic/
           if-no-files-found: error

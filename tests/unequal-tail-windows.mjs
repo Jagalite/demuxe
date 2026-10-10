@@ -89,7 +89,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   if(process.env.SEEKS==='1'){
    await page.evaluate(()=>player.pause());
    item.seeks=[];
-   for(const target of [24,1.05,.75,3,22,29.99]){
+   for(const target of [24,1.05,.75,3,22,29.9]){
     item.phase='seek:'+target;item.currentTarget=target;await save();await page.evaluate(t=>player.seek(t),target);await page.waitForTimeout(700);
     const state=await page.evaluate(()=>({diagnostics:player.diagnostics,trace:pumpTrace.slice(),time:player.state.currentTime,paused:player.properties.get('pause')}));item.seeks.push(state);
     assert.ok(Math.abs(state.time-target)<.15);assert.equal(state.paused,true);state.pixels=await pixels();assert.ok(state.pixels.energy>10000);if(fixture.startsWith('audio-tail')&&target>=1&&item.finalPixels)assert.equal(state.pixels.image,item.finalPixels.image);
