@@ -116,16 +116,17 @@ jobs:
                const {NativePlayer}=await import('/web/generated/internal/native-player.js');
                const v=document.createElement('video');v.muted=true;v.playsInline=true;v.width=640;v.height=360;document.body.append(v);
                const p=new NativePlayer(v,'never'),result={repeat,seeks:[],outputVerified:false};
+               const guarded=async promise=>{let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Operation deadline exceeded')),12000);})]);}finally{clearTimeout(timer);}};
                try {
-                await p.openRemote({url:origin+'/fixtures/example.mp4'});await p.play();await new Promise(r=>setTimeout(r,100));await p.pause();
+                result.phase='open';await guarded(p.openRemote({url:origin+'/fixtures/example.mp4'}));result.phase='initial-play';await guarded(p.play());await new Promise(r=>setTimeout(r,100));await guarded(p.pause());
                 for(const target of [1,6,8,6,0]) {
-                 await p.seek(target);const readyBefore=v.readyState;
-                 await p.verifyStartup({video:true,audio:true});
+                 result.phase='seek-'+target;await guarded(p.seek(target));const readyBefore=v.readyState;
+                 result.phase='prepare-'+target;await guarded(p.verifyStartup({video:true,audio:true}));
                  result.seeks.push({target,readyBefore,readyAfter:v.readyState,time:v.currentTime,paused:v.paused,src:v.currentSrc,prepared:p.capability.prepared,outputVerified:p.capability.outputVerified});
                 }
-                await p.play();await p.verifyOutput();result.outputVerified=p.capability.outputVerified===true;await p.pause();
-               }catch(e){result.error=String(e);result.failure={time:v.currentTime,ready:v.readyState,seeking:v.seeking,src:v.currentSrc,capability:p.capability};}
-               finally{await p.destroy();v.remove();}
+                result.phase='output-play';await guarded(p.play());result.phase='output-verify';await guarded(p.verifyOutput());result.outputVerified=p.capability.outputVerified===true;await guarded(p.pause());
+               }catch(e){result.error=String(e);result.failure={time:v.currentTime,ready:v.readyState,seeking:v.seeking,src:v.currentSrc,capability:p.capability,frames:v.getVideoPlaybackQuality().totalVideoFrames,networkState:v.networkState,mediaError:v.error?.code};}
+               finally{try{await guarded(p.destroy());}catch(e){result.cleanupError=String(e);}v.remove();}
                return result;
               },{origin,repeat});row.cases.push(result);console.log(lane,JSON.stringify(result));await page.close();
              }
@@ -141,7 +142,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: native-direct-http-${{ matrix.gate }}
+          name: native-direct-http-bounded-${{ matrix.gate }}
           path: |
             results/native-paused-preparation/
             results/fixed-archive/
