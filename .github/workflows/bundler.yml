@@ -75,11 +75,19 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('tests/player-mobile.mjs');s=p.read_text()
-          s=s.replace("window.mobileExpansionPhase='seek';await viewer.seek(0);\n  window.mobileExpansionPhase='play';await viewer.play();viewer.revealControls();", "window.mobileExpansionPhase='play';await viewer.play();\n  window.mobileExpansionPhase='seek';await viewer.seek(0);viewer.revealControls();")
+          s=s.replace("await page.goto(origin+'/');", """await page.goto(origin+'/');
+ await page.evaluate(()=>{
+  window.mobileVideoTrace=[];window.tracedVideos=new WeakSet();
+  const capture=()=>{const v=document.querySelector('demuxe-player')?.player?.surface;if(!(v instanceof HTMLVideoElement)||tracedVideos.has(v))return;tracedVideos.add(v);
+   for(const name of ['loadstart','loadedmetadata','loadeddata','emptied','seeking','seeked','waiting','stalled','progress','play','pause','playing','error'])v.addEventListener(name,()=>{mobileVideoTrace.push({name,at:performance.now(),time:v.currentTime,ready:v.readyState,seeking:v.seeking,paused:v.paused,src:v.currentSrc,preload:v.preload,connected:v.isConnected});if(mobileVideoTrace.length>1000)mobileVideoTrace.shift();});};
+  window.tracePoll=setInterval(capture,20);capture();
+ });""")
+          s=s.replace("phase:window.mobileExpansionPhase,layout:", "events:window.mobileVideoTrace,phase:window.mobileExpansionPhase,layout:")
+          s=s.replace("readyState:viewer.player.surface.readyState,networkState:", "preload:viewer.player.surface.preload,seeking:viewer.player.surface.seeking,src:viewer.player.surface.currentSrc,connected:viewer.player.surface.isConnected,readyState:viewer.player.surface.readyState,networkState:")
           assert s!=p.read_text();p.write_text(s)
           PY
           status=0
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4 5; do
             BROWSER=webkit node tests/player-mobile.mjs || status=1
           done
           exit "$status"
@@ -89,7 +97,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-mobile-play-first
+          name: linux-mobile-event-trace
           path: |
             results/fixed-archive/
             results/passive-retirement/
