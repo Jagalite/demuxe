@@ -72,19 +72,37 @@ jobs:
       - name: Verify all installed archive API and mobile shards
         if: matrix.gate == 'matrix'
         run: |
-          status=0
-          for attempt in 1 2; do
-            BROWSER=webkit node tests/player-mobile.mjs || status=1
-          done
-          exit "$status"
+          node --input-type=module <<'JS'
+          import {webkit} from './tests/browser-test-runtime.mjs';
+          import {spawn} from 'node:child_process';
+          import {mkdir,writeFile} from 'node:fs/promises';
+          const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});
+          const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
+          const browser=await webkit.launch({headless:true});const results=[];
+          try {
+            for(const preload of ['metadata','auto']) for(let repeat=0;repeat<2;repeat++) {
+              const page=await browser.newPage({isMobile:true,hasTouch:true});await page.goto(origin+'/');
+              const result=await page.evaluate(async({origin,preload})=>{
+                const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload=preload;document.body.append(v);
+                const events=[];for(const name of ['loadedmetadata','loadeddata','seeking','seeked','waiting','playing','error'])v.addEventListener(name,()=>events.push({name,time:v.currentTime,ready:v.readyState,seeking:v.seeking}));
+                const snapshot=()=>({time:v.currentTime,ready:v.readyState,seeking:v.seeking,paused:v.paused,network:v.networkState});
+                const wait=(event,action)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>{v.removeEventListener(event,done);reject(Error(event+' timeout'));},12000);function done(){clearTimeout(timer);resolve();}v.addEventListener(event,done,{once:true});action();});
+                const seeks=[];let error;
+                try{await wait('loadedmetadata',()=>{v.src=origin+'/fixtures/example.mp4';v.load();});for(const target of [1,6,8,6,0]){try{await wait('seeked',()=>v.currentTime=target);seeks.push({target,passed:true,...snapshot()});}catch(e){seeks.push({target,passed:false,error:String(e),...snapshot()});throw e;}}}catch(e){error=String(e);}
+                const result={preload,seeks,error,events,final:snapshot()};v.removeAttribute('src');v.load();v.remove();return result;
+              },{origin,preload});results.push({repeat,...result});console.log(JSON.stringify(results.at(-1)));await page.close();
+            }
+          }finally{await browser.close();server.kill();await mkdir('results/native-seek',{recursive:true});await writeFile('results/native-seek/plain-webkit.json',JSON.stringify(results,null,2));}
+          JS
       - name: Verify Apple WebKit API, component, boundaries, containment and mobile
         if: matrix.gate == 'webkit'
         run: node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-mobile-repeat
+          name: linux-plain-video-seek
           path: |
+            results/native-seek/
             results/fixed-archive/
             results/passive-retirement/
             results/release-extra/
