@@ -14,6 +14,7 @@ jobs:
       matrix:
         include:
           - {os: ubuntu-24.04, gate: matrix, node: '22'}
+          - {os: macos-15, gate: webkit, node: '24'}
     env:
       HEADLESS: '1'
     steps:
@@ -63,6 +64,29 @@ jobs:
             await writeFile('results/fixed-archive/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,harnessRevision:await readFile(process.env.RUNNER_TEMP+'/harness-revision.txt','utf8'),consumerHarnessSHA256:createHash('sha256').update(await readFile('tests/public-api-consumer.mjs')).digest('hex'),platform:process.platform},null,2));
           } finally {await runtime.cleanup();}
           JS
+      - name: Apply the single-module diagnostic overlay
+        run: |
+          python3 - <<'PY'
+          import pathlib,tarfile,json,hashlib,io
+          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz');parent=hashlib.sha256(archive.read_bytes()).hexdigest();assert parent=='4736a6477712e66d5a4166926e114edc765a464664839a3840d57323f964ce94'
+          name='package/web/generated/internal/machine/native-backend.js'
+          with tarfile.open(archive) as tar:
+              original=tar.extractfile(name).read();assert hashlib.sha256(original).hexdigest()=='8b8f7a3aa6cac842d927e6b7699682445419ca9c5f525e6a5b4e914bd1ab7684'
+              updated=original.decode().replace("        const ready = facts.readyState >= (!verification.output && verification.metadataPreparation ? 1 : 3) && !facts.seeking && (!verification.active.video || facts.videoWidth > 0);","        // A paused HTTP seek may provide HAVE_CURRENT_DATA without buffering future\n        // frames. Preparation needs the current frame; executed output remains stricter.\n        const readyState = verification.output ? 3 : verification.metadataPreparation ? 1 : 2;\n        const ready = facts.readyState >= readyState && !facts.seeking && (!verification.active.video || facts.videoWidth > 0);").encode();assert hashlib.sha256(updated).hexdigest()=='dfc4510dbc294c2a956b62fce7d41e6cb4a42f0b34602791d9ed2ea97d4f807d'
+              manifest=json.load(tar.extractfile('package/release-manifest.json'));manifest['files'][name.removeprefix('package/')]={'sha256':hashlib.sha256(updated).hexdigest(),'bytes':len(updated)}
+              manifest['dirtySource']=True;manifest['sourceTag']=None;manifest['publicationEligible']=False;manifest['diagnosticOverlay']={'parentArchiveSHA256':parent,'file':name,'sourceSHA256':'4865cd4b31228619325831791d2e925a20b05602e73741d2ecdb6529c78833f8'}
+              target=archive.with_suffix('.diagnostic.tgz')
+              with tarfile.open(target,'w:gz') as output:
+                  for member in tar:
+                      data=tar.extractfile(member).read() if member.isfile() else None
+                      if member.name==name:data=updated
+                      if member.name=='package/release-manifest.json':data=(json.dumps(manifest,indent=2)+'\n').encode()
+                      if data is not None:member.size=len(data)
+                      output.addfile(member,io.BytesIO(data) if data is not None else None)
+          target.replace(archive)
+          pathlib.Path('results/fixed-archive/diagnostic-overlay.json').write_text(json.dumps({'parentArchiveSHA256':parent,'archiveSHA256':hashlib.sha256(archive.read_bytes()).hexdigest(),'fileSHA256':hashlib.sha256(updated).hexdigest(),'publicationEligible':False},indent=2)+'\n')
+          print('Derived diagnostic archive: one generated readiness module changed; not a release candidate')
+          PY
       - name: Prepare complete Linux release fixtures
         if: matrix.os == 'ubuntu-24.04'
         run: python3 scripts/prepare-release-fixtures.py
@@ -72,30 +96,18 @@ jobs:
       - name: Verify all installed archive API and mobile shards
         if: matrix.gate == 'matrix'
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tests/player-mobile.mjs');s=p.read_text()
-          s=s.replace("viewer.seekStep=2;await viewer.seek(6);", """window.mobileVideoTrace=[];const v=viewer.player.surface;
-            for(const name of ['loadstart','loadedmetadata','loadeddata','emptied','seeking','seeked','waiting','stalled','progress','play','pause','playing','error'])v.addEventListener(name,()=>mobileVideoTrace.push({name,at:performance.now(),time:v.currentTime,ready:v.readyState,seeking:v.seeking,paused:v.paused,src:v.currentSrc,preload:v.preload,connected:v.isConnected}));
-            viewer.seekStep=2;await viewer.seek(6);""")
-          s=s.replace("const expansionPlayback=await deadline(", "report.beforeExpansion=await page.evaluate(()=>{const v=viewer.player.surface;return {time:v.currentTime,ready:v.readyState,seeking:v.seeking,paused:v.paused,src:v.currentSrc,preload:v.preload,events:window.mobileVideoTrace};});await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\\n');\n const expansionPlayback=await deadline(")
-          s=s.replace("}),20000);", "}),30000);")
-          s=s.replace("phase:window.mobileExpansionPhase,layout:", "events:window.mobileVideoTrace,shell:window.viewer?.shadowRoot?.getElementById('shell')?.className,phase:window.mobileExpansionPhase,layout:")
-          s=s.replace("readyState:viewer.player.surface.readyState,networkState:", "preload:viewer.player.surface.preload,seeking:viewer.player.surface.seeking,src:viewer.player.surface.currentSrc,connected:viewer.player.surface.isConnected,readyState:viewer.player.surface.readyState,networkState:")
-          assert s!=p.read_text();p.write_text(s)
-          PY
-          status=0
-          for attempt in 1 2 3 4 5; do
-            BROWSER=webkit node tests/player-mobile.mjs || status=1
-          done
-          exit "$status"
+          node tests/api-stability/archive-matrix.mjs
+          for attempt in 1 2 3 4 5; do BROWSER=webkit node tests/player-mobile.mjs; done
+          for attempt in 1 2; do BROWSER=chrome node tests/player-mobile.mjs; done
       - name: Verify Apple WebKit API, component, boundaries, containment and mobile
         if: matrix.gate == 'webkit'
-        run: node tests/webkit-release.mjs
+        run: |
+          node tests/webkit-release.mjs
+          for attempt in 1 2 3; do BROWSER=webkit node tests/player-mobile.mjs; done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: linux-mobile-unpolled-trace
+          name: native-current-data-${{ matrix.gate }}
           path: |
             results/fixed-archive/
             results/passive-retirement/
