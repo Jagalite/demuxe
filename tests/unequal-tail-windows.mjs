@@ -28,7 +28,7 @@ const media=createServer((req,res)=>{
 const browser=await(family==='firefox'?firefox:chromium).launch(family==='firefox'?{headless:true}:{channel:'chrome',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
 const result={browser:browser.version(),engine,cases:[],unqualifiedOverride:process.env.REPRO_UNQUALIFIED==='1',scope:'Chrome Native long tails; Firefox rejects Native and retains Hybrid'};
 try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-tail-start2'].filter(n=>!process.env.CASES||process.env.CASES.split(',').includes(n))){
- const page=await browser.newPage();const pixels=()=>page.evaluate(()=>{const v=player.surface,c=document.createElement('canvas');c.width=64;c.height=36;const x=c.getContext('2d');x.drawImage(v,0,0,64,36);const p=x.getImageData(0,0,64,36).data;return {rgb:Array.from(p).filter((_,i)=>i%4!==3),physical:{time:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,readyState:v.readyState,seeking:v.seeking},image:c.toDataURL(),energy:p.reduce((sum,n,i)=>sum+(i%4===3?0:n),0),width:v.videoWidth};});const item={fixture,phase:'setup'};result.cases.push(item);const save=()=>writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');
+ const page=await browser.newPage();const pixels=()=>page.evaluate(()=>{const v=player.surface,c=document.createElement('canvas');c.width=64;c.height=36;const x=c.getContext('2d');x.drawImage(v,0,0,64,36);const p=x.getImageData(0,0,64,36).data;return {image:c.toDataURL(),energy:p.reduce((sum,n,i)=>sum+(i%4===3?0:n),0),width:v.videoWidth};});const item={fixture};result.cases.push(item);
  try{
 
   if(process.env.REPRO_UNQUALIFIED==='1')await page.route('**/native-remux-player.js',async r=>r.fulfill({contentType:'text/javascript',body:(await readFile('web/native-remux-player.js','utf8')).replace('data.windowed&&!windowedBrowserSupported()','false /* retained Firefox seek reproducer */')}));
@@ -57,9 +57,9 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
    }if(process.env.COMBINATION==='1')assert.equal(item.fallback.audioGain,.5);
    await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>24.5);if(process.env.COMBINATION==='1'){item.fallbackAudio=await page.evaluate(async()=>{const b=player.current.backend,a=b.audioContext.createAnalyser();a.fftSize=2048;b.gainNode.connect(a);await new Promise(r=>setTimeout(r,150));const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);b.gainNode.disconnect(a);return Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length);});if(audioTail)assert.ok(item.fallbackAudio>.03&&item.fallbackAudio<.06);else assert.ok(item.fallbackAudio<.0001);}item.passed=true;continue;
   }
-  item.phase='open';await save();await page.evaluate(async()=>{await player.open(window.openInput);player.surface.addEventListener('ended',()=>ends.push({t:player.surface.currentTime,eof:player.current?.backend?.remux?.eof}));});
+  await page.evaluate(async()=>{await player.open(window.openInput);player.surface.addEventListener('ended',()=>ends.push({t:player.surface.currentTime,eof:player.current?.backend?.remux?.eof}));});
   if(process.env.COMBINATION==='1')await page.evaluate(async()=>{const data=await(await fetch('/fixtures/qualification.ass')).blob();await player.addSubtitle(new File([data],'qualification.ass'));});
-  await page.waitForTimeout(1200);item.initial=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(600);item.idle=await page.evaluate(()=>player.diagnostics);item.initialPixels=await pixels();
+  await page.waitForTimeout(1200);item.initial=await page.evaluate(()=>player.diagnostics);await page.waitForTimeout(600);item.idle=await page.evaluate(()=>player.diagnostics);
   item.publicRanges=await page.evaluate(()=>({buffered:player.state.buffered,seekable:player.state.seekable}));
   assert.ok(item.publicRanges.buffered?.length,'Windowed Native must expose public buffered ranges');
   assert.deepEqual(item.publicRanges.seekable,[{start:0,end:30}]);
@@ -67,7 +67,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   assert.equal(item.idle.backend.remux.windowed,true);assert.equal(item.initial.backend.remux.remux.adaptation.audioSamplesDecoded,item.idle.backend.remux.remux.adaptation.audioSamplesDecoded);
   assert.ok(item.idle.backend.remux.remux.adaptation.sourceEnd<8);
   if(process.env.SEEKS_ONLY!=='1'){
-  item.phase='initial-play';await save();await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>3,null,{timeout:15000});
+  await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>3,null,{timeout:15000});
   item.crossed=await page.evaluate(()=>({diagnostics:player.diagnostics,duration:player.state.duration}));
   if(process.env.COMBINATION==='1'){
    item.tailAudio=await page.evaluate(async()=>{const b=player.current.backend,a=b.gainContext.createAnalyser();a.fftSize=2048;b.gainNode.connect(a);await new Promise(r=>setTimeout(r,200));const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);b.gainNode.disconnect(a);return {rms:Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length),context:b.gainContext.state};});
@@ -76,7 +76,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   item.crossedPixels=await pixels();assert.ok(item.crossedPixels.energy>10000);
   await page.evaluate(()=>player.pause());await page.waitForTimeout(300);const before=await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded);await page.waitForTimeout(600);assert.equal(await page.evaluate(()=>player.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded),before);
   await page.evaluate(async()=>{await player.setPlaybackRate(2);await player.play()});
-  item.phase='initial-eof';await save();await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:25000});
+  await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:25000});
   item.final=await page.evaluate(()=>({diagnostics:player.diagnostics,errors,ends,publicEnds,time:player.state.currentTime,duration:player.state.duration}));assert.deepEqual(item.final.errors,[]);assert.ok(item.final.time>29);assert.equal(item.final.publicEnds.length,1);assert.ok(item.final.publicEnds.every(e=>e.eof));
   item.finalPixels=await pixels();assert.ok(item.finalPixels.energy>10000);if(fixture.startsWith('audio-tail'))assert.equal(item.finalPixels.image,item.crossedPixels.image);else assert.notEqual(item.finalPixels.image,item.crossedPixels.image);
   assert.ok(Math.abs(item.final.duration-30)<.1);assert.ok(Math.abs(item.crossed.duration-30)<.1);
@@ -89,8 +89,9 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   if(process.env.SEEKS==='1'){
    await page.evaluate(()=>player.pause());
    item.seeks=[];
+   // Stay outside the 20 ms EOF tolerance: Play at EOF intentionally restarts.
    for(const target of [24,1.05,.75,3,22,29.9]){
-    item.phase='seek:'+target;item.currentTarget=target;await save();await page.evaluate(t=>player.seek(t),target);await page.waitForTimeout(700);
+    await page.evaluate(t=>player.seek(t),target);await page.waitForTimeout(700);
     const state=await page.evaluate(()=>({diagnostics:player.diagnostics,trace:pumpTrace.slice(),time:player.state.currentTime,paused:player.properties.get('pause')}));item.seeks.push(state);
     assert.ok(Math.abs(state.time-target)<.15);assert.equal(state.paused,true);state.pixels=await pixels();assert.ok(state.pixels.energy>10000);if(fixture.startsWith('audio-tail')&&target>=1&&item.finalPixels)assert.equal(state.pixels.image,item.finalPixels.image);
     assert.ok(state.diagnostics.backend.remux.remux.adaptation.audioSamplesDecoded<48000*8);
@@ -109,7 +110,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
      state.components=await page.evaluate(()=>{const c=document.querySelector('.demuxe-native-ass'),p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let green=0;for(let i=0;i<p.length;i+=4)if(p[i+1]>150&&p[i]<50&&p[i+2]<50&&p[i+3]>200)green++;return {green,gain:player.current.backend.gainNode.gain.value,plan:player.diagnostics.plan.id};});
      assert.ok(state.components.green>200);assert.equal(state.components.gain,.5);assert.equal(state.components.plan,'native-flac-ass-gain');
     }
-    item.phase='play-after-seek:'+target;await save();await page.evaluate(()=>player.play());if(target>=29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
+    await page.evaluate(()=>player.play());if(target>=29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
     if(process.env.COMBINATION==='1'&&target===24){state.audioRMS=await page.evaluate(async()=>{const b=player.current.backend,a=b.gainContext.createAnalyser();a.fftSize=2048;b.gainNode.connect(a);await new Promise(r=>setTimeout(r,100));const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);b.gainNode.disconnect(a);return Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length);});if(fixture.startsWith('audio-tail'))assert.ok(state.audioRMS>.03&&state.audioRMS<.06);else assert.ok(state.audioRMS<.0001);}
     await page.evaluate(()=>player.pause());
    }
@@ -122,17 +123,8 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   });
   assert.equal(item.destroyBarrier.outstanding,true);assert.equal(item.destroyBarrier.error,'ABORTED');
   item.passed=true;
- }catch(e){item.error=String(e.stack);item.state=await Promise.race([page.evaluate(()=>({diagnostics:player.diagnostics,errors,ends,publicEnds,state:player.state,surface:{time:player.surface.currentTime,duration:player.surface.duration,paused:player.surface.paused,ended:player.surface.ended,seeking:player.surface.seeking,readyState:player.surface.readyState}})),new Promise((_,reject)=>setTimeout(()=>reject(Error('Failure capture deadline')),2000))]).catch(()=>null);process.exitCode=1;}
- finally{
-  try{
-   const reference=execFileSync('ffmpeg',['-v','error','-i','build/optimization-fixtures/'+fixture+'.mkv','-an','-vf','scale=64:36:flags=area','-pix_fmt','rgb24','-f','rawvideo','-'],{maxBuffer:32*1024*1024});const size=64*36*3;
-   for(const snapshot of [item.initialPixels,item.crossedPixels,item.finalPixels,...(item.seeks||[]).map(s=>s.pixels)].filter(s=>s?.rgb)){
-    const distances=[];for(let at=0;at<reference.length;at+=size){let distance=0;for(let i=0;i<size;i++)distance+=Math.abs(snapshot.rgb[i]-reference[at+i]);distances.push(distance/size);}
-    snapshot.reference={frames:distances.length,best:distances.indexOf(Math.min(...distances)),meanAbsoluteDifference:Math.min(...distances)};
-   }
-  }catch(error){item.referenceError=String(error.stack);}
-  await save();
-await page.evaluate(()=>player.destroy()).catch(()=>{});await page.waitForTimeout(100);item.requests=requests.filter(r=>r.path==='/'+fixture+'.mkv');if(process.env.REMOTE==='1'){assert.ok(item.requests.length>0);assert.ok(item.requests.every(r=>r.authorized));}item.workersAfterDestroy=page.workers().length;assert.equal(item.workersAfterDestroy,0);await page.close();console.log(fixture,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+ }catch(e){item.error=String(e.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors,ends})).catch(()=>null);process.exitCode=1;}
+ finally{await page.evaluate(()=>player.destroy()).catch(()=>{});await page.waitForTimeout(100);item.requests=requests.filter(r=>r.path==='/'+fixture+'.mkv');if(process.env.REMOTE==='1'){assert.ok(item.requests.length>0);assert.ok(item.requests.every(r=>r.authorized));}item.workersAfterDestroy=page.workers().length;assert.equal(item.workersAfterDestroy,0);await page.close();console.log(fixture,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
 }}finally{await browser.close();media.closeAllConnections();await new Promise(r=>media.close(r));server.kill();console.log('Evidence:',out);}
 
 // BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).

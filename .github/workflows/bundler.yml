@@ -71,7 +71,7 @@ jobs:
               else: assert audio <= float(x['pts_time'])+.25,(x,audio)
           print('All short video packets precede their playback deadline')
           PY
-      - name: Reproduce all tail cases with state and source-frame evidence
+      - name: Run all optional browser groups on the unchanged archive
         env:
           BROWSER: ${{ matrix.browser }}
           SEEKS: '1'
@@ -79,20 +79,37 @@ jobs:
           REMOTE: '1'
         run: |
           node --input-type=module <<'JS'
-          import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync,copyFileSync} from 'node:fs';
-          mkdirSync('results/tail-diagnostic',{recursive:true});const checks=[];
-          for(let trial=1;trial<=3;trial++){
-            const run=spawnSync(process.execPath,['tests/unequal-tail-windows.mjs'],{env:process.env,encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});const log=(run.stdout||'')+(run.stderr||'');
-            console.log(log);writeFileSync(`results/tail-diagnostic/${trial}.log`,log);
-            const directory=log.match(/Evidence: (results\/optimization-final\/tail-controller-[^\s]+)/)?.[1];
-            if(directory)copyFileSync(directory+'/result.json',`results/tail-diagnostic/${trial}.json`);
-            checks.push({trial,passed:run.status===0,status:run.status,signal:run.signal,directory});writeFileSync('results/tail-diagnostic/summary.json',JSON.stringify({checks},null,2));
+          import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync} from 'node:fs';
+          mkdirSync('results/tail-diagnostic',{recursive:true});
+          const groups=[
+            ['consumer','tests/beta-consumer.mjs',{CASES:'automatic-local,automatic-lossless,hybrid-pin,software-pin,native-remux,native-external-ass,native-adaptation,native-opus,native-adaptation-ass-gain'}],
+            ['presentation','tests/player-presentation.mjs',{}],
+            ['external-subtitles','tests/mpv-external-subtitles.mjs',{}],
+            ['automatic','tests/automatic-adaptation.mjs',{}],
+            ['fractional-seek','tests/native-fractional-seek.mjs',{}],
+            ['ass','tests/native-ass.mjs',{}],
+            ['ass-selection','tests/native-ass-selection-regressions.mjs',{}],
+            ['ass-style','tests/native-ass-style-regressions.mjs',{}],
+            ['flac','tests/audio-adaptation.mjs',{CASES:'original-edge,multi-audio'}],
+            ['opus','tests/audio-adaptation.mjs',{PROFILE:'opus',CASES:'original-edge,opus-multi-audio'}],
+            ['lifecycle-flac','tests/audio-adaptation-lifecycle.mjs',{CASES:'bounded-local-gain,authenticated-range,destroy-blocked-read,incorrect-range'}],
+            ['lifecycle-opus','tests/audio-adaptation-lifecycle.mjs',{PROFILE:'opus',CASES:'bounded-local-gain,authenticated-range,destroy-blocked-read,incorrect-range'}],
+            ['gain','tests/in-place-gain.mjs',{}],
+            ['unequal-tails','tests/unequal-tail-windows.mjs',{SEEKS:'1',COMBINATION:'1',REMOTE:'1'}]
+          ];
+          const record={archiveSHA256:'4e934eec21c254eb20a970edab6613b654d77f6228ad118db1b6406551cfe9a2',sourceCommit:'d5781f8be49da77f9247f11fd686f6e19643c53d',scope:'Diagnostic browser preflight with corrected fixture and seek harness; no source audit or release promotion',checks:[]};
+          for(const [name,script,extra] of groups){
+            const env={...process.env,ADAPTATION_FIXTURE:'build/optimization-fixtures/long-pcm.mkv',AUTOMATIC_ADAPTATION_FIXTURE:'build/optimization-fixtures/automatic-release.mkv'};
+            for(const k of ['CASES','PROFILE','SEEKS','COMBINATION','REMOTE'])delete env[k];
+            const begun=Date.now();const run=spawnSync(process.execPath,[script],{env:{...env,...extra},encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});const log=(run.stdout||'')+(run.stderr||'');
+            console.log(name,run.status===0?'PASS':'FAIL',log);writeFileSync(`results/tail-diagnostic/${name}.log`,log);
+            record.checks.push({name,script,passed:run.status===0,status:run.status,signal:run.signal,seconds:(Date.now()-begun)/1000});record.passed=record.checks.every(c=>c.passed);writeFileSync('results/tail-diagnostic/summary.json',JSON.stringify(record,null,2));
+            if(run.status!==0){process.exitCode=1;break;}
           }
-          if(checks.some(c=>!c.passed))process.exitCode=1;
           JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: tail-diagnostic-${{ matrix.browser }}-${{ matrix.variant }}
+          name: optional-browser-preflight-${{ matrix.browser }}
           path: results/tail-diagnostic/
           if-no-files-found: error
