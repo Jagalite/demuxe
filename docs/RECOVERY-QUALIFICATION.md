@@ -51,7 +51,7 @@ HEADLESS=1 BROWSER=firefox ONLY='recovery qualification' \
   OUT=results/streaming-recovery/firefox node tests/shaka-lifecycle.mjs
 ```
 
-The 48-second fixture plays through naturally at 4x; the test never seeks near
+The 48-second fixture plays through naturally at 2x; the test never seeks near
 the end or manually removes buffers. It requires a positive real buffered
 start before natural end, a new request for the evicted first segment on replay,
 source identity retention, video output and an audible 440 Hz signal. This
@@ -61,6 +61,9 @@ The teardown case closes during an observed real retry, then opens a different
 880 Hz source. It requires the old analyzer to be silent, the old surface paused
 and disconnected, no old requests beyond two configured backoff intervals, no
 late errors or old source IDs, and an idle recovery state on the replacement.
+The cases explicitly request adaptive quality policy so browsers with native HLS
+support cannot silently bypass Shaka. A close/publication regression also prevents
+queries to an already-retired backend while the closing barrier still retains it.
 A separate transient-outage case requires a real retry to return to idle without
 a terminal error. All cases assert worker, surface and owned-Blob cleanup.
 

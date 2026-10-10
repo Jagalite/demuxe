@@ -1205,7 +1205,11 @@ export class Player extends EventTarget {
     }
     getStreamingState() { return this.captureStreamingState(this.current, this.sourceSerial); }
     captureStreamingState(session, sourceId) {
-        const raw = session?.backend.streamingState?.();
+        // close() retires physical ownership before its queued publication runs.
+        // Never query a disposed backend while the closing barrier still retains it.
+        if (!session || session.retired)
+            return null;
+        const raw = session.backend.streamingState?.();
         if (!raw)
             return null;
         const prefix = `${sourceId}:`;

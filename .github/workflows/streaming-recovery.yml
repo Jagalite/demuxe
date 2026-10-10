@@ -6,6 +6,7 @@ on:
       - 'src/**'
       - 'tests/shaka*'
       - 'tests/scrubber-preview.mjs'
+      - 'tests/api-stability/player-teardown.mjs'
       - '.github/workflows/streaming-recovery.yml'
   workflow_dispatch:
 permissions:
@@ -27,7 +28,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run build
       - run: npm run prepare:shaka
-      - run: node --test tests/shaka-recovery.mjs tests/shaka-network.mjs tests/shaka-backend.mjs tests/scrubber-preview.mjs tests/demo-identity.mjs
+      - run: node --test tests/shaka-recovery.mjs tests/shaka-network.mjs tests/shaka-backend.mjs tests/scrubber-preview.mjs tests/demo-identity.mjs tests/api-stability/player-teardown.mjs
       - run: python3 tests/pages-build.py
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg pulseaudio
       - run: npx playwright install --with-deps ${{ matrix.browser }}

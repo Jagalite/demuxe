@@ -778,7 +778,10 @@ export class Player extends EventTarget {
   }
   getStreamingState():import('./types.js').StreamingState|null{return this.captureStreamingState(this.current,this.sourceSerial);}
   private captureStreamingState(session:Session|undefined,sourceId:number):import('./types.js').StreamingState|null{
-    const raw=session?.backend.streamingState?.();if(!raw)return null;
+    // close() retires physical ownership before its queued publication runs.
+    // Never query a disposed backend while the closing barrier still retains it.
+    if(!session||session.retired)return null;
+    const raw=session.backend.streamingState?.();if(!raw)return null;
     const prefix=`${sourceId}:`;
     return copyData({...raw,qualities:raw.qualities.map(q=>({...q,id:prefix+q.id})),selectedId:raw.selectedId?prefix+raw.selectedId:null,presentedId:raw.presentedId?prefix+raw.presentedId:null,requested:raw.requested.mode==='manual'?{...raw.requested,id:prefix+raw.requested.id}:{...raw.requested}});
   }

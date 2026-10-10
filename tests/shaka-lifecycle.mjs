@@ -56,7 +56,7 @@ await check('recovery qualification public retries clear after real network reco
  let fail=false,failures=0;
  await page.route('**/long/index*.ts',route=>fail&&failures++===0?route.fulfill({status:503,body:'temporary outage'}):route.continue());
  await page.evaluate(async url=>{
-  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls'});
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});
   p.current.backend.player.configure({streaming:{retryParameters:{maxAttempts:4,baseDelay:250,backoffFactor:1,fuzzFactor:0}}});
   window.recoveryEvents=[];window.recoveryErrors=[];p.subscribe(state=>recoveryEvents.push({sourceId:state.sourceId,status:state.status,recovery:state.streaming?.recovery}));p.addEventListener('error',event=>recoveryErrors.push(event.detail));await p.play();
  },longURL);
@@ -70,7 +70,7 @@ await check('recovery qualification public retries clear after real network reco
 await check('recovery qualification natural end replays genuinely evicted content',async page=>{
  let firstSegmentRequests=0;page.on('request',request=>{if(request.url()===longURL.replace('index.m3u8','index0.ts'))firstSegmentRequests++;});
  await page.evaluate(async url=>{
-  p.preview.enabled=false;await p.setBuffering({aheadSeconds:6,behindSeconds:2});await p.open({url,format:'hls'});await p.setPlaybackRate(4);await p.play();
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:6,behindSeconds:2});await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});await p.setPlaybackRate(2);await p.play();
  },longURL);
  await page.waitForFunction(()=>p.state.currentTime>10&&p.surface.buffered.length>0&&p.surface.buffered.start(0)>2);
  const evicted=await page.evaluate(()=>({time:p.state.currentTime,buffered:p.state.buffered,firstBuffered:p.surface.buffered.start(0)}));
@@ -88,7 +88,7 @@ await check('recovery qualification close during backoff isolates replacement au
  page.on('request',request=>{if(request.url().includes('/long/'))oldRequests++;});
  await page.route('**/long/index*.ts',route=>fail?route.fulfill({status:503,body:'source A outage'}):route.continue());
  await page.evaluate(async url=>{
-  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls'});
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});
   window.oldBackend=p.current.backend;window.oldPolicy=oldBackend.policy;window.oldSurface=p.surface;window.oldSourceId=p.state.sourceId;
   oldBackend.player.configure({streaming:{retryParameters:{maxAttempts:8,baseDelay:1500,backoffFactor:1,fuzzFactor:0}}});
   window.audioCheck=new AudioContext();window.oldAnalyser=audioCheck.createAnalyser();oldAnalyser.fftSize=8192;audioCheck.createMediaElementSource(oldSurface).connect(oldAnalyser);oldAnalyser.connect(audioCheck.destination);await audioCheck.resume();await p.play();
@@ -99,7 +99,7 @@ await check('recovery qualification close during backoff isolates replacement au
  await page.evaluate(async()=>{window.postCloseErrors=[];window.postCloseSources=[];p.addEventListener('error',e=>postCloseErrors.push(e.detail));await p.close();p.subscribe(s=>postCloseSources.push(s.sourceId));});
  const requestsAtClose=oldRequests;
  assert.equal(await page.evaluate(()=>p.state.streaming),null);
- await page.evaluate(async url=>{await p.open({url,format:'hls'});window.newAnalyser=audioCheck.createAnalyser();newAnalyser.fftSize=8192;audioCheck.createMediaElementSource(p.surface).connect(newAnalyser);newAnalyser.connect(audioCheck.destination);await p.play();},replacementURL);
+ await page.evaluate(async url=>{await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});window.newAnalyser=audioCheck.createAnalyser();newAnalyser.fftSize=8192;audioCheck.createMediaElementSource(p.surface).connect(newAnalyser);newAnalyser.connect(audioCheck.destination);await p.play();},replacementURL);
  await page.waitForFunction(()=>{
   const x=new Float32Array(newAnalyser.frequencyBinCount);newAnalyser.getFloatFrequencyData(x);let best=0;for(let i=1;i<x.length;i++)if(x[i]>x[best])best=i;
   const old=new Float32Array(oldAnalyser.fftSize);oldAnalyser.getFloatTimeDomainData(old);return x[best]>-70&&Math.abs(best*audioCheck.sampleRate/newAnalyser.fftSize-880)<30&&old.every(value=>Math.abs(value)<.001);
