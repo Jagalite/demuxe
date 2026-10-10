@@ -88,8 +88,8 @@ jobs:
           node --input-type=module <<'JS'
           import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync} from 'node:fs';
           mkdirSync('results/tail-diagnostic',{recursive:true});
-          const allGroups=[
-            ['consumer','tests/beta-consumer.mjs',{CASES:'automatic-local,automatic-lossless,hybrid-pin,software-pin,native-remux,native-external-ass,native-adaptation,native-opus,native-adaptation-ass-gain'}],
+          const groups=[
+            ['consumer','tests/beta-consumer.mjs',{CASES:'automatic-local,automatic-lossless,hybrid-pin,software-pin,rgb-override,native-remux,native-external-ass,native-adaptation,native-opus,native-adaptation-ass-gain'}],
             ['presentation','tests/player-presentation.mjs',{}],
             ['external-subtitles','tests/mpv-external-subtitles.mjs',{}],
             ['automatic','tests/automatic-adaptation.mjs',{}],
@@ -104,7 +104,6 @@ jobs:
             ['gain','tests/in-place-gain.mjs',{}],
             ['unequal-tails','tests/unequal-tail-windows.mjs',{SEEKS:'1',COMBINATION:'1',REMOTE:'1'}]
           ];
-          const groups=[['consumer-worker-assets','tests/beta-consumer.mjs',{CASES:'software-pin,rgb-override'}]];
           const record={archiveSHA256:'4e934eec21c254eb20a970edab6613b654d77f6228ad118db1b6406551cfe9a2',sourceCommit:'d5781f8be49da77f9247f11fd686f6e19643c53d',scope:'Diagnostic browser preflight with corrected fixture and seek harness; no source audit or release promotion',checks:[]};
           for(const [name,script,extra] of groups){
             const env={...process.env,ADAPTATION_FIXTURE:'build/optimization-fixtures/long-pcm.mkv',AUTOMATIC_ADAPTATION_FIXTURE:'build/optimization-fixtures/automatic-release.mkv'};
@@ -118,7 +117,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: consumer-worker-assets-${{ matrix.browser }}
+          name: optional-browser-preflight-${{ matrix.browser }}
           path: |
             results/tail-diagnostic/
             results/beta/
