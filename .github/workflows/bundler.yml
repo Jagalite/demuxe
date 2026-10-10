@@ -68,7 +68,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import pathlib,tarfile,json,hashlib,io
-          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz');parent=hashlib.sha256(archive.read_bytes()).hexdigest();assert parent=='4736a6477712e66d5a4166926e114edc765a464664839a3840d57323f964ce94'
+          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz');pathlib.Path('build/release/demuxe-parent.tgz').write_bytes(archive.read_bytes());parent=hashlib.sha256(archive.read_bytes()).hexdigest();assert parent=='4736a6477712e66d5a4166926e114edc765a464664839a3840d57323f964ce94'
           name='package/web/generated/internal/machine/native-backend.js'
           with tarfile.open(archive) as tar:
               original=tar.extractfile(name).read();assert hashlib.sha256(original).hexdigest()=='8b8f7a3aa6cac842d927e6b7699682445419ca9c5f525e6a5b4e914bd1ab7684'
@@ -93,22 +93,57 @@ jobs:
       - name: Prepare Apple WebKit API fixtures
         if: matrix.os == 'macos-15'
         run: node tests/api-stability/fixtures.mjs
-      - name: Verify all installed archive API and mobile shards
-        if: matrix.gate == 'matrix'
+      - name: Compare forced direct HTTP preparation and executed output
         run: |
-          node tests/api-stability/archive-matrix.mjs
-          for attempt in 1 2 3 4 5; do BROWSER=webkit node tests/player-mobile.mjs; done
-          for attempt in 1 2; do BROWSER=chrome node tests/player-mobile.mjs; done
-      - name: Verify Apple WebKit API, component, boundaries, containment and mobile
-        if: matrix.gate == 'webkit'
-        run: |
-          node tests/webkit-release.mjs
-          for attempt in 1 2 3; do BROWSER=webkit node tests/player-mobile.mjs; done
+          node --input-type=module <<'JS'
+          import {webkit} from './tests/browser-test-runtime.mjs';
+          import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
+          import {spawn} from 'node:child_process';
+          import {mkdir,writeFile} from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          const report={platform:process.platform,passed:false,lanes:[]};
+          await mkdir('results/native-paused-preparation',{recursive:true});
+          const browser=await webkit.launch({headless:true});report.browserVersion=browser.version();
+          try {
+           for(const [lane,archive] of [['original','build/release/demuxe-parent.tgz'],['patched','build/release/demuxe-1.1.1.tgz']]) {
+            const runtime=await installLiveRuntime(archive),server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0',DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot},stdio:['ignore','pipe','inherit']});
+            const row={lane,archiveSHA256:runtime.archiveSHA256,cases:[]};report.lanes.push(row);
+            try {
+             const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',d=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(d));if(m)resolve(m[0]);});});
+             for(let repeat=0;repeat<3;repeat++) {
+              const page=await browser.newPage({isMobile:true,hasTouch:true});await page.goto(origin+'/');
+              const result=await page.evaluate(async({origin,repeat})=>{
+               const {NativePlayer}=await import('/web/generated/internal/native-player.js');
+               const v=document.createElement('video');v.muted=true;v.playsInline=true;v.width=640;v.height=360;document.body.append(v);
+               const p=new NativePlayer(v,'never'),result={repeat,seeks:[],outputVerified:false};
+               try {
+                await p.openRemote({url:origin+'/fixtures/example.mp4'});await p.play();await new Promise(r=>setTimeout(r,100));await p.pause();
+                for(const target of [1,6,8,6,0]) {
+                 await p.seek(target);const readyBefore=v.readyState;
+                 await p.verifyStartup({video:true,audio:true});
+                 result.seeks.push({target,readyBefore,readyAfter:v.readyState,time:v.currentTime,paused:v.paused,src:v.currentSrc,prepared:p.capability.prepared,outputVerified:p.capability.outputVerified});
+                }
+                await p.play();await p.verifyOutput();result.outputVerified=p.capability.outputVerified===true;await p.pause();
+               }catch(e){result.error=String(e);result.failure={time:v.currentTime,ready:v.readyState,seeking:v.seeking,src:v.currentSrc,capability:p.capability};}
+               finally{await p.destroy();v.remove();}
+               return result;
+              },{origin,repeat});row.cases.push(result);console.log(lane,JSON.stringify(result));await page.close();
+             }
+            }finally{server.kill();await runtime.cleanup();}
+           }
+           const patched=report.lanes.find(r=>r.lane==='patched');assert.equal(patched.cases.length,3);assert.ok(patched.cases.every(c=>!c.error&&c.outputVerified&&c.seeks.length===5));
+           assert.ok(patched.cases.every(c=>c.seeks.every(s=>s.src.startsWith('http:')&&s.paused&&s.prepared===true&&s.outputVerified!==true&&Math.abs(s.time-s.target)<.01)));
+           report.currentDataPreparations=patched.cases.flatMap(c=>c.seeks).filter(s=>s.readyAfter===2).length;
+           if(process.platform==='linux')assert.ok(report.currentDataPreparations>0,'Must exercise HAVE_CURRENT_DATA on direct HTTP');
+           report.passed=true;
+          }finally{await browser.close();await writeFile('results/native-paused-preparation/result.json',JSON.stringify(report,null,2)+'\n');}
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: native-current-data-${{ matrix.gate }}
+          name: native-direct-http-${{ matrix.gate }}
           path: |
+            results/native-paused-preparation/
             results/fixed-archive/
             results/passive-retirement/
             results/release-extra/
