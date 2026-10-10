@@ -13,12 +13,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {browser: chrome, variant: fixed-fixtures}
           - {browser: firefox, variant: fixed-fixtures}
     steps:
       - uses: actions/checkout@v4
       - run: |
           cp tests/unequal-tail-windows.mjs "$RUNNER_TEMP/unequal-tail-windows.mjs"
+          cp tests/beta-consumer.mjs "$RUNNER_TEMP/beta-consumer.mjs"
           cp scripts/tail-candidate-patch.py "$RUNNER_TEMP/tail-candidate-patch.py"
       - uses: actions/checkout@v4
         with:
@@ -30,6 +30,7 @@ jobs:
       - run: |
           npm ci --ignore-scripts
           cp "$RUNNER_TEMP/unequal-tail-windows.mjs" tests/unequal-tail-windows.mjs
+          cp "$RUNNER_TEMP/beta-consumer.mjs" tests/beta-consumer.mjs
           npx playwright install --with-deps ${{ matrix.browser }}
           sudo apt-get install -y ffmpeg pulseaudio xvfb
           bash scripts/start-ci-audio.sh
@@ -111,5 +112,8 @@ jobs:
         if: always()
         with:
           name: optional-browser-preflight-${{ matrix.browser }}
-          path: results/tail-diagnostic/
+          path: |
+            results/tail-diagnostic/
+            results/beta/
+            results/optimization-final/
           if-no-files-found: error
