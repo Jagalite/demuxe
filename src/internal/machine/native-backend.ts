@@ -143,7 +143,11 @@ export function transitionNativeBackend(state:NativeBackendState,command:NativeB
   if(facts.frames>0||(facts.decodedFrames??0)>0)capability={...capability,decoderOutput:true};
   const update=(extra:Omit<NativeBackendDecision,'state'|'accepted'>={},next=verification)=>result({...state,capability:evidence({...capability,timing}),verification:next},extra);
   if(verification.output&&verification.previouslyVerified&&facts.ended){capability={...capability,completedAtEOF:true,outputVerified:true};timing.outputAccepted=facts.now;return update({completed:true},Object.freeze({...verification,phase:verification.selectiveAudio?'audio':'complete'}));}
-  const ready=facts.readyState>=(!verification.output&&verification.metadataPreparation?1:3)&&!facts.seeking&&(!verification.active.video||facts.videoWidth>0);
+  // A paused HTTP seek may provide current data without buffering future frames.
+  // Keep new loads conservative; output still needs clock, frame and audio proof.
+  const currentDataPreparation=!state.load.work&&state.capability.prepared===true;
+  const readyState=verification.output?2:verification.metadataPreparation?1:currentDataPreparation?2:3;
+  const ready=facts.readyState>=readyState&&!facts.seeking&&(!verification.active.video||facts.videoWidth>0);
   if(!ready)return update();
   if(verification.active.audio)capability={...capability,audioObservation:{initialBytes:verification.initialAudioBytes,decodedBytes:facts.audio.decodedBytes,delta:typeof verification.initialAudioBytes==='number'&&typeof facts.audio.decodedBytes==='number'?facts.audio.decodedBytes-verification.initialAudioBytes:undefined,present:facts.audio.present,enabledTrack:facts.audio.tracksPresent?facts.audio.enabledTrack:undefined,clockAdvanced:facts.time>verification.initialTime+.02}};
   if(verification.active.audio&&facts.readyState>=3&&facts.audio.present===false)return update({failure:'missing-audio'});

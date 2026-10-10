@@ -1939,7 +1939,13 @@ export class Player extends EventTarget {
     const abort=()=>controller.abort();
     for(const signal of signals){signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();}
     let verification:Promise<void>|undefined;
-    try{verification=(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs);await Promise.all([playing,verification]);}
+    try{
+      // Some WebKit ports execute playback without resolving the play promise.
+      // Actual output proves startup; an earlier play rejection still fails it.
+      const playFailure=playing.then(()=>new Promise<never>(()=>{}));
+      verification=Promise.resolve().then(()=>(backend as Backend & {verifyOutput(signal?:AbortSignal,outputBudgetMs?:number):Promise<void>}).verifyOutput(controller.signal,outputBudgetMs));
+      await Promise.race([playFailure,verification]);
+    }
     finally{for(const signal of signals)signal.removeEventListener('abort',abort);controller.abort();await verification?.catch(()=>{});}
   }
   play() {

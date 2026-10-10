@@ -301,7 +301,7 @@ try{
  // Browser expansion uses the same composed shell when container fullscreen is absent.
  await page.setViewportSize({width:390,height:844});
  await page.evaluate(()=>{
-  window.expansionAutoHideDelay=viewer.controlsAutoHideDelay;viewer.controlsAutoHideDelay=0;viewer.revealControls();window.expansionCore=viewer.player;window.expansionSurface=viewer.player.surface;window.expansionSource=viewer.player.state.sourceId;
+  window.expansionAutoHideDelay=viewer.controlsAutoHideDelay;viewer.controlsAutoHideDelay=0;viewer.revealControls();window.expansionCore=viewer.player;window.expansionSource=viewer.player.state.sourceId;
   window.originalFullscreen=Object.getOwnPropertyDescriptor(viewer,'requestFullscreen');Object.defineProperty(viewer,'requestFullscreen',{value:undefined,configurable:true});
   window.outside=document.createElement('button');outside.textContent='Outside player';document.body.append(outside);
   window.beforeExpansionOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='clip';window.originalOverflow=document.documentElement.style.overflow;
@@ -312,6 +312,8 @@ try{
  const expansionPlayback=await deadline(page.evaluate(async()=>{
   window.mobileExpansionPhase='seek';await viewer.seek(0);
   window.mobileExpansionPhase='play';await viewer.play();viewer.revealControls();
+  // Automatic playback selection may replace the video before expansion starts.
+  window.expansionSurface=viewer.player.surface;
   window.mobileExpansionPhase='expand';
   const start=viewer.player.state.currentTime,deadline=performance.now()+5000;
   $('fullscreen').click();window.mobileExpansionPhase='progress';

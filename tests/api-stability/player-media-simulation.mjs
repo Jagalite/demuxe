@@ -33,19 +33,28 @@ async function fixture(t,plan='direct',mutation,timing){
   throw Error('Media timeline did not quiesce');
  }
  async function attach(){
-  const backend=new EventTarget(),calls=[];let position=0,paused=true,rate=p.settings.speed,stalled=false,closed=false,failVolume=false;
+  const backend=new EventTarget(),calls=[];let position=0,paused=true,rate=p.settings.speed,stalled=false,closed=false,failVolume=false,playbackSerial=0;
   const properties=new Map([['time-pos',0],['duration',20],['pause',true],['seekable',true],['native-seekable',[{start:0,end:20}]],['track-list',[{id:1,type:'audio',selected:true},{id:2,type:'audio',selected:false}]]]);
   const emit=(type,detail)=>backend.dispatchEvent(new CustomEvent(type,{detail}));
   const property=(name,data,extra={})=>{properties.set(name,data);emit('mpv',{event:'property-change',name,data,...extra});};
   const action=(kind,work,delay=5)=>{calls.push(kind);return new Promise((resolve,reject)=>clock.scheduleDeadline(()=>{try{if(closed&&kind!=='destroy')throw Error('Simulated backend retired');work();resolve();}catch(error){reject(error);}},timing?.(kind,delay,calls.length)??delay));};
   Object.assign(backend,{properties,diagnostics:{plan},calls,
-   play:()=>action('play',()=>{paused=false;property('pause',false);emit('activity','playing');}),
-   pause:()=>action('pause',()=>{if(mutation!=='drop-pause'){paused=true;property('pause',true);}}),
+   // Native playback commands retire earlier physical work before acknowledgement.
+   play:()=>{const serial=++playbackSerial;return action('play',()=>{if(serial!==playbackSerial)return;paused=false;property('pause',false);emit('activity','playing');});},
+   pause:()=>{const serial=++playbackSerial;return action('pause',()=>{if(serial!==playbackSerial)return;if(mutation!=='drop-pause'){paused=true;property('pause',true);}});},
    seek:value=>action(['seek',value],()=>{position=value;property('eof-reached',false);property('time-pos',value);emit('activity','seeked');},30),
    volume:value=>action(['volume',value],()=>{if(failVolume){failVolume=false;throw Error('injected volume failure');}properties.set('volume',value);}),
    rate:value=>action(['rate',value],()=>{rate=mutation==='drop-rate'?rate:value;properties.set('speed',value);}),
    selectTrack:(type,value)=>action(['track',type,value],()=>{property(type==='audio'?'aid':'sid',value);property('track-list',properties.get('track-list').map(track=>({...track,selected:String(track.id)===value})));}),
-   subtitleVisible:async()=>{},verifyOutput:async()=>{},verifyStartup:async()=>{},setBuffering:async()=>{},
+   subtitleVisible:async()=>{},
+   // Output verification must follow physical playback, even when its promise
+   // acknowledgement is delayed. A paused simulation cannot claim output.
+   verifyOutput:signal=>new Promise((resolve,reject)=>{
+    const finish=error=>{backend.removeEventListener('activity',check);signal?.removeEventListener('abort',abort);error?reject(error):resolve();};
+    const check=()=>{if(!paused)finish();},abort=()=>finish(new Error('Output verification aborted'));
+    backend.addEventListener('activity',check);signal?.addEventListener('abort',abort,{once:true});
+    if(signal?.aborted)abort();else check();
+   }),verifyStartup:async()=>{},setBuffering:async()=>{},
    destroy:()=>{closed=true;return action('destroy',()=>{});},
    failNextVolume:()=>{failVolume=true;},
    stall:value=>{stalled=value;property('paused-for-cache',value);emit('activity',value?'waiting':'playing');},

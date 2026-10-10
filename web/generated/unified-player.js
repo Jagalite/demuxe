@@ -3362,8 +3362,11 @@ export class Player extends EventTarget {
         }
         let verification;
         try {
-            verification = backend.verifyOutput(controller.signal, outputBudgetMs);
-            await Promise.all([playing, verification]);
+            // Some WebKit ports execute playback without resolving the play promise.
+            // Actual output proves startup; an earlier play rejection still fails it.
+            const playFailure = playing.then(() => new Promise(() => { }));
+            verification = Promise.resolve().then(() => backend.verifyOutput(controller.signal, outputBudgetMs));
+            await Promise.race([playFailure, verification]);
         }
         finally {
             for (const signal of signals)

@@ -15,6 +15,29 @@ test('paused native preparation records readiness without claiming executed outp
 test('native metadata preload differs from current-data preparation and still requires declared video dimensions',()=>{
  for(const [metadataPreparation,videoWidth,completed] of [[true,640,true],[false,640,false],[true,0,false]]){const m=model(),request=m.verify({metadataPreparation});assert.equal(!!m.send({type:'verify.sample',request,facts:{...sample,readyState:1,videoWidth}}).completed,completed);}
 });
+test('paused HTTP current data prepares without future buffering or executed-output claims',()=>{
+ for(const [readyState,seeking,videoWidth,completed] of [[2,false,640,true],[1,false,640,false],[2,true,640,false],[2,false,0,false]]){
+  const m=model(),initial=m.verify();m.send({type:'verify.sample',request:initial,facts:sample});m.send({type:'verify.finish',request:initial,failed:false});
+  const request=m.verify();assert.equal(!!m.send({type:'verify.sample',request,facts:{...sample,readyState,seeking,videoWidth}}).completed,completed);
+  assert.equal(m.state.capability.outputVerified,undefined);assert.equal(m.state.capability.videoPresented,undefined);m.replay();
+ }
+ const fresh=model(),request=fresh.verify();assert.equal(fresh.send({type:'verify.sample',request,facts:{...sample,readyState:2}}).completed,undefined);assert.equal(fresh.state.capability.prepared,undefined);
+});
+test('source replacement and active track loading cannot reuse current-data preparation',()=>{
+ for(const kind of ['source','audio-track']){
+  const m=model(),initial=m.verify();m.send({type:'verify.sample',request:initial,facts:sample});m.send({type:'verify.finish',request:initial,failed:false});
+  const load=m.send({type:'load.begin',kind,policy:{requested:false,original:true,remux:'never',requiresRemux:false,adaptation:undefined},position:0,paused:true}).request;
+  const request=m.verify();assert.equal(m.send({type:'verify.sample',request,facts:{...sample,readyState:2}}).completed,undefined);
+  if(kind==='source')assert.equal(m.state.capability.prepared,undefined);
+  m.send({type:'verify.finish',request,failed:false});m.send({type:'load.event',request:load,event:{type:'finish'}});m.replay();
+ }
+});
+test('current-data output requires actual clock, frame and declared audio evidence',()=>{
+ for(const facts of [{...sample,time:.1,paused:false},{...sample,frames:1,paused:false},{...sample,time:.1,frames:1},{...sample,time:.1,paused:false,frames:1,audio:{...audio,decodedBytes:0}}]){
+  const m=model(),request=m.verify({output:true,expected:{video:true,audio:true}});assert.equal(m.send({type:'verify.sample',request,facts:{...facts,readyState:2}}).completed,undefined);assert.equal(m.state.capability.outputVerified,false);
+ }
+ const m=model(),request=m.verify({output:true,expected:{video:true,audio:true}});assert.equal(m.send({type:'verify.sample',request,facts:{...sample,readyState:2,time:.1,paused:false,frames:1,audio:{...audio,decodedBytes:4}}}).completed,true);assert.equal(m.state.capability.outputVerified,true);m.replay();
+});
 test('native output requires advancing clock, actual frame and declared audio evidence',()=>{
  for(const facts of [{...sample,frames:1,audio:{...audio,decodedBytes:4}},{...sample,time:.1,paused:false,audio:{...audio,decodedBytes:4}},{...sample,time:.1,paused:false,frames:1}]){const m=model(),request=m.verify({output:true,expected:{video:true,audio:true}});assert.equal(m.send({type:'verify.sample',request,facts}).completed,undefined);}
  const m=model(),request=m.verify({output:true,expected:{video:true,audio:true}});
@@ -68,6 +91,11 @@ function candidate(t,overrides={}){
  const player=Object.assign(Object.create(NativePlayer.prototype),{native:core.initialNativeBackend(),video,cancelers:new Set(),controlWait:new Map(),eventWaits:new Map(),captionWait:new Map(),captionEffects:new Map(),browserTracks:new Map()});
  return {player,video,callbacks,cancelled,tick(ms){now+=ms;t.mock.timers.tick(ms);},frame(mediaTime=video.currentTime){const [id,callback]=callbacks.entries().next().value;callbacks.delete(id);callback(now,{mediaTime});}};
 }
+test('actual paused native verifier accepts current data and releases its observers',async t=>{
+ const f=candidate(t);await f.player.verifyStartup({video:true,audio:false});f.video.readyState=2;await f.player.verifyStartup({video:true,audio:false});
+ assert.equal(f.player.capability.prepared,true);assert.equal(f.player.capability.outputVerified,undefined);assert.equal(f.player.capability.videoPresented,undefined);
+ assert.equal(f.player.cancelers.size,0);assert.equal(f.player.native.verification,null);assert.equal(f.callbacks.size,0);
+});
 test('actual native verifier retires blocked subtitle preflight promptly and ignores its late completion',async t=>{
  const f=candidate(t),hold=deferred();let samples=0;f.player.mpvSubs={verify(){return ++samples===1?hold.promise:Promise.resolve();}};
  const old=f.player.verifyStartup({video:true,audio:false}),rejected=assert.rejects(old,/retired/);await flush();

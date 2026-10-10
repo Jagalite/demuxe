@@ -161,7 +161,11 @@ export function transitionNativeBackend(state, command) {
             timing.outputAccepted = facts.now;
             return update({ completed: true }, Object.freeze({ ...verification, phase: verification.selectiveAudio ? 'audio' : 'complete' }));
         }
-        const ready = facts.readyState >= (!verification.output && verification.metadataPreparation ? 1 : 3) && !facts.seeking && (!verification.active.video || facts.videoWidth > 0);
+        // A paused HTTP seek may provide current data without buffering future frames.
+        // Keep new loads conservative; output still needs clock, frame and audio proof.
+        const currentDataPreparation = !state.load.work && state.capability.prepared === true;
+        const readyState = verification.output ? 2 : verification.metadataPreparation ? 1 : currentDataPreparation ? 2 : 3;
+        const ready = facts.readyState >= readyState && !facts.seeking && (!verification.active.video || facts.videoWidth > 0);
         if (!ready)
             return update();
         if (verification.active.audio)

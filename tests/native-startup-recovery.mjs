@@ -63,3 +63,31 @@ test('pinned Native never prefetches or shortens for an out-of-mode Hybrid fallb
 test('previously rejected alternatives do not justify a shortened direct deadline',async()=>{
  const d=discovery(undefined);d.player.tierAttempts.reason=(_source,_configuration,id)=>id==='native-direct-mpv'?undefined:'rejected';await assert.rejects(d.run(),NativeLoadTimeout);assert.equal(d.attempts[0].budget,undefined);
 });
+
+function nativePlayGate(){
+ const player=Object.create(Player.prototype);Object.defineProperty(player,'activeOperation',{value:undefined});return player;
+}
+function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
+function outputVerifier(){
+ const output=deferred();let signal;
+ return {output,get signal(){return signal;},backend:{verifyOutput(value){signal=value;if(value.aborted)output.reject(new Error('Output aborted'));else value.addEventListener('abort',()=>output.reject(new Error('Output aborted')),{once:true});return output.promise;}}};
+}
+test('verified native output completes while the media play acknowledgement remains pending',async()=>{
+ const playing=deferred(),v=outputVerifier(),run=nativePlayGate().playNativeVerified(v.backend,playing.promise);
+ v.output.resolve();await run;assert.equal(v.signal.aborted,true);
+ // A late media acknowledgement failure remains handled after positive output.
+ playing.reject(new Error('Retired media play'));await new Promise(resolve=>setImmediate(resolve));
+});
+test('a successful play acknowledgement cannot bypass native output verification',async()=>{
+ const v=outputVerifier();let complete=false;const run=nativePlayGate().playNativeVerified(v.backend,Promise.resolve()).finally(()=>{complete=true;});
+ await new Promise(resolve=>setImmediate(resolve));assert.equal(complete,false);
+ const failure=new Error('No executed output');v.output.reject(failure);await assert.rejects(run,error=>error===failure);
+});
+test('an early media play rejection aborts the owned native output verifier',async()=>{
+ const playing=deferred(),v=outputVerifier(),failure=new Error('Autoplay denied'),run=nativePlayGate().playNativeVerified(v.backend,playing.promise);
+ await Promise.resolve();playing.reject(failure);await assert.rejects(run,error=>error===failure);assert.equal(v.signal.aborted,true);
+});
+test('retiring the play intent cancels native output verification with pending acknowledgement',async()=>{
+ const intent=new AbortController(),v=outputVerifier(),run=nativePlayGate().playNativeVerified(v.backend,new Promise(()=>{}),undefined,intent.signal);
+ await Promise.resolve();intent.abort();await assert.rejects(run,/Output aborted/);assert.equal(v.signal.aborted,true);
+});
