@@ -32,13 +32,19 @@ for(const name of ['english','alternate','low','high']){
 }
 const eventMaster=(await fs.readFile(path.join(fixture,'master.m3u8'),'utf8')).split('\n').filter(line=>!line.startsWith('#EXT-X-MEDIA:TYPE=SUBTITLES')).join('\n').replaceAll(',SUBTITLES="subs"','').replaceAll('index.m3u8','event.m3u8');
 await fs.writeFile(path.join(fixture,'event-master.m3u8'),eventMaster);
+// A longer, small synthetic source exercises real buffer eviction. Generating it
+// is cheap; playback is accelerated, not skipped or positioned near the end.
+await fs.mkdir(path.join(fixture,'long'));
+ff('-f','lavfi','-i','testsrc2=size=160x90:rate=15','-f','lavfi','-i','sine=frequency=440:sample_rate=48000','-t','48','-c:v','libx264','-preset','ultrafast','-g','30','-sc_threshold','0','-pix_fmt','yuv420p','-c:a','aac','-ac','2','-hls_time','2','-hls_playlist_type','vod',path.join(fixture,'long/index.m3u8'));
 const server=await serve(repo,path.join(repo,'tests/head-to-head'),path.join(out,'requests.jsonl'),{runtimeRoot:process.env.DEMUXE_RUNTIME_ROOT});
 const url=server.origin+'/'+path.relative(repo,fixture)+'/master.m3u8';
 const dash=server.origin+'/build/head-to-head/assets-component-isolation-01/fixtures/dash-h264/index.mpd';
+const longURL=server.origin+'/'+path.relative(repo,fixture)+'/long/index.m3u8';
+const replacementURL=server.origin+'/'+path.relative(repo,fixture)+'/alternate/index.m3u8';
 const eventURL=server.origin+'/'+path.relative(repo,fixture)+'/event-master.m3u8';
 const liveURL=server.origin+'/build/head-to-head/assets-component-isolation-01/fixtures/hls-live/index.m3u8?lifecycle-window-race';
 const family=process.env.BROWSER??'chrome';
-const browser=await(family==='firefox'?firefox:chromium).launch({headless:process.env.HEADLESS==='1',...(family==='chrome'?{channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']}:{firefoxUserPrefs:{'media.autoplay.default':0,'media.autoplay.block-webaudio':false}})});
+const browser=await(family==='firefox'?firefox:chromium).launch({headless:process.env.HEADLESS==='1',...(family!=='firefox'?{...(family==='chrome'?{channel:'chrome'}:{}),args:['--autoplay-policy=no-user-gesture-required']}:{firefoxUserPrefs:{'media.autoplay.default':0,'media.autoplay.block-webaudio':false}})});
 const result={scope:'Maintained Shaka public API, policy, explicit failure injection and lifecycle; synthetic media; no performance claim',browser:browser.version(),commands,fixture,cases:[]};
 const hashes={};for(const file of ['src/unified-player.ts','src/internal/shaka-backend.ts','src/internal/shaka-network.ts','src/internal/playback-plans.ts','web/resource-loader.js','web/fallback-stream-policy.js','tests/shaka-lifecycle.mjs'])hashes[file]=createHash('sha256').update(await fs.readFile(path.join(repo,file))).digest('hex');result.hashes=hashes;
 async function check(name,run){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;const page=await browser.newPage();page.setDefaultTimeout(30000);await page.addInitScript(()=>{const create=URL.createObjectURL.bind(URL),revoke=URL.revokeObjectURL.bind(URL);window.livePlayerBlobURLs=new Set();URL.createObjectURL=value=>{const url=create(value);livePlayerBlobURLs.add(url);return url;};URL.revokeObjectURL=url=>{livePlayerBlobURLs.delete(url);revoke(url);};});const console=[];page.on('console',m=>console.push(m.text()));
@@ -46,6 +52,64 @@ async function check(name,run){if(process.env.ONLY&&!name.includes(process.env.O
   catch(error){result.cases.push({name,passed:false,error:String(error.stack),console,diagnostics:await page.evaluate(()=>({player:p.diagnostics,state:p.state,cancelStage:window.cancelStage,cancelCandidate:window.cancelCandidate?{stopped:cancelCandidate.stopped,opening:cancelCandidate.opening,network:cancelCandidate.policy?.diagnostics,loadMode:cancelCandidate.player?.getLoadMode()}:undefined})).catch(()=>null)});process.exitCode=1;process.stdout.write(`FAIL ${name}: ${error}\n`);}
   finally{await Promise.race([page.evaluate(()=>p.destroy()).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);await page.close();await fs.writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2)+'\n');}}
 try{
+await check('recovery qualification public retries clear after real network recovery',async page=>{
+ let fail=false,failures=0;
+ await page.route('**/long/index*.ts',route=>fail&&failures++===0?route.fulfill({status:503,body:'temporary outage'}):route.continue());
+ await page.evaluate(async url=>{
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls'});
+  p.current.backend.player.configure({streaming:{retryParameters:{maxAttempts:4,baseDelay:250,backoffFactor:1,fuzzFactor:0}}});
+  window.recoveryEvents=[];window.recoveryErrors=[];p.subscribe(state=>recoveryEvents.push({sourceId:state.sourceId,status:state.status,recovery:state.streaming?.recovery}));p.addEventListener('error',event=>recoveryErrors.push(event.detail));await p.play();
+ },longURL);
+ await page.waitForFunction(()=>p.state.currentTime>.3);fail=true;
+ await page.waitForFunction(()=>recoveryEvents.some(e=>e.recovery?.status==='retrying'));
+ await page.waitForFunction(()=>p.state.streaming?.recovery.status==='idle'&&p.state.currentTime>1);
+ const evidence=await page.evaluate(()=>({events:recoveryEvents,errors:recoveryErrors,state:p.state,streaming:p.getStreamingState(),frames:p.surface.getVideoPlaybackQuality().totalVideoFrames}));
+ assert.ok(failures>0);assert.equal(evidence.errors.length,0);assert.ok(evidence.frames>3);assert.deepEqual(evidence.streaming.recovery,{status:'idle',retryingRequests:0});
+ assert.ok(evidence.events.some(e=>e.recovery?.status==='retrying'&&e.sourceId===evidence.state.sourceId));return {failures,...evidence};
+});
+await check('recovery qualification natural end replays genuinely evicted content',async page=>{
+ let firstSegmentRequests=0;page.on('request',request=>{if(request.url()===longURL.replace('index.m3u8','index0.ts'))firstSegmentRequests++;});
+ await page.evaluate(async url=>{
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:6,behindSeconds:2});await p.open({url,format:'hls'});await p.setPlaybackRate(4);await p.play();
+ },longURL);
+ await page.waitForFunction(()=>p.state.currentTime>10&&p.surface.buffered.length>0&&p.surface.buffered.start(0)>2);
+ const evicted=await page.evaluate(()=>({time:p.state.currentTime,buffered:p.state.buffered,firstBuffered:p.surface.buffered.start(0)}));
+ await page.waitForFunction(()=>p.state.status==='ended'&&p.surface.ended);
+ const ended=await page.evaluate(()=>({sourceId:p.state.sourceId,time:p.state.currentTime,duration:p.state.duration,firstBuffered:p.surface.buffered.start(0),frames:p.surface.getVideoPlaybackQuality().totalVideoFrames}));
+ assert.ok(ended.firstBuffered>2);assert.ok(ended.time>45);const before=firstSegmentRequests;
+ await page.evaluate(async()=>{await p.setPlaybackRate(1);window.replayAudio=new AudioContext();window.replayAnalyser=replayAudio.createAnalyser();replayAnalyser.fftSize=8192;replayAudio.createMediaElementSource(p.surface).connect(replayAnalyser);replayAnalyser.connect(replayAudio.destination);await replayAudio.resume();await p.play();});
+ await page.waitForFunction(()=>p.state.currentTime>.3&&p.state.currentTime<5&&!p.surface.ended&&p.surface.getVideoPlaybackQuality().totalVideoFrames>0);
+ await page.waitForFunction(()=>{const x=new Float32Array(replayAnalyser.frequencyBinCount);replayAnalyser.getFloatFrequencyData(x);let best=0;for(let i=1;i<x.length;i++)if(x[i]>x[best])best=i;return x[best]>-70&&Math.abs(best*replayAudio.sampleRate/replayAnalyser.fftSize-440)<30;});
+ const replayed=await page.evaluate(()=>({state:p.state,frames:p.surface.getVideoPlaybackQuality().totalVideoFrames}));await page.evaluate(()=>replayAudio.close());
+ assert.equal(replayed.state.sourceId,ended.sourceId);assert.ok(firstSegmentRequests>before,'The evicted first segment must be fetched again, not replayed from a retained buffer');return {evicted,ended,replayed,firstSegmentRequestsBeforeReplay:before,firstSegmentRequests};
+});
+await check('recovery qualification close during backoff isolates replacement audio requests and errors',async page=>{
+ let fail=false,oldRequests=0;
+ page.on('request',request=>{if(request.url().includes('/long/'))oldRequests++;});
+ await page.route('**/long/index*.ts',route=>fail?route.fulfill({status:503,body:'source A outage'}):route.continue());
+ await page.evaluate(async url=>{
+  p.preview.enabled=false;await p.setBuffering({aheadSeconds:4,behindSeconds:2});await p.open({url,format:'hls'});
+  window.oldBackend=p.current.backend;window.oldPolicy=oldBackend.policy;window.oldSurface=p.surface;window.oldSourceId=p.state.sourceId;
+  oldBackend.player.configure({streaming:{retryParameters:{maxAttempts:8,baseDelay:1500,backoffFactor:1,fuzzFactor:0}}});
+  window.audioCheck=new AudioContext();window.oldAnalyser=audioCheck.createAnalyser();oldAnalyser.fftSize=8192;audioCheck.createMediaElementSource(oldSurface).connect(oldAnalyser);oldAnalyser.connect(audioCheck.destination);await audioCheck.resume();await p.play();
+ },longURL);
+ await page.waitForFunction(()=>p.state.currentTime>.3);fail=true;
+ await page.waitForFunction(()=>p.state.streaming?.recovery.status==='retrying');
+ const retrying=await page.evaluate(()=>p.state);
+ await page.evaluate(async()=>{window.postCloseErrors=[];window.postCloseSources=[];p.addEventListener('error',e=>postCloseErrors.push(e.detail));await p.close();p.subscribe(s=>postCloseSources.push(s.sourceId));});
+ const requestsAtClose=oldRequests;
+ assert.equal(await page.evaluate(()=>p.state.streaming),null);
+ await page.evaluate(async url=>{await p.open({url,format:'hls'});window.newAnalyser=audioCheck.createAnalyser();newAnalyser.fftSize=8192;audioCheck.createMediaElementSource(p.surface).connect(newAnalyser);newAnalyser.connect(audioCheck.destination);await p.play();},replacementURL);
+ await page.waitForFunction(()=>{
+  const x=new Float32Array(newAnalyser.frequencyBinCount);newAnalyser.getFloatFrequencyData(x);let best=0;for(let i=1;i<x.length;i++)if(x[i]>x[best])best=i;
+  const old=new Float32Array(oldAnalyser.fftSize);oldAnalyser.getFloatTimeDomainData(old);return x[best]>-70&&Math.abs(best*audioCheck.sampleRate/newAnalyser.fftSize-880)<30&&old.every(value=>Math.abs(value)<.001);
+ });
+ // Longer than two explicitly configured backoff intervals: no old attempt is
+ // permitted to restart merely because its timer would otherwise have fired.
+ await page.waitForTimeout(3500);
+ const evidence=await page.evaluate(()=>({state:p.state,errors:postCloseErrors,sources:postCloseSources,oldSourceId,oldPaused:oldSurface.paused,oldConnected:oldSurface.isConnected,oldNetwork:oldPolicy.diagnostics,oldRecovery:oldBackend.recovery.snapshot}));
+ await page.evaluate(()=>audioCheck.close());assert.equal(oldRequests,requestsAtClose);assert.equal(evidence.errors.length,0);assert.ok(evidence.sources.every(id=>id!==evidence.oldSourceId));assert.notEqual(evidence.state.sourceId,evidence.oldSourceId);assert.equal(evidence.oldPaused,true);assert.equal(evidence.oldConnected,false);assert.equal(evidence.oldNetwork.active,false);assert.equal(evidence.oldNetwork.pendingRequests,0);assert.deepEqual(evidence.oldRecovery,{status:'idle',retryingRequests:0});assert.deepEqual(evidence.state.streaming.recovery,{status:'idle',retryingRequests:0});return {retrying,requestsAtClose,oldRequests,...evidence};
+});
 await check('roadmap runtime quality retains audio, position, intent and attachment identity',async page=>{
  await page.evaluate(async url=>{await p.open({url,format:'hls',streaming:{maxBandwidth:2000000}});await p.seek(2);},url);
  const selected=await page.evaluate(async()=>{

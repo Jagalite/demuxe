@@ -109,3 +109,12 @@ test('element retains a custom preview callback outside configuration and preser
  element.core=undefined;element.previewOptions=false;assert.equal(element.customPreviewStrategy,undefined);
  assert.equal(element.previewOptions,false);
 });
+
+ test('network retry activity is explicit and independent of buffering',()=>{
+  const labels={recovering:'Retrying stream',buffering:'Buffering',seeking:'Seeking'};
+  const state={sourceId:1,status:'playing',pendingOperation:null,streaming:{recovery:{status:'retrying',retryingRequests:2}}};
+  assert.equal(elementActivity(state,[],'',labels).pill,'Retrying stream');
+  assert.equal(elementActivity({...state,status:'buffering'},[],'',labels).announcement,'Retrying stream');
+  assert.equal(elementActivity({...state,pendingOperation:{kind:'seeking'}},[],'',labels).pill,'Seeking');
+  assert.equal(elementActivity({...state,streaming:null},[],'',labels).pill,'');
+ });

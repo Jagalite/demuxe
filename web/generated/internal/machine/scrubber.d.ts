@@ -10,6 +10,9 @@ export type ScrubberState = Readonly<{
     serial: number;
     nextResource: number;
     nextPresentation: number;
+    sourceId: number | null;
+    eligible: boolean;
+    intent: ScrubberTarget | null;
     pending: ScrubberTarget | null;
     generation: Readonly<{
         id: number;
@@ -22,7 +25,14 @@ export type ScrubberState = Readonly<{
     visible: boolean;
 }>;
 export type ScrubberCommand = Readonly<{
-    type: 'allocate' | 'hover' | 'generate' | 'clear' | 'hide' | 'destroy';
+    type: 'allocate' | 'generate' | 'clear' | 'hide' | 'destroy';
+}> | Readonly<{
+    type: 'hover';
+    target?: ScrubberTarget;
+}> | Readonly<{
+    type: 'observe';
+    sourceId: number | null;
+    eligible: boolean;
 }> | Readonly<{
     type: 'cache';
     hover: number;
@@ -61,6 +71,7 @@ export type ScrubberDecision = Readonly<{
     }>;
     abortGeneration?: number;
     abortPresentation?: number;
+    retry?: ScrubberTarget;
 }>;
 export declare function initialScrubber(): ScrubberState;
 export declare function transitionScrubber(state: ScrubberState, command: ScrubberCommand): ScrubberDecision;

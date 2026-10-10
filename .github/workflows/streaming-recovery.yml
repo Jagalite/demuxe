@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: Apache-2.0
+name: Streaming recovery and replay
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/shaka*'
+      - 'tests/scrubber-preview.mjs'
+      - '.github/workflows/streaming-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npm run prepare:shaka
+      - run: node --test tests/shaka-recovery.mjs tests/shaka-network.mjs tests/shaka-backend.mjs tests/scrubber-preview.mjs tests/demo-identity.mjs
+      - run: python3 tests/pages-build.py
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg pulseaudio
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: bash scripts/start-ci-audio.sh
+      - name: Qualify real retries, eviction replay and replacement ownership
+        run: mkdir -p build && node tests/shaka-lifecycle.mjs
+        env:
+          HEADLESS: '1'
+          BROWSER: ${{ matrix.browser }}
+          ONLY: recovery qualification
+          OUT: results/streaming-recovery/${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: streaming-recovery-${{ matrix.browser }}
+          path: results/streaming-recovery/

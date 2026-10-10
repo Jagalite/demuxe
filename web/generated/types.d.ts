@@ -679,7 +679,16 @@ export type QualitySelectionDecision = Readonly<{
 /** Called on Shaka decision opportunities, not each frame. Must return synchronously.
  * Throwing or invalid results use the default policy; source restrictions still apply. */
 export type QualitySelector = (context: QualitySelectionContext) => QualitySelectionDecision;
+/** Observed automatic retries of logical Shaka requests, including backoff.
+ * idle means no request is currently retrying, not that the network is healthy.
+ * Scoped to the enclosing PlayerState.sourceId; unavailable outside Shaka.
+ * No retry deadline/countdown or transport credentials are exposed. */
+export type NetworkRecoveryState = Readonly<{
+    status: 'idle' | 'retrying';
+    retryingRequests: number;
+}>;
 export type StreamingState = Readonly<{
+    recovery: NetworkRecoveryState;
     qualities: readonly StreamingQuality[];
     requested: QualityPolicy;
     selectedId: string | null;

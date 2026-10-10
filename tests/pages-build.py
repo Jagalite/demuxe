@@ -67,6 +67,9 @@ with tarfile.open(out/'test.tgz','w:gz') as t:
         out = self.root/'build/pages-site'
         page = (out/'index.html').read_text()
         self.assertIn('layout="classic"', page)
+        self.assertIn('id="pages-release"', page)
+        self.assertIn('Development demo: <strong>v-test</strong>', page)
+        self.assertIn('not a qualified npm release', page)
         self.assertNotIn('prepare="all"', page)
         self.assertIn('<main inert>', page)
         self.assertIn('./pages-boot.js', page)

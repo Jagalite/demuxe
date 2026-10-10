@@ -50,7 +50,7 @@ export function elementActivity(state:PlayerState,preparation:readonly Preparati
  const preparing=preparation.filter(asset=>['queued','loading','compiling'].includes(asset.status)),ready=preparation.filter(asset=>asset.status==='ready').length;
  const names={inspector:'media inspector',hybrid:'Hybrid',software:'Software',font:'subtitle font'},phase=preparing.find(asset=>asset.status==='compiling')??preparing[0];
  const preparationText=phase?`${phase.status==='compiling'?'Compiling':'Loading'} ${names[phase.name]}… · ${ready}/${preparation.length} ready`:preparation.length?ready===preparation.length?`Components ready · ${ready}/${preparation.length}`:`Ready · ${ready}/${preparation.length} prepared; others load when needed`:'';
- const activity=state.pendingOperation?.kind==='opening'?(phase?preparationText:openingStage||labels.loading):state.pendingOperation?.kind==='switching'?labels.switching:state.pendingOperation?.kind==='seeking'?labels.seeking:state.status==='buffering'?labels.buffering:'';
+ const activity=state.pendingOperation?.kind==='opening'?(phase?preparationText:openingStage||labels.loading):state.pendingOperation?.kind==='switching'?labels.switching:state.pendingOperation?.kind==='seeking'?labels.seeking:state.streaming?.recovery?.status==='retrying'?labels.recovering:state.status==='buffering'?labels.buffering:'';
  const pill=activity||(!state.sourceId?preparationText:'');
  return Object.freeze({activity,pill,complete:!activity&&!phase,description:preparation.length&&!activity?preparation.map(asset=>`${names[asset.name]}: ${asset.status}`).join('; '):pill,announcement:pill||(state.streamType==='live'&&!state.seekable?.length?labels.noWindow:'')});
 }

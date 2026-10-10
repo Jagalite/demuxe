@@ -16,6 +16,7 @@ export class ScrubberPreview {
     ownerIds = new WeakMap();
     imageIds = new WeakMap();
     pendingApi;
+    intentApi;
     displayedURL;
     settleTimer;
     cancelSettle() { const handle = this.settleTimer; this.settleTimer = undefined; if (handle !== undefined)
@@ -50,8 +51,10 @@ export class ScrubberPreview {
             return;
         }
         const api = this.api();
-        if (!api)
+        if (!api) {
+            this.hide();
             return;
+        }
         const rect = this.timeline.getBoundingClientRect(), parent = this.panel.parentElement.getBoundingClientRect();
         const style = getComputedStyle(this.timeline), scale = rect.width / parseFloat(style.width);
         const thumbWidth = parseFloat(style.getPropertyValue('--timeline-thumb-size')) * scale;
@@ -61,7 +64,8 @@ export class ScrubberPreview {
         this.panel.style.left = `${pointer.left}px`;
         if (this.targetLabel)
             this.targetLabel.textContent = formatTime(pointer.time);
-        const hover = this.transition({ type: 'hover' });
+        this.intentApi = api;
+        const hover = this.transition({ type: 'hover', target: { owner: this.identity(this.ownerIds, api), time: pointer.time } });
         if (hover.id === undefined)
             return;
         this.cancelSettle();
@@ -102,6 +106,29 @@ export class ScrubberPreview {
         catch (error) {
             this.destroy();
             throw error;
+        }
+    }
+    /** The component publishes source identity and decoder eligibility after its
+     * timeline attributes are current. Retain intent, never a stale DOM event. */
+    observe(sourceId, eligible) {
+        const replaced = sourceId !== this.control.sourceId;
+        const decision = this.transition({ type: 'observe', sourceId, eligible });
+        if (!decision.accepted)
+            return;
+        if (replaced)
+            this.intentApi = undefined;
+        if (replaced || !eligible) {
+            this.cancelSettle();
+            this.pendingApi = undefined;
+        }
+        this.applyClear(decision);
+        const api = this.intentApi, target = decision.retry, hover = decision.id;
+        if (target && hover !== undefined && this.control.hover === hover) {
+            if (!api || this.api() !== api || this.timeline.disabled) {
+                this.hide();
+                return;
+            }
+            void this.sample(api, target.time, hover, true).catch(() => { });
         }
     }
     distance(api, generation = false) { return scrubberDistance(api.strategy, Number(this.timeline.max) - Number(this.timeline.min), generation); }
@@ -272,8 +299,8 @@ export class ScrubberPreview {
         }
     }
     clearImage() { this.applyClear(this.transition({ type: 'clear' })); }
-    hide = () => { this.cancelSettle(); this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
-    destroy() { this.cancelSettle(); this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
+    hide = () => { this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
+    destroy() { this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
         try {
             this.timeline.removeEventListener(name, listener);
         }

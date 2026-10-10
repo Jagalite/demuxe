@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import {createHash} from 'node:crypto';
+import {demoEntryAssets,verifyDemoAssets} from '../scripts/verify-demo-assets.mjs';
 import {chromium, firefox} from 'playwright';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
@@ -112,7 +113,8 @@ try{
     result.deployment={status:deployment.status,sourceCommit:deployment.sourceCommit,sourceTag:deployment.sourceTag,dirtySource:deployment.dirtySource,sha256:hash(bytes)};
     const fixture=await page.request.get(new URL('fixtures/example.mp4',origin).href);assert.ok(fixture.ok());const fixtureBytes=await fixture.body();
     result.fixture={path:'fixtures/example.mp4',bytes:fixtureBytes.length,sha256:hash(fixtureBytes)};
-    result.assetHashes=Object.fromEntries(Object.entries(deployment.files).filter(([name])=>name.endsWith('.wasm')||name.endsWith('.mjs')||name.startsWith('web/generated/player/')));
+    const assetNames=[...demoEntryAssets,...Object.keys(deployment.files).filter(name=>name.endsWith('.wasm')||name.endsWith('.mjs')||name.startsWith('web/generated/player/'))];
+    result.assetHashes=await verifyDemoAssets(origin,deployment,assetNames,async url=>{const response=await page.request.get(url);assert.ok(response.ok(),url);return response.body();});
     if(deployment.status!=='local-preview-not-for-deployment'){
      const source=await page.request.get(new URL('source/source-manifest.json',origin).href);assert.ok(source.ok());result.source=await source.json();
      assert.ok(result.source['demuxe-source.tar.gz']);assert.ok(result.source['emscripten-source.tar.gz']);

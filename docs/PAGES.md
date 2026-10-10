@@ -84,3 +84,25 @@ contexts do not imply cold OS, compiler or browser-process caches. Loopback
 measurements do not establish GitHub CDN latency or production performance.
 
 See the [2026-09-28 local validation and timing report](PAGES-VALIDATION-20260928.md).
+
+## Public demo pin
+
+The public URL is intentionally retained at **`v0.3.0-beta.5-rc.1`**, commit
+`67117b12d37da2bed977922c30e71fa639257fa5`. It is an older development demo,
+not the current `1.1.1` source candidate and not evidence that current changes
+have been deployed. `hosting/public-demo.json` records the observed manifest
+hash as well as the tag and commit. No production deployment is part of this PR.
+
+Run `node scripts/verify-demo-assets.mjs --output results/demo-identity.json`
+to verify the pinned live manifest and six entry assets. Add `--all` to verify
+all listed Wasm/MJS assets and generated player files too. This is a read-only
+identity/byte check, **not a playback smoke test or release qualification**.
+A mismatch fails closed; do not update the pin merely to silence it.
+
+To promote a new candidate, select an existing intended tag, build its clean
+checkout with matching engines, and run the tagged Pages workflow. The Pages
+smoke now fetches and checks the actual asset bytes, rather than only copying
+expected hashes from the manifest into its report. Keep that same manifest
+identity with the Chromium/Firefox playback results before updating this pin
+and the README label. New assembled pages also visibly show their own tag and
+commit. Rebuilding a newer source tree does not relabel an already served page.

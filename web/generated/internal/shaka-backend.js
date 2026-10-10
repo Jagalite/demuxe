@@ -5,6 +5,7 @@ import { beginAttempts, observeAttempt } from './machine/async-policy.js';
 import { bufferingPolicy, resolveBuffering, shakaBufferingOptions } from './buffering.js';
 import { NativePlayer } from './native-player.js';
 import { ShakaNetworkPolicy } from './shaka-network.js';
+import { ShakaRecovery } from './shaka-recovery.js';
 import { PlayerError, isPlayerError } from './errors.js';
 import { rasterizePreview } from '../preview/images.js';
 import { runtimeAt } from './shaka-runtime.js';
@@ -28,6 +29,7 @@ export class ShakaBackend extends EventTarget {
     native;
     player;
     policy;
+    recovery;
     runtime;
     control;
     get stopped() { return this.control.phase === 'closed'; }
@@ -298,11 +300,21 @@ export class ShakaBackend extends EventTarget {
                     return;
                 this.emit('mpv', { event: 'property-change', name: 'track-list', data: this.properties.get('track-list') });
             } };
+            const recovery = new ShakaRecovery(player, network, runtime.util.Error.Code.TIMEOUT, () => {
+                if (this.stopped || this.control.epoch !== epoch)
+                    return;
+                this.emit('mpv', { event: 'property-change', name: 'network-recovery', data: this.recovery?.snapshot });
+            });
+            if (!shakaLeaseCurrent(this.control, lease)) {
+                recovery.destroy();
+                this.check(lease);
+            }
+            this.recovery = recovery;
             for (const name of ['trackschanged', 'adaptation', 'variantchanged', 'textchanged', 'texttrackvisibility', 'streaming', 'loaded', 'buffering'])
                 this.listen(player, name, changed, lease);
             const failed = (event) => { const detail = event.detail; if (detail.severity !== runtime.util.Error.Severity.CRITICAL)
                 return; if (this.stopped || this.control.epoch !== epoch)
-                return; const error = this.mapped(detail); this.move({ type: 'failure', epoch }); this.failure = error; if (!this.opening)
+                return; const error = this.mapped(detail); this.recovery?.destroy(); this.move({ type: 'failure', epoch }); this.failure = error; if (!this.opening)
                 this.emit('error', error); };
             this.listen(player, 'error', failed, lease);
             const observed = (event) => { const e = event; if (!this.stopped && this.control.epoch === epoch && e.mediaQuality && Number.isFinite(e.position)) {
@@ -353,6 +365,7 @@ export class ShakaBackend extends EventTarget {
             this.move({ type: 'opened', lease });
         }
         catch (error) {
+            this.recovery?.destroy();
             this.move({ type: 'failed', lease });
             throw this.mapped(error);
         }
@@ -482,7 +495,7 @@ export class ShakaBackend extends EventTarget {
         check();
         const time = live && end > start ? this.video.currentTime : 0, now = playheadDate !== null ? Date.now() : 0;
         check();
-        return shakaStreamingProjection(state, facts, { live, start, end, time, now, playheadDate });
+        return shakaStreamingProjection(state, facts, { live, start, end, time, now, playheadDate, recovery: this.recovery?.snapshot });
     }
     async setQuality(policy) {
         const lease = this.begin('quality');
@@ -781,6 +794,7 @@ export class ShakaBackend extends EventTarget {
         if (this.disposal)
             return this.disposal;
         this.move({ type: 'close' });
+        this.recovery?.destroy();
         this.pumpControls();
         let resolve, reject;
         const disposal = this.disposal = new Promise((yes, no) => { resolve = yes; reject = no; });

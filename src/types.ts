@@ -276,7 +276,12 @@ export type QualitySelectionDecision = Readonly<{type:'default'}|{type:'keep'}|{
 /** Called on Shaka decision opportunities, not each frame. Must return synchronously.
  * Throwing or invalid results use the default policy; source restrictions still apply. */
 export type QualitySelector = (context:QualitySelectionContext)=>QualitySelectionDecision;
-export type StreamingState = Readonly<{qualities:readonly StreamingQuality[];requested:QualityPolicy;selectedId:string|null;presentedId:string|null;observedQuality:Readonly<{observation:'playhead-buffer';position:number;contentType:string;width:number|null;height:number|null;bandwidth:number|null;codec:string|null}>|null;transition:'unknown';live:Readonly<{isLive:boolean;seekable:TimeRange|null;latencySeconds:number|null;nearLive:boolean|null}>}>;
+/** Observed automatic retries of logical Shaka requests, including backoff.
+ * idle means no request is currently retrying, not that the network is healthy.
+ * Scoped to the enclosing PlayerState.sourceId; unavailable outside Shaka.
+ * No retry deadline/countdown or transport credentials are exposed. */
+export type NetworkRecoveryState = Readonly<{status:'idle'|'retrying';retryingRequests:number}>;
+export type StreamingState = Readonly<{recovery:NetworkRecoveryState;qualities:readonly StreamingQuality[];requested:QualityPolicy;selectedId:string|null;presentedId:string|null;observedQuality:Readonly<{observation:'playhead-buffer';position:number;contentType:string;width:number|null;height:number|null;bandwidth:number|null;codec:string|null}>|null;transition:'unknown';live:Readonly<{isLive:boolean;seekable:TimeRange|null;latencySeconds:number|null;nearLive:boolean|null}>}>;
 
 /** Immutable random-access bytes. Playback stages at most 32 MiB before acceptance. */
 export type CustomSource = Readonly<{kind:'bytes';transport:'application-managed';id:string;size:number;read:(offset:number,length:number,signal:AbortSignal)=>Promise<Uint8Array>;close?:()=>void|Promise<void>;ownership?:'borrowed'|'owned';name?:string;type?:string}>;

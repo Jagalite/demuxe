@@ -22,6 +22,7 @@ def write_page():
  page=page.replace('<script type="module" src="./web/player-demo.js"></script>','<script type="module" src="./pages-boot.js"></script>')
  page=page.replace('<body>', '<body><div id="pages-startup" role="status" style="position:fixed;inset:0;z-index:100;background:#101114;display:grid;place-content:center;text-align:center;padding:24px"><strong>Preparing your player…</strong><p style="color:#aaa">First visit? Playback setup takes a moment.</p><a href="./" target="_blank" rel="noopener" hidden>Open in a browser tab</a></div><noscript><style>#pages-startup{display:none!important}</style>This player needs JavaScript enabled.</noscript>')
  page=page.replace('OPEN SOURCE <span class="footer-dot">·</span> BETA PLAYGROUND', f'<a href="https://github.com/Jagalite/demuxe/tree/{commit}">Source</a> <span class="footer-dot">·</span> <a href="./source/">Licenses &amp; downloads</a>')
+ page=page.replace('</footer>', f'<p id="pages-release">Development demo: <strong>{html.escape(args.tag or "local untagged preview")}</strong> · {commit[:12]} · not a qualified npm release</p></footer>')
  (out/'index.html').write_text(page);(out/'.nojekyll').touch()
  for path in (root/'hosting').glob('*.js'):shutil.copyfile(path,out/path.name)
 def deployment_manifest(status):
