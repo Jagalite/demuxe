@@ -89,7 +89,8 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
   if(process.env.SEEKS==='1'){
    await page.evaluate(()=>player.pause());
    item.seeks=[];
-   for(const target of [24,1.05,.75,3,22,29.99]){
+   // Stay outside the 20 ms EOF tolerance: Play at EOF intentionally restarts.
+   for(const target of [24,1.05,.75,3,22,29.9]){
     await page.evaluate(t=>player.seek(t),target);await page.waitForTimeout(700);
     const state=await page.evaluate(()=>({diagnostics:player.diagnostics,trace:pumpTrace.slice(),time:player.state.currentTime,paused:player.properties.get('pause')}));item.seeks.push(state);
     assert.ok(Math.abs(state.time-target)<.15);assert.equal(state.paused,true);state.pixels=await pixels();assert.ok(state.pixels.energy>10000);if(fixture.startsWith('audio-tail')&&target>=1&&item.finalPixels)assert.equal(state.pixels.image,item.finalPixels.image);
@@ -109,7 +110,7 @@ try{for(const fixture of ['audio-tail','video-tail','audio-tail-start2','video-t
      state.components=await page.evaluate(()=>{const c=document.querySelector('.demuxe-native-ass'),p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let green=0;for(let i=0;i<p.length;i+=4)if(p[i+1]>150&&p[i]<50&&p[i+2]<50&&p[i+3]>200)green++;return {green,gain:player.current.backend.gainNode.gain.value,plan:player.diagnostics.plan.id};});
      assert.ok(state.components.green>200);assert.equal(state.components.gain,.5);assert.equal(state.components.plan,'native-flac-ass-gain');
     }
-    await page.evaluate(()=>player.play());if(target>29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
+    await page.evaluate(()=>player.play());if(target>=29.9)await page.waitForFunction(()=>player.properties.get('eof-reached'),null,{timeout:10000});else await page.waitForFunction(t=>player.state.currentTime>t+.5,target,{timeout:10000});
     if(process.env.COMBINATION==='1'&&target===24){state.audioRMS=await page.evaluate(async()=>{const b=player.current.backend,a=b.gainContext.createAnalyser();a.fftSize=2048;b.gainNode.connect(a);await new Promise(r=>setTimeout(r,100));const data=new Float32Array(a.fftSize);a.getFloatTimeDomainData(data);b.gainNode.disconnect(a);return Math.sqrt(data.reduce((s,v)=>s+v*v,0)/data.length);});if(fixture.startsWith('audio-tail'))assert.ok(state.audioRMS>.03&&state.audioRMS<.06);else assert.ok(state.audioRMS<.0001);}
     await page.evaluate(()=>player.pause());
    }

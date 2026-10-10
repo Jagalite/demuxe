@@ -46,6 +46,20 @@ def main():
        '-c:v', 'libx264', '-preset', 'veryfast', '-g', '30', '-bf', '2', '-threads', '2', '-c:a', 'pcm_s24le')
     for kind in ['audio-tail', 'video-tail']:
         ff(base + kind + '-start2.mkv', '-i', base + kind + '.mkv', '-map', '0', '-c', 'copy', '-output_ts_offset', '2')
+    # Do not qualify a fixture whose short video arrives after its audio deadline.
+    # FFmpeg 6.1's default mux timeout can put the final x264 packets 20 s late.
+    for name in ['audio-tail', 'audio-tail-start2']:
+        packets = json.loads(subprocess.check_output([
+            'ffprobe', '-v', 'error', '-show_packets', '-show_entries',
+            'packet=stream_index,pts_time', '-of', 'json', str(ROOT / (base + name + '.mkv'))
+        ], text=True))['packets']
+        audio_position = None
+        for packet in packets:
+            position = float(packet['pts_time'])
+            if packet['stream_index'] == 1:
+                audio_position = position
+            elif audio_position is not None and audio_position > position + .25:
+                raise ValueError('Unequal-tail fixture is not interleaved: ' + name)
     ff('build/fixtures/tracks.mkv', '-i', base + 'gain.mp4', '-f', 'lavfi', '-i', 'sine=frequency=880:sample_rate=48000:duration=12',
        '-i', 'fixtures/m0.ass', '-i', 'fixtures/qualification.ass', '-t', '12',
        '-map', '0:v', '-map', '0:a', '-map', '1:a', '-map', '2:s', '-map', '3:s',

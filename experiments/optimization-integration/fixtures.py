@@ -32,9 +32,11 @@ for name,codec,channels in [('pcm32','pcm_s32le',2),('float','pcm_f32le',2),('su
  path=out/(name+'.mkv')
  command=['ffmpeg','-v','error','-nostdin','-n','-i',str(out/'b2-start0-mismatch1.mkv'),'-map','0:v','-map','0:a','-c:v','copy','-c:a',codec,'-ac',str(channels),str(path)]
  extra.append((path,command))
+# These finite fixtures need timestamp-ordered packets even when x264 drains
+# its last frames after the short video input ends (notably FFmpeg 6.1).
 for name,rate,video_duration,audio_duration,gop,bframes in [('audio-tail',30,1,30,30,2),('low-fps-inter',1,15,15,10,0)]:
  path=out/(name+'.mkv')
- command=['ffmpeg','-v','error','-nostdin','-n','-f','lavfi','-i',f'testsrc2=size=160x90:rate={rate}:duration={video_duration}','-f','lavfi','-i',f'sine=frequency=440:sample_rate=48000:duration={audio_duration}','-c:v','libx264','-preset','veryfast','-g',str(gop),'-bf',str(bframes),'-c:a','pcm_s24le','-threads','2',str(path)]
+ command=['ffmpeg','-v','error','-nostdin','-n','-f','lavfi','-i',f'testsrc2=size=160x90:rate={rate}:duration={video_duration}','-f','lavfi','-i',f'sine=frequency=440:sample_rate=48000:duration={audio_duration}','-c:v','libx264','-preset','veryfast','-g',str(gop),'-bf',str(bframes),'-c:a','pcm_s24le','-threads','2','-max_interleave_delta','0',str(path)]
  extra.append((path,command))
 records=[]
 for path,command in extra:
