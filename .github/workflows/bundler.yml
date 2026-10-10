@@ -6,119 +6,72 @@ permissions:
   contents: read
   actions: read
 jobs:
-  fixed-archive:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+  tail-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {os: ubuntu-24.04, gate: retirement, node: '22', chrome: system}
-          - {os: ubuntu-24.04, gate: retirement, node: '22', chrome: installed}
-    env:
-      HEADLESS: '1'
+        browser: [chrome, firefox]
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          mkdir "$RUNNER_TEMP/passive-harness"
-          cp tests/public-api-consumer.mjs tests/player-component.mjs "$RUNNER_TEMP/passive-harness/"
-          git rev-parse HEAD > "$RUNNER_TEMP/harness-revision.txt"
+      - run: cp tests/unequal-tail-windows.mjs "$RUNNER_TEMP/unequal-tail-windows.mjs"
       - uses: actions/checkout@v4
         with:
-          ref: 4b2222a18d25e6c24071bf24a2245dada36ce6ba
+          ref: d5781f8be49da77f9247f11fd686f6e19643c53d
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: '22'
           cache: npm
       - run: |
           npm ci --ignore-scripts
-          cp "$RUNNER_TEMP/passive-harness/public-api-consumer.mjs" "$RUNNER_TEMP/passive-harness/player-component.mjs" tests/
-      - if: matrix.os == 'ubuntu-24.04'
-        timeout-minutes: 10
-        run: |
-          npx playwright install --with-deps chromium firefox
-          if [ '${{ matrix.chrome }}' = installed ]; then npx playwright install chrome; fi
-          node --input-type=module -e "import {chromium} from 'playwright';const b=await chromium.launch({channel:'chrome',headless:true});console.log('SYSTEM CHROME',b.version());await b.close();"
+          cp "$RUNNER_TEMP/unequal-tail-windows.mjs" tests/unequal-tail-windows.mjs
+          npx playwright install --with-deps chrome firefox
           sudo apt-get install -y ffmpeg pulseaudio xvfb
           bash scripts/start-ci-audio.sh
-      - if: matrix.os == 'macos-15'
-        run: |
-          npx playwright install webkit
-          command -v ffmpeg || brew install ffmpeg
       - uses: actions/download-artifact@v4
         with:
           name: unqualified-runtime-debug
           path: build/release
-          run-id: 37983807474
+          run-id: 37999741973
           github-token: ${{ github.token }}
-      - name: Verify the immutable failed candidate
+      - name: Verify and install the exact failed archive
         run: |
-          export BETA_ARCHIVE="$PWD/build/release/demuxe-1.1.1.tgz"
-          printf 'BETA_ARCHIVE=%s\n' "$BETA_ARCHIVE" >> "$GITHUB_ENV"
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          import {readFile,mkdir,writeFile} from 'node:fs/promises';
-          import {createHash} from 'node:crypto';
-          import {installLiveRuntime} from './tests/api-stability/live-runtime.mjs';
-          const runtime=await installLiveRuntime(process.env.BETA_ARCHIVE);
-          try {
-            assert.equal(runtime.archiveSHA256,'e767f0c71b175a97a1074690bf24670537aeb58c766dd2e2cfad746b19c72fed');
-            assert.equal(runtime.manifest.sourceCommit,'4b2222a18d25e6c24071bf24a2245dada36ce6ba');
-            assert.equal(runtime.manifest.sourceTag,'v1.1.1');
-            await mkdir('results/fixed-archive',{recursive:true});
-            await writeFile('results/fixed-archive/identity.json',JSON.stringify({archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,harnessRevision:await readFile(process.env.RUNNER_TEMP+'/harness-revision.txt','utf8'),consumerHarnessSHA256:createHash('sha256').update(await readFile('tests/public-api-consumer.mjs')).digest('hex'),platform:process.platform},null,2));
-          } finally {await runtime.cleanup();}
-          JS
-      - name: Prepare complete Linux release fixtures
-        if: matrix.os == 'ubuntu-24.04'
+          python3 - <<'PY'
+          import pathlib,hashlib,tarfile,json
+          archive=pathlib.Path('build/release/demuxe-1.1.1.tgz')
+          assert hashlib.sha256(archive.read_bytes()).hexdigest()=='4e934eec21c254eb20a970edab6613b654d77f6228ad118db1b6406551cfe9a2'
+          with tarfile.open(archive) as tar:
+            manifest=json.load(tar.extractfile('package/release-manifest.json'))
+            assert manifest['sourceCommit']=='d5781f8be49da77f9247f11fd686f6e19643c53d'
+            for name,expected in manifest['files'].items():assert hashlib.sha256(tar.extractfile('package/'+name).read()).hexdigest()==expected['sha256'],name
+            tar.extractall('build/tail-installed',filter='data')
+          PY
+          printf 'BETA_ARCHIVE=%s/build/release/demuxe-1.1.1.tgz\nDEMUXE_RUNTIME_ROOT=%s/build/tail-installed/package\nENGINE_BUILD=%s/build/tail-installed/package/web/engine-adaptation\n' "$PWD" "$PWD" "$PWD" >> "$GITHUB_ENV"
+      - name: Prepare the same release fixtures
         run: python3 scripts/prepare-release-fixtures.py
-      - name: Prepare Apple WebKit API fixtures
-        if: matrix.os == 'macos-15'
-        run: node tests/api-stability/fixtures.mjs
-      - name: Stress passive retirement and prove deliberate leaks are rejected
-        if: matrix.gate == 'retirement'
+      - name: Reproduce all tail cases with state and source-frame evidence
+        env:
+          BROWSER: ${{ matrix.browser }}
+          SEEKS: '1'
+          COMBINATION: '1'
+          REMOTE: '1'
         run: |
           node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          import {spawnSync} from 'node:child_process';
-          import {mkdirSync,writeFileSync} from 'node:fs';
-          mkdirSync('results/passive-retirement',{recursive:true});const checks=[];
-          for(const family of ['chrome'])for(let trial=0;trial<10;trial++){
-            console.log('PASSIVE RETIREMENT TRIAL',family,trial+1);
-            const run=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BROWSER:family},encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});
-            const log=(run.stdout||'')+(run.stderr||'');console.log(log);writeFileSync(`results/passive-retirement/${family}-${trial+1}.log`,log);
-            checks.push({family,trial:trial+1,passed:run.status===0});writeFileSync('results/passive-retirement/result.json',JSON.stringify({checks},null,2));
+          import {spawnSync} from 'node:child_process';import {mkdirSync,writeFileSync,copyFileSync} from 'node:fs';
+          mkdirSync('results/tail-diagnostic',{recursive:true});const checks=[];
+          for(let trial=1;trial<=3;trial++){
+            const run=spawnSync(process.execPath,['tests/unequal-tail-windows.mjs'],{env:process.env,encoding:'utf8',timeout:600000,maxBuffer:20*1024*1024});const log=(run.stdout||'')+(run.stderr||'');
+            console.log(log);writeFileSync(`results/tail-diagnostic/${trial}.log`,log);
+            const directory=log.match(/Evidence: (results\/optimization-final\/tail-controller-[^\s]+)/)?.[1];
+            if(directory)copyFileSync(directory+'/result.json',`results/tail-diagnostic/${trial}.json`);
+            checks.push({trial,passed:run.status===0,status:run.status,signal:run.signal,directory});writeFileSync('results/tail-diagnostic/summary.json',JSON.stringify({checks},null,2));
           }
-          for(const family of ['chrome']){
-            const run=spawnSync(process.execPath,['tests/public-api-consumer.mjs'],{env:{...process.env,BROWSER:family,ONLY:'static application at /deep/runtime-v2/',RETIREMENT_NEGATIVE_CONTROL:'1'},encoding:'utf8',timeout:180000,maxBuffer:20*1024*1024});
-            const log=(run.stdout||'')+(run.stderr||'');console.log(log);writeFileSync(`results/passive-retirement/${family}-negative.log`,log);
-            const heartbeats=Number(log.match(/NEGATIVE LIVE HEARTBEATS (\d+)/)?.[1]);
-            checks.push({family,negativeControl:true,exitCode:run.status,heartbeats,passed:run.status!==0&&log.includes('Workers still executing after destroy: blob:')&&heartbeats>50});
-          }
-          const passed=checks.length===11&&checks.every(row=>row.passed);writeFileSync('results/passive-retirement/result.json',JSON.stringify({checks,passed},null,2));assert.equal(passed,true);
+          if(checks.some(c=>!c.passed))process.exitCode=1;
           JS
-      - name: Verify all extra release browser gates
-        if: matrix.gate == 'extra'
-        run: xvfb-run -a node tests/release-extra.mjs
-      - name: Verify all installed archive API and mobile shards
-        if: matrix.gate == 'matrix'
-        run: node tests/api-stability/archive-matrix.mjs
-      - name: Verify Apple WebKit API, component, boundaries, containment and mobile
-        if: matrix.gate == 'webkit'
-        run: node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: consumer-fixed-${{ matrix.gate }}-${{ matrix.chrome }}
-          path: |
-            results/fixed-archive/
-            results/passive-retirement/
-            results/release-extra/
-            results/public-api-consumer/
-            results/public-api/
-            results/player-component/
-            results/player-menu-review/
-            results/api-stability/
-            results/player-mobile/
-            results/webkit-release/
-            results/worker-tree-containment/
+          name: tail-diagnostic-${{ matrix.browser }}
+          path: results/tail-diagnostic/
+          if-no-files-found: error
