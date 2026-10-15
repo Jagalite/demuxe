@@ -185,6 +185,11 @@ export declare function lookupPreviewCache(state: PreviewControlState, request: 
     key: string | null;
 }>;
 export declare function rememberPreviewCache(state: PreviewControlState, entry: PreviewCacheEntry): PreviewControlState;
+export declare function previewCacheBytes(key: string, width: number, height: number, path: string, payloadBytes: number): number;
+/** Optimistic preflight: even a one-pixel result needs a retainable slot.
+ * Reuse the insertion policy without committing its result. Actual dimensions,
+ * encoded size and any later cache changes are still checked at insertion. */
+export declare function previewBackgroundRetentionAvailable(state: PreviewControlState, key: string): boolean;
 export declare function unloadPreviewCache(state: PreviewControlState, start: number, end: number): Readonly<{
     state: PreviewControlState;
     jobs: readonly number[];

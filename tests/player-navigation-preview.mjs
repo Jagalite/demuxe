@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 const repo=path.resolve(import.meta.dirname,'..');
 const family=process.env.BROWSER??'chrome';
 if(!['chrome','chromium'].includes(family))throw Error('This trusted-touch suite uses Chromium CDP; run BROWSER=chrome or chromium.');
-const out=path.resolve(process.env.OUT??'results/excerpt-preview');
+const out=path.resolve(process.env.OUT??`results/api-stability/excerpt-preview/${family}-${Date.now()}`);
 await mkdir(out,{recursive:true});await mkdir(path.join(repo,'fixtures'),{recursive:true});
 const fixture=await mkdtemp(path.join(repo,'fixtures/excerpt-preview-'));
 const file=path.join(fixture,'ten-minutes.mp4');
@@ -97,6 +97,9 @@ try{
   await page.waitForFunction(()=>!element.player.state.pendingOperation);
   assert.deepEqual(await timeline(page).evaluate(input=>[Number(input.min),Number(input.max)]),[120,180]);
   await keys(page,[['0',120],['5',150],['9',174]]);
+  // End the drag at a different value so the native input emits change.
+  await page.evaluate(()=>element.seek(150));
+  await page.waitForFunction(()=>!element.player.state.pendingOperation);
   await page.evaluate(()=>{seekRequests.length=0;});
   const start=await point(page,.1),middle=await point(page,.5),end=await point(page,.9);
   await page.mouse.move(start.x,start.y);await page.mouse.down();await page.mouse.move(middle.x,middle.y,{steps:4});await page.mouse.move(end.x,end.y,{steps:4});

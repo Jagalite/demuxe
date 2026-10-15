@@ -19,6 +19,7 @@ export class ScrubberPreview {
     intentApi;
     displayedURL;
     settleTimer;
+    touchPointer;
     cancelSettle() { const handle = this.settleTimer; this.settleTimer = undefined; if (handle !== undefined)
         clearTimeout(handle); }
     transition(command) { const result = transitionScrubber(this.control, command); this.control = result.state; return result; }
@@ -45,11 +46,28 @@ export class ScrubberPreview {
             }
             catch { }
     }
+    startTouch = (event) => {
+        if (event.pointerType !== 'touch' || !event.isPrimary || event.button !== 0 || this.touchPointer !== undefined || this.timeline.disabled || this.control.terminal)
+            return;
+        this.touchPointer = event.pointerId;
+        this.move(event);
+    };
+    finishTouch = (event) => { if (this.touchPointer !== undefined && event.pointerId === this.touchPointer)
+        this.hide(); };
+    leave = () => {
+        // Pointer capture keeps a touch drag alive beyond the timeline's rectangle.
+        if (this.touchPointer === undefined)
+            this.hide();
+    };
+    cancel = (event) => { if (this.touchPointer === undefined || event.pointerId === this.touchPointer)
+        this.hide(); };
     move = (event) => {
-        if (event.pointerType === 'touch' || this.timeline.disabled) {
+        if (this.timeline.disabled) {
             this.hide();
             return;
         }
+        if (this.touchPointer !== undefined && event.pointerId !== this.touchPointer || event.pointerType === 'touch' && this.touchPointer === undefined)
+            return;
         const api = this.api();
         if (!api) {
             this.hide();
@@ -58,7 +76,7 @@ export class ScrubberPreview {
         const rect = this.timeline.getBoundingClientRect(), parent = this.panel.parentElement.getBoundingClientRect();
         const style = getComputedStyle(this.timeline), scale = rect.width / parseFloat(style.width);
         const thumbWidth = parseFloat(style.getPropertyValue('--timeline-thumb-size')) * scale;
-        const pointer = scrubberPointer({ touch: false, disabled: false, left: rect.left, width: rect.width, thumbWidth, step: Number(this.timeline.step), min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width });
+        const pointer = scrubberPointer({ touch: event.pointerType === 'touch', dragging: event.pointerId === this.touchPointer, disabled: false, left: rect.left, width: rect.width, thumbWidth, step: Number(this.timeline.step), min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width });
         if (pointer.time === undefined)
             return;
         this.panel.style.left = `${pointer.left}px`;
@@ -99,9 +117,8 @@ export class ScrubberPreview {
         this.api = api;
         this.targetLabel = targetLabel;
         try {
-            timeline.addEventListener('pointermove', this.move);
-            timeline.addEventListener('pointerleave', this.hide);
-            timeline.addEventListener('pointercancel', this.hide);
+            for (const [name, listener] of this.listeners())
+                timeline.addEventListener(name, listener);
         }
         catch (error) {
             this.destroy();
@@ -115,8 +132,10 @@ export class ScrubberPreview {
         const decision = this.transition({ type: 'observe', sourceId, eligible });
         if (!decision.accepted)
             return;
-        if (replaced)
+        if (replaced) {
             this.intentApi = undefined;
+            this.touchPointer = undefined;
+        }
         if (replaced || !eligible) {
             this.cancelSettle();
             this.pendingApi = undefined;
@@ -299,8 +318,9 @@ export class ScrubberPreview {
         }
     }
     clearImage() { this.applyClear(this.transition({ type: 'clear' })); }
-    hide = () => { this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
-    destroy() { this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of [['pointermove', this.move], ['pointerleave', this.hide], ['pointercancel', this.hide]])
+    hide = () => { this.touchPointer = undefined; this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'hide' })); };
+    listeners() { return [['pointerdown', this.startTouch], ['pointermove', this.move], ['pointerleave', this.leave], ['pointerup', this.finishTouch], ['lostpointercapture', this.finishTouch], ['pointercancel', this.cancel]]; }
+    destroy() { this.touchPointer = undefined; this.cancelSettle(); this.intentApi = undefined; this.pendingApi = undefined; this.applyClear(this.transition({ type: 'destroy' })); for (const [name, listener] of this.listeners())
         try {
             this.timeline.removeEventListener(name, listener);
         }

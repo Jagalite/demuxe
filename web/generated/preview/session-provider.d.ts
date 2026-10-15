@@ -22,7 +22,7 @@ export declare class SessionPreviewProvider implements PreviewProvider {
     private idle?;
     constructor(binding: () => PreviewBinding | undefined, document: Document, concurrent: () => boolean, maxDecodePixels?: number);
     get allowDuringPlayback(): boolean;
-    canHandle(): boolean;
+    canHandle(request: PreviewContext): boolean;
     release(): Promise<void>;
     getFrame(request: PreviewContext): Promise<PreviewResult | null>;
 }

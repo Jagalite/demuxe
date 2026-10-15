@@ -4,12 +4,21 @@ export function formatTime(value) {
     return n >= 3600 ? `${Math.floor(n / 3600)}:${minutes}:${seconds}` : `${Math.floor(n / 60)}:${seconds}`;
 }
 export function outputDimensions(ratio) { const width = Math.min(1920, 1080 * ratio); return { width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(width / ratio)) }; }
+function seekWindows(ranges, limit) {
+    return (ranges ?? []).map(r => ({ start: Math.max(r.start, limit?.start ?? 0), end: Math.min(r.end, limit?.end ?? Infinity) }))
+        .filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start).sort((a, b) => a.start - b.start);
+}
+/** Timeline geometry and position shortcuts share the active seekable envelope.
+ * Holes remain on the timeline; resolveSeekTarget chooses their directional edge. */
+export function seekBounds(ranges, limit) {
+    const windows = seekWindows(ranges, limit);
+    return windows.length ? { start: windows[0].start, end: Math.max(...windows.map(r => r.end)) } : null;
+}
 /** UI seeks follow the requested direction across holes and stay inside the current window. */
 export function resolveSeekTarget(time, ranges, position, limit) {
     if (!Number.isFinite(time))
         return null;
-    const windows = (ranges ?? []).map(r => ({ start: Math.max(r.start, limit?.start ?? 0), end: Math.min(r.end, limit?.end ?? Infinity) }))
-        .filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start).sort((a, b) => a.start - b.start);
+    const windows = seekWindows(ranges, limit);
     if (!windows.length)
         return null;
     const end = (r) => Math.max(r.start, r.end - .05);

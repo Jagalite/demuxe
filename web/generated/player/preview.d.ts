@@ -17,11 +17,16 @@ export declare class ScrubberPreview {
     private intentApi?;
     private displayedURL?;
     private settleTimer?;
+    private touchPointer?;
     private cancelSettle;
     private transition;
     private identity;
     private abort;
     private applyClear;
+    private readonly startTouch;
+    private readonly finishTouch;
+    private readonly leave;
+    private readonly cancel;
     private readonly move;
     constructor(timeline: HTMLInputElement, panel: HTMLElement, image: HTMLImageElement, label: HTMLElement, api: () => PlayerPreview | undefined, targetLabel?: HTMLElement | undefined);
     /** The component publishes source identity and decoder eligibility after its
@@ -33,5 +38,6 @@ export declare class ScrubberPreview {
     private show;
     private clearImage;
     readonly hide: () => void;
+    private listeners;
     destroy(): void;
 }

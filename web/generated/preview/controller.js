@@ -3,7 +3,7 @@ import { beginAttempts, observeAttempt } from '../internal/machine/async-policy.
 import { PreviewPregenerator } from './pregeneration.js';
 import { observePreviewInteraction, snapshotPreviewInteraction } from '../internal/machine/preview-interaction.js';
 import { resolvePreviewStrategy } from './strategies.js';
-import { previewMetadataValid, previewCallerDeadline, previewGenerationOutcome, previewResultAccepted, previewAttemptExhausted, createPreviewControl, transitionPreviewControl, previewJob, previewGenerationAdmission, previewProviderDeferred, previewCanPrefetch, admitPreviewRequest, planPreviewRequest, createPreviewJob, startPreviewJob, lookupPreviewCache, rememberPreviewCache, unloadPreviewCache } from '../internal/machine/preview.js';
+import { previewMetadataValid, previewCallerDeadline, previewGenerationOutcome, previewResultAccepted, previewAttemptExhausted, createPreviewControl, transitionPreviewControl, previewJob, previewGenerationAdmission, previewProviderDeferred, previewCanPrefetch, admitPreviewRequest, planPreviewRequest, createPreviewJob, startPreviewJob, lookupPreviewCache, rememberPreviewCache, previewCacheBytes, previewBackgroundRetentionAvailable, unloadPreviewCache } from '../internal/machine/preview.js';
 class PreviewDeferred extends Error {
 }
 const aborted = () => new DOMException('Preview superseded or cancelled', 'AbortError');
@@ -342,6 +342,8 @@ export class PreviewController {
         }
         if (request.cacheOnly || this.state.suspended)
             return Promise.resolve(null);
+        if (background && !previewBackgroundRetentionAvailable(this.state, key))
+            return Promise.reject(new PreviewDeferred());
         if (!job) {
             this.state = createPreviewJob(this.state, admission, background);
             const id = this.state.pending.id;
@@ -505,6 +507,12 @@ export class PreviewController {
                         advance('defer');
                         continue;
                     }
+                    // Admission may have awaited canHandle while the cache limits changed.
+                    const metadata = this.metadata(job);
+                    if (metadata.background && !previewBackgroundRetentionAvailable(this.state, metadata.key)) {
+                        advance('defer');
+                        continue;
+                    }
                     const raw = await provider.getFrame(job.context);
                     job.context.signal.throwIfAborted();
                     const result = this.validate(raw);
@@ -591,7 +599,7 @@ export class PreviewController {
             metrics: { ...emptyMetrics(), ...(cache === 'miss' ? result.metrics : {}), providerSelectionMs: selectionMs, cacheLookupMs: cacheMs, totalMs: now() - start } };
     }
     remember(key, result, background = false) {
-        const bytes = result.width * result.height * 4 + result.path.length * 2 + key.length * 2 + 256 + ('blob' in result.image ? result.image.blob.size : JSON.stringify(result.image).length * 2);
+        const bytes = previewCacheBytes(key, result.width, result.height, result.path, 'blob' in result.image ? result.image.blob.size : JSON.stringify(result.image).length * 2);
         this.state = rememberPreviewCache(this.state, { key, time: result.time, bytes, background });
         if (this.state.cache.some(entry => entry.key === key))
             this.images.set(key, result);

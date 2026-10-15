@@ -93,9 +93,9 @@ function scheduler(config,bucket=1){let state=createPregeneration(config,bucket)
   assert.equal(lookup.key,b.key);assert.deepEqual(s.cache.map(x=>x.key),[a.key,other.key,b.key]);assert.equal(s.cache.at(-1).background,false);
   assert.equal(s.counters.hits,1);assert.equal(lookupPreviewCache(s,{time:3,exact:true,maxDistance:99},request(s,3,{exact:true}),false).key,null);
  });
- test('background cache cannot evict foreground and partial evictions remain committed',()=>{
+ test('background cache cannot evict foreground and rejected insertions are atomic',()=>{
   let s=createPreviewControl({maxEntries:3,maxCacheBytes:100});s=rememberPreviewCache(s,entry(s,0,50));s=rememberPreviewCache(s,entry(s,1,20,true));
-  s=rememberPreviewCache(s,entry(s,2,60,true));assert.deepEqual(s.cache.map(x=>x.time),[0]);assert.equal(s.bytes,50);
+  const before=s;s=rememberPreviewCache(s,entry(s,2,60,true));assert.strictEqual(s,before);assert.deepEqual(s.cache.map(x=>x.time),[0,1]);assert.equal(s.bytes,70);
   s=rememberPreviewCache(s,entry(s,3,30,true));s=step(s,{kind:'limits',maxEntries:1,maxCacheBytes:100});assert.deepEqual(s.cache.map(x=>x.time),[0]);
   s=rememberPreviewCache(s,entry(s,4,40));assert.deepEqual(s.cache.map(x=>x.time),[4]);assert.equal(s.bytes,40);
  });
