@@ -77,10 +77,27 @@ await check('recovery qualification natural end replays genuinely evicted conten
  await page.waitForFunction(()=>p.state.status==='ended'&&p.surface.ended);
  const ended=await page.evaluate(()=>({sourceId:p.state.sourceId,time:p.state.currentTime,duration:p.state.duration,firstBuffered:p.surface.buffered.start(0),frames:p.surface.getVideoPlaybackQuality().totalVideoFrames}));
  assert.ok(ended.firstBuffered>2);assert.ok(ended.time>45);const before=firstSegmentRequests;
- await page.evaluate(async()=>{await p.setPlaybackRate(1);window.replayAudio=new AudioContext();window.replayAnalyser=replayAudio.createAnalyser();replayAnalyser.fftSize=8192;replayAudio.createMediaElementSource(p.surface).connect(replayAnalyser);replayAnalyser.connect(replayAudio.destination);await replayAudio.resume();await p.play();});
- await page.waitForFunction(()=>p.state.currentTime>.3&&p.state.currentTime<5&&!p.surface.ended&&p.surface.getVideoPlaybackQuality().totalVideoFrames>0);
+ await page.evaluate(async()=>{
+  await p.setPlaybackRate(1);window.replayAudio=new AudioContext();window.replayAnalyser=replayAudio.createAnalyser();replayAnalyser.fftSize=8192;replayAudio.createMediaElementSource(p.surface).connect(replayAnalyser);replayAnalyser.connect(replayAudio.destination);await replayAudio.resume();await p.play();
+  // Register after replay starts. Cumulative counters include the first playthrough
+  // and may reset if the transport is rebuilt, so they cannot prove presentation.
+  window.replayStartedAt=performance.now();window.replayFrame=null;
+  const surface=p.surface;
+  if(typeof surface.requestVideoFrameCallback!=='function')throw Error('Replay visual qualification requires requestVideoFrameCallback');
+  const presented=(at,frame)=>{
+   if(p.surface!==surface)return;
+   if(at>=replayStartedAt&&frame.expectedDisplayTime>=replayStartedAt&&frame.mediaTime>.3&&frame.mediaTime<5){
+    window.replayFrame={at,mediaTime:frame.mediaTime,expectedDisplayTime:frame.expectedDisplayTime,presentedFrames:frame.presentedFrames};return;
+   }
+   surface.requestVideoFrameCallback(presented);
+  };
+  surface.requestVideoFrameCallback(presented);
+ });
+ await page.waitForFunction(()=>replayFrame!==null&&p.state.currentTime>.3&&p.state.currentTime<5&&!p.surface.ended);
  await page.waitForFunction(()=>{const x=new Float32Array(replayAnalyser.frequencyBinCount);replayAnalyser.getFloatFrequencyData(x);let best=0;for(let i=1;i<x.length;i++)if(x[i]>x[best])best=i;return x[best]>-70&&Math.abs(best*replayAudio.sampleRate/replayAnalyser.fftSize-440)<30;});
- const replayed=await page.evaluate(()=>({state:p.state,frames:p.surface.getVideoPlaybackQuality().totalVideoFrames}));await page.evaluate(()=>replayAudio.close());
+ const replayed=await page.evaluate(()=>({state:p.state,frames:p.surface.getVideoPlaybackQuality().totalVideoFrames,replayFrame,replayStartedAt}));await page.evaluate(()=>replayAudio.close());
+ assert.ok(replayed.replayFrame.at>=replayed.replayStartedAt,'A new frame callback must arrive after replay starts');
+ assert.ok(replayed.replayFrame.mediaTime>.3&&replayed.replayFrame.mediaTime<5,'The presented frame must belong to the replayed beginning');
  assert.equal(replayed.state.sourceId,ended.sourceId);assert.ok(firstSegmentRequests>before,'The evicted first segment must be fetched again, not replayed from a retained buffer');return {evicted,ended,replayed,firstSegmentRequestsBeforeReplay:before,firstSegmentRequests};
 });
 await check('recovery qualification close during backoff isolates replacement audio requests and errors',async page=>{

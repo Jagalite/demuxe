@@ -12,7 +12,7 @@ export class SessionPreviewProvider implements PreviewProvider {
   private idle?:ReturnType<typeof setTimeout>;
   constructor(private binding:()=>PreviewBinding|undefined,private document:Document,private concurrent:()=>boolean,private maxDecodePixels=8294400){}
   get allowDuringPlayback(){return this.concurrent();}
-  canHandle(){return !!this.binding()?.backend.createPreviewSession;}
+  canHandle(request:PreviewContext){return !request.exact&&!!this.binding()?.backend.createPreviewSession;}
   release():Promise<void>{
     clearTimeout(this.idle);this.idle=undefined;
     const owner=this.owner;this.owner=undefined;
@@ -20,7 +20,11 @@ export class SessionPreviewProvider implements PreviewProvider {
     return this.cleanup;
   }
   async getFrame(request:PreviewContext):Promise<PreviewResult|null>{
-    clearTimeout(this.idle);request.signal.throwIfAborted();
+    request.signal.throwIfAborted();
+    // Independent sessions expose media-time estimates, never exact frame PTS.
+    // Direct callers must also decline without disturbing a reusable session.
+    if(request.exact)return null;
+    clearTimeout(this.idle);
     const binding=this.binding();if(!binding?.backend.createPreviewSession)return null;
     if(this.owner&&(this.owner.binding.backend!==binding.backend||this.owner.binding.key!==binding.key))await this.release();
     await this.cleanup;request.signal.throwIfAborted();

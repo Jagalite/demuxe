@@ -133,7 +133,10 @@ export function lookupPreviewCache(state:PreviewControlState,request:PreviewRequ
 }
 export function rememberPreviewCache(state:PreviewControlState,entry:PreviewCacheEntry):PreviewControlState {
   if(entry.bytes>state.options.maxCacheBytes||!state.options.maxEntries)return state;
-  const cache=[...state.cache];let bytes=state.bytes;
+  const previous=state.cache.find(item=>item.key===entry.key);
+  const cache=state.cache.filter(item=>item.key!==entry.key);let bytes=state.bytes-(previous?.bytes??0);
+  // A background replacement must not demote or evict a foreground resident.
+  if(previous&&!previous.background&&entry.background)return state;
   const capacity=Math.min(state.options.maxEntries,Math.floor(state.options.maxCacheBytes/Math.max(1,entry.bytes,...cache.map(item=>item.bytes))));
   const broad=new Set(state.strategy?.type==='demuxe'?demuxeStoryboard(state.duration??0,capacity,state.options.bucketSeconds):[]);
   const protectedEntry=(item:PreviewCacheEntry)=>{const key=JSON.parse(item.key);return key[3]===240&&key[4]===135&&!key[5]&&broad.has(key[2]);};
@@ -141,17 +144,26 @@ export function rememberPreviewCache(state:PreviewControlState,entry:PreviewCach
     let index=entry.background?cache.findIndex(item=>item.background):0;
     if(state.strategy?.type==='demuxe'){
       // Local LRU can turn over without losing broad coverage. Foreground always wins.
-      index=cache.findIndex(item=>!protectedEntry(item));
+      index=cache.findIndex(item=>(!entry.background||item.background)&&!protectedEntry(item));
       if(index<0&&!entry.background)index=0;
     }
-    if(index<0)return Object.freeze({...state,cache:Object.freeze(cache),bytes});
+    if(index<0)return state;
     bytes-=cache[index].bytes;cache.splice(index,1);
   }
-  // Keys are unique for admitted, serialized jobs. Store only detached metadata;
-  // images are addressed by key in the shell resource map.
-  const existing=cache.findIndex(item=>item.key===entry.key);
-  if(existing>=0)cache[existing]=Object.freeze({...entry});else cache.push(Object.freeze({...entry}));
+  // Commit only after the entire insertion fits. Images remain shell-owned.
+  cache.push(Object.freeze({...entry}));
   return Object.freeze({...state,cache:Object.freeze(cache),bytes:bytes+entry.bytes});
+}
+export function previewCacheBytes(key:string,width:number,height:number,path:string,payloadBytes:number):number {
+  return width*height*4+path.length*2+key.length*2+256+payloadBytes;
+}
+/** Optimistic preflight: even a one-pixel result needs a retainable slot.
+ * Reuse the insertion policy without committing its result. Actual dimensions,
+ * encoded size and any later cache changes are still checked at insertion. */
+export function previewBackgroundRetentionAvailable(state:PreviewControlState,key:string):boolean {
+  if(state.cache.some(entry=>entry.key===key))return true;
+  const planned=rememberPreviewCache(state,{key,time:0,bytes:previewCacheBytes(key,1,1,'',0),background:true});
+  return planned.cache.some(entry=>entry.key===key);
 }
 export function unloadPreviewCache(state:PreviewControlState,start:number,end:number):Readonly<{state:PreviewControlState;jobs:readonly number[];removed:number}> {
   if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start)throw new RangeError('Invalid preview unload range');

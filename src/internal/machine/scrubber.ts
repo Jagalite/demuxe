@@ -76,8 +76,8 @@ export function scrubberDistance(strategy:PreviewStrategyData|null|undefined,spa
  if(strategy?.type==='adaptive'||strategy?.type==='uniform')return span/(2*(strategy.samples??(strategy.type==='adaptive'?24:48)))+1;
  return strategy?1:span/96+1;
 }
-export function scrubberPointer(facts:Readonly<{touch:boolean;disabled:boolean;left:number;width:number;thumbWidth?:number;step?:number;min:number;max:number;x:number;parentLeft:number;parentWidth:number}>):Readonly<{hide:boolean;time?:number;left?:number}>{
- if(facts.touch||facts.disabled)return Object.freeze({hide:true});
+export function scrubberPointer(facts:Readonly<{touch:boolean;dragging?:boolean;disabled:boolean;left:number;width:number;thumbWidth?:number;step?:number;min:number;max:number;x:number;parentLeft:number;parentWidth:number}>):Readonly<{hide:boolean;time?:number;left?:number}>{
+ if(facts.touch&&!facts.dragging||facts.disabled)return Object.freeze({hide:true});
  if(!facts.width||facts.max<=facts.min)return Object.freeze({hide:false});
  // Native range values follow the thumb's centre, whose travel excludes its width.
  const thumb=Math.max(0,Math.min(facts.width,facts.thumbWidth??0)),travel=facts.width-thumb;

@@ -4,11 +4,21 @@ export function formatTime(value:number):string {
   return n>=3600?`${Math.floor(n/3600)}:${minutes}:${seconds}`:`${Math.floor(n/60)}:${seconds}`;
 }
 export function outputDimensions(ratio:number) {const width=Math.min(1920,1080*ratio);return {width:Math.max(1,Math.round(width)),height:Math.max(1,Math.round(width/ratio))};}
-/** UI seeks follow the requested direction across holes and stay inside the current window. */
-export function resolveSeekTarget(time:number,ranges:readonly {start:number;end:number}[]|null,position:number,limit?:{start:number;end:number}|null):number|null {
-  if(!Number.isFinite(time))return null;
-  const windows=(ranges??[]).map(r=>({start:Math.max(r.start,limit?.start??0),end:Math.min(r.end,limit?.end??Infinity)}))
+type SeekWindow=Readonly<{start:number;end:number}>;
+function seekWindows(ranges:readonly SeekWindow[]|null,limit?:SeekWindow|null):SeekWindow[] {
+  return (ranges??[]).map(r=>({start:Math.max(r.start,limit?.start??0),end:Math.min(r.end,limit?.end??Infinity)}))
     .filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start).sort((a,b)=>a.start-b.start);
+}
+/** Timeline geometry and position shortcuts share the active seekable envelope.
+ * Holes remain on the timeline; resolveSeekTarget chooses their directional edge. */
+export function seekBounds(ranges:readonly SeekWindow[]|null,limit?:SeekWindow|null):SeekWindow|null {
+  const windows=seekWindows(ranges,limit);
+  return windows.length?{start:windows[0].start,end:Math.max(...windows.map(r=>r.end))}:null;
+}
+/** UI seeks follow the requested direction across holes and stay inside the current window. */
+export function resolveSeekTarget(time:number,ranges:readonly SeekWindow[]|null,position:number,limit?:SeekWindow|null):number|null {
+  if(!Number.isFinite(time))return null;
+  const windows=seekWindows(ranges,limit);
   if(!windows.length)return null;
   const end=(r:{start:number;end:number})=>Math.max(r.start,r.end-.05);
   for(let i=0;i<windows.length;i++){

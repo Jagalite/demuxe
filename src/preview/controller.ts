@@ -3,7 +3,7 @@ import {beginAttempts,observeAttempt} from '../internal/machine/async-policy.js'
 import {PreviewPregenerator,type AdaptivePregeneration,type CustomPregeneration} from './pregeneration.js';
 import {observePreviewInteraction,snapshotPreviewInteraction} from '../internal/machine/preview-interaction.js';
 import {resolvePreviewStrategy} from './strategies.js';
-import {previewMetadataValid,previewCallerDeadline,previewGenerationOutcome,previewResultAccepted,previewAttemptExhausted,createPreviewControl,transitionPreviewControl,previewJob,previewGenerationAdmission,previewProviderDeferred,previewCanPrefetch,admitPreviewRequest,planPreviewRequest,createPreviewJob,startPreviewJob,lookupPreviewCache,rememberPreviewCache,unloadPreviewCache,type PreviewControlState,type PreviewControlEvent} from '../internal/machine/preview.js';
+import {previewMetadataValid,previewCallerDeadline,previewGenerationOutcome,previewResultAccepted,previewAttemptExhausted,createPreviewControl,transitionPreviewControl,previewJob,previewGenerationAdmission,previewProviderDeferred,previewCanPrefetch,admitPreviewRequest,planPreviewRequest,createPreviewJob,startPreviewJob,lookupPreviewCache,rememberPreviewCache,previewCacheBytes,previewBackgroundRetentionAvailable,unloadPreviewCache,type PreviewControlState,type PreviewControlEvent} from '../internal/machine/preview.js';
 import type {PreviewStrategy,PreviewPregeneration} from '../types.js';
 import type {PreviewOptions} from '../types.js';
 export type {PreviewOptions} from '../types.js';
@@ -214,6 +214,7 @@ export class PreviewController {
     const cacheMs=now()-lookup;
     if(cached.key!==null){const frame=this.frame(this.images.get(cached.key)!,request,JSON.parse(cached.key)[2],'hit',start,cacheMs,0);this.notify(request.onUpdate,frame);return Promise.resolve(frame);}
     if(request.cacheOnly||this.state.suspended)return Promise.resolve(null);
+    if(background&&!previewBackgroundRetentionAvailable(this.state,key))return Promise.reject(new PreviewDeferred());
     if(!job){
       this.state=createPreviewJob(this.state,admission,background);const id=this.state.pending!.id;
       let controller:AbortController|undefined,created:Job|undefined;
@@ -280,6 +281,9 @@ export class PreviewController {
           try{supported=await provider.canHandle(job.context);}finally{this.dispatch({kind:'selection',id:job.id,milliseconds:now()-start});}
           job.context.signal.throwIfAborted();if(!supported){advance('retry');continue;}
           if(previewProviderDeferred(this.state,provider.requiresDecoder,provider.allowDuringPlayback)){advance('defer');continue;}
+          // Admission may have awaited canHandle while the cache limits changed.
+          const metadata=this.metadata(job);
+          if(metadata.background&&!previewBackgroundRetentionAvailable(this.state,metadata.key)){advance('defer');continue;}
           const raw=await provider.getFrame(job.context);job.context.signal.throwIfAborted();
           const result=this.validate(raw);job.context.signal.throwIfAborted();if(!previewResultAccepted(job.context.exact,job.context.time,result)||!result){advance('retry');continue;}
           this.remember(this.metadata(job).key,result,this.metadata(job).background);
@@ -324,7 +328,7 @@ export class PreviewController {
       metrics:{...emptyMetrics(),...(cache==='miss'?result.metrics:{}),providerSelectionMs:selectionMs,cacheLookupMs:cacheMs,totalMs:now()-start}};
   }
   private remember(key:string,result:PreviewResult,background=false){
-    const bytes=result.width*result.height*4+result.path.length*2+key.length*2+256+('blob' in result.image?result.image.blob.size:JSON.stringify(result.image).length*2);
+    const bytes=previewCacheBytes(key,result.width,result.height,result.path,'blob' in result.image?result.image.blob.size:JSON.stringify(result.image).length*2);
     this.state=rememberPreviewCache(this.state,{key,time:result.time,bytes,background});
     if(this.state.cache.some(entry=>entry.key===key))this.images.set(key,result);
     this.releaseEvictedImages();

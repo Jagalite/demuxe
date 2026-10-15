@@ -19,7 +19,7 @@ export class SessionPreviewProvider {
         this.maxDecodePixels = maxDecodePixels;
     }
     get allowDuringPlayback() { return this.concurrent(); }
-    canHandle() { return !!this.binding()?.backend.createPreviewSession; }
+    canHandle(request) { return !request.exact && !!this.binding()?.backend.createPreviewSession; }
     release() {
         clearTimeout(this.idle);
         this.idle = undefined;
@@ -30,8 +30,12 @@ export class SessionPreviewProvider {
         return this.cleanup;
     }
     async getFrame(request) {
-        clearTimeout(this.idle);
         request.signal.throwIfAborted();
+        // Independent sessions expose media-time estimates, never exact frame PTS.
+        // Direct callers must also decline without disturbing a reusable session.
+        if (request.exact)
+            return null;
+        clearTimeout(this.idle);
         const binding = this.binding();
         if (!binding?.backend.createPreviewSession)
             return null;

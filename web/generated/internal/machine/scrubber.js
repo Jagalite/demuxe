@@ -68,7 +68,7 @@ export function scrubberDistance(strategy, span, generation = false) {
     return strategy ? 1 : span / 96 + 1;
 }
 export function scrubberPointer(facts) {
-    if (facts.touch || facts.disabled)
+    if (facts.touch && !facts.dragging || facts.disabled)
         return Object.freeze({ hide: true });
     if (!facts.width || facts.max <= facts.min)
         return Object.freeze({ hide: false });

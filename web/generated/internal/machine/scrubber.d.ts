@@ -78,6 +78,7 @@ export declare function transitionScrubber(state: ScrubberState, command: Scrubb
 export declare function scrubberDistance(strategy: PreviewStrategyData | null | undefined, span: number, generation?: boolean): number;
 export declare function scrubberPointer(facts: Readonly<{
     touch: boolean;
+    dragging?: boolean;
     disabled: boolean;
     left: number;
     width: number;

@@ -15,6 +15,7 @@ export class ScrubberPreview {
   private intentApi?:PlayerPreview;
   private displayedURL?:{url:string;release:()=>void};
   private settleTimer?:ReturnType<typeof setTimeout>;
+  private touchPointer?:number;
   private cancelSettle(){const handle=this.settleTimer;this.settleTimer=undefined;if(handle!==undefined)clearTimeout(handle);}
   private transition(command:ScrubberCommand){const result=transitionScrubber(this.control,command);this.control=result.state;return result;}
   private identity<T extends object>(map:WeakMap<T,number>,value:T){let id=map.get(value);if(id===undefined){id=this.transition({type:'allocate'}).id!;map.set(value,id);}return id;}
@@ -26,13 +27,25 @@ export class ScrubberPreview {
     // Cleanup operations are independent: a hostile DOM shim must not retain other handles.
     for(const action of actions)try{action();}catch{}
   }
+  private readonly startTouch=(event:PointerEvent)=>{
+    if(event.pointerType!=='touch'||!event.isPrimary||event.button!==0||this.touchPointer!==undefined||this.timeline.disabled||this.control.terminal)return;
+    this.touchPointer=event.pointerId;
+    this.move(event);
+  };
+  private readonly finishTouch=(event:PointerEvent)=>{if(this.touchPointer!==undefined&&event.pointerId===this.touchPointer)this.hide();};
+  private readonly leave=()=>{
+    // Pointer capture keeps a touch drag alive beyond the timeline's rectangle.
+    if(this.touchPointer===undefined)this.hide();
+  };
+  private readonly cancel=(event:PointerEvent)=>{if(this.touchPointer===undefined||event.pointerId===this.touchPointer)this.hide();};
   private readonly move=(event:PointerEvent)=>{
-    if(event.pointerType==='touch'||this.timeline.disabled){this.hide();return;}
+    if(this.timeline.disabled){this.hide();return;}
+    if(this.touchPointer!==undefined&&event.pointerId!==this.touchPointer||event.pointerType==='touch'&&this.touchPointer===undefined)return;
     const api=this.api();if(!api){this.hide();return;}
     const rect=this.timeline.getBoundingClientRect(),parent=this.panel.parentElement!.getBoundingClientRect();
     const style=getComputedStyle(this.timeline),scale=rect.width/parseFloat(style.width);
     const thumbWidth=parseFloat(style.getPropertyValue('--timeline-thumb-size'))*scale;
-    const pointer=scrubberPointer({touch:false,disabled:false,left:rect.left,width:rect.width,thumbWidth,step:Number(this.timeline.step),min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width});
+    const pointer=scrubberPointer({touch:event.pointerType==='touch',dragging:event.pointerId===this.touchPointer,disabled:false,left:rect.left,width:rect.width,thumbWidth,step:Number(this.timeline.step),min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width});
     if(pointer.time===undefined)return;
     this.panel.style.left=`${pointer.left}px`;
     if(this.targetLabel)this.targetLabel.textContent=formatTime(pointer.time);
@@ -53,7 +66,7 @@ export class ScrubberPreview {
     void this.sample(api,pointer.time,hover.id).catch(()=>{});
   };
   constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined,private targetLabel?:HTMLElement){
-    try{timeline.addEventListener('pointermove',this.move);timeline.addEventListener('pointerleave',this.hide);timeline.addEventListener('pointercancel',this.hide);}catch(error){this.destroy();throw error;}
+    try{for(const [name,listener] of this.listeners())timeline.addEventListener(name,listener);}catch(error){this.destroy();throw error;}
   }
   /** The component publishes source identity and decoder eligibility after its
    * timeline attributes are current. Retain intent, never a stale DOM event. */
@@ -61,7 +74,7 @@ export class ScrubberPreview {
     const replaced=sourceId!==this.control.sourceId;
     const decision=this.transition({type:'observe',sourceId,eligible});
     if(!decision.accepted)return;
-    if(replaced)this.intentApi=undefined;
+    if(replaced){this.intentApi=undefined;this.touchPointer=undefined;}
     if(replaced||!eligible){this.cancelSettle();this.pendingApi=undefined;}
     this.applyClear(decision);
     const api=this.intentApi,target=decision.retry,hover=decision.id;
@@ -146,6 +159,7 @@ export class ScrubberPreview {
     }
   }
   private clearImage(){this.applyClear(this.transition({type:'clear'}));}
-  readonly hide=()=>{this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
-  destroy(){this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of [['pointermove',this.move],['pointerleave',this.hide],['pointercancel',this.hide]] as const)try{this.timeline.removeEventListener(name,listener);}catch{}}
+  readonly hide=()=>{this.touchPointer=undefined;this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'hide'}));};
+  private listeners(){return [['pointerdown',this.startTouch],['pointermove',this.move],['pointerleave',this.leave],['pointerup',this.finishTouch],['lostpointercapture',this.finishTouch],['pointercancel',this.cancel]] as const;}
+  destroy(){this.touchPointer=undefined;this.cancelSettle();this.intentApi=undefined;this.pendingApi=undefined;this.applyClear(this.transition({type:'destroy'}));for(const [name,listener] of this.listeners())try{this.timeline.removeEventListener(name,listener);}catch{}}
 }
