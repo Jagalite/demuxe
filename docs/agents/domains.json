@@ -1,0 +1,4226 @@
+{
+  "schema_version": 1,
+  "status": "proposed-navigation-seed-not-a-write-authorization",
+  "repository": "Jagalite/demuxe",
+  "reviewed_main_commit": "d467c6bbe693bd64f142d62d391519883250792f",
+  "generated_from": "docs/agents/HIERARCHY.md",
+  "reviewed_date": "2026-10-15",
+  "limits": [
+    "This map has source/test anchors, not an exhaustive tracked-file or import inventory.",
+    "Directory anchors and overlapping source paths do not grant writes.",
+    "No repository builds, browsers, performance tests, or enforcement mechanisms were run/installed for this documentation."
+  ],
+  "authorization": {
+    "default": "deny",
+    "scope_write_grant": "explicit exact task paths with a current lease",
+    "parent_child_write_overlap": "forbidden",
+    "independent_verifier_required": true,
+    "generated_output_and_test_gates": "protected; separate review and authorization"
+  },
+  "parent_domains": [
+    {
+      "id": "A",
+      "title": "Session, public API and control",
+      "component_count": 6
+    },
+    {
+      "id": "B",
+      "title": "Routing, capabilities and providers",
+      "component_count": 5
+    },
+    {
+      "id": "C",
+      "title": "Sources, inspection and remux",
+      "component_count": 5
+    },
+    {
+      "id": "D",
+      "title": "Playback backends and streaming",
+      "component_count": 4
+    },
+    {
+      "id": "E",
+      "title": "Engine execution, decoding and output",
+      "component_count": 6
+    },
+    {
+      "id": "F",
+      "title": "Subtitles and previews",
+      "component_count": 5
+    },
+    {
+      "id": "G",
+      "title": "Player UI and application integrations",
+      "component_count": 5
+    },
+    {
+      "id": "H",
+      "title": "Build, delivery and project assurance",
+      "component_count": 4
+    }
+  ],
+  "components": [
+    {
+      "id": "A01",
+      "parent": "A",
+      "title": "Public API, types and exports",
+      "owns": "Public names, option validation contracts, event/error shapes, declaration compatibility and supported import surfaces.",
+      "source_anchors": [
+        {
+          "path": "src/index.ts",
+          "label": "`src/index.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/index.ts"
+        },
+        {
+          "path": "src/core.ts",
+          "label": "`src/core.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/core.ts"
+        },
+        {
+          "path": "src/types.ts",
+          "label": "`src/types.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/types.ts"
+        },
+        {
+          "path": "src/runtime-types.ts",
+          "label": "`src/runtime-types.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/runtime-types.ts"
+        },
+        {
+          "path": "src/contracts.ts",
+          "label": "`src/contracts.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/contracts.ts"
+        },
+        {
+          "path": "src/components.ts",
+          "label": "`src/components.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/components.ts"
+        },
+        {
+          "path": "src/internal/backend.ts",
+          "label": "`src/internal/backend.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/backend.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/contracts.mjs",
+          "label": "`tests/api-stability/contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/contracts.mjs"
+        },
+        {
+          "path": "tests/api-stability/consumer-types.ts",
+          "label": "`tests/api-stability/consumer-types.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/consumer-types.ts"
+        },
+        {
+          "path": "tests/public-api-state.mjs",
+          "label": "`tests/public-api-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/public-api-state.mjs"
+        },
+        {
+          "path": "tests/public-api.mjs",
+          "label": "`tests/public-api.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/public-api.mjs"
+        }
+      ],
+      "invariant": "A public state/event must describe the accepted operation and source. Internal refactoring must not silently change public behavior, optionality, units or error semantics.",
+      "boundary": "A01 is the schema steward, not the owner of every implementation using the schema. Changes to public contracts require affected provider, backend and consumer reviewers. Package export metadata is integrated by H02.",
+      "audit_scopes": [
+        {
+          "id": "A01.inputs",
+          "focus": "Inputs, validation and defaults"
+        },
+        {
+          "id": "A01.observations",
+          "focus": "Events, snapshots and errors"
+        },
+        {
+          "id": "A01.compatibility",
+          "focus": "Types and import-surface compatibility"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "A06",
+        "G05",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "A02",
+      "parent": "A",
+      "title": "Composed player and source lifecycle",
+      "owns": "The top-level Player composition, source replacement, operation/session identities, candidate acceptance and retirement.",
+      "source_anchors": [
+        {
+          "path": "src/unified-player.ts",
+          "label": "`src/unified-player.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/unified-player.ts"
+        },
+        {
+          "path": "src/internal/machine/transition.ts",
+          "label": "`src/internal/machine/transition.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/transition.ts"
+        },
+        {
+          "path": "src/internal/machine/state.ts",
+          "label": "`src/internal/machine/state.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/state.ts"
+        },
+        {
+          "path": "src/internal/machine/operations.ts",
+          "label": "`src/internal/machine/operations.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/operations.ts"
+        },
+        {
+          "path": "src/internal/machine/source.ts",
+          "label": "`src/internal/machine/source.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source.ts"
+        },
+        {
+          "path": "src/internal/machine/source-preparation.ts",
+          "label": "`src/internal/machine/source-preparation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source-preparation.ts"
+        },
+        {
+          "path": "src/internal/machine/source-application.ts",
+          "label": "`src/internal/machine/source-application.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source-application.ts"
+        },
+        {
+          "path": "src/internal/machine/source-positioning.ts",
+          "label": "`src/internal/machine/source-positioning.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source-positioning.ts"
+        },
+        {
+          "path": "src/internal/machine/source-acceptance.ts",
+          "label": "`src/internal/machine/source-acceptance.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source-acceptance.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/source-state.mjs",
+          "label": "`tests/api-stability/source-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/source-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/operation-state-exploration.mjs",
+          "label": "`tests/api-stability/operation-state-exploration.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/operation-state-exploration.mjs"
+        },
+        {
+          "path": "tests/api-stability/player-session-fault.mjs",
+          "label": "`tests/api-stability/player-session-fault.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/player-session-fault.mjs"
+        },
+        {
+          "path": "tests/api-stability/player-teardown.mjs",
+          "label": "`tests/api-stability/player-teardown.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/player-teardown.mjs"
+        }
+      ],
+      "invariant": "Only the current source, session and operation may commit. Late completion cannot revive retired state; failed candidates cannot corrupt the accepted session.",
+      "boundary": "Single writer for unified-player.ts and the composed transition/state hubs. Other agents may audit them and submit integration requests, but cannot independently patch different regions concurrently.",
+      "audit_scopes": [
+        {
+          "id": "A02.acceptance",
+          "focus": "Open, replace and candidate acceptance"
+        },
+        {
+          "id": "A02.authority",
+          "focus": "Operation identity and stale completions"
+        },
+        {
+          "id": "A02.retirement",
+          "focus": "Cancellation, faults and teardown"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "A05",
+        "B01",
+        "D01",
+        "D04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "A03",
+      "parent": "A",
+      "title": "Transport, seeking and playback boundaries",
+      "owns": "Play/pause intent, latest-seek semantics, readiness, seek settlement, loop/excerpt behavior and backend requests.",
+      "source_anchors": [
+        {
+          "path": "src/internal/machine/player-transport.ts",
+          "label": "`src/internal/machine/player-transport.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/player-transport.ts"
+        },
+        {
+          "path": "src/internal/machine/player-actions.ts",
+          "label": "`src/internal/machine/player-actions.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/player-actions.ts"
+        },
+        {
+          "path": "src/internal/machine/player-readiness.ts",
+          "label": "`src/internal/machine/player-readiness.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/player-readiness.ts"
+        },
+        {
+          "path": "src/internal/machine/playback.ts",
+          "label": "`src/internal/machine/playback.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/playback.ts"
+        },
+        {
+          "path": "src/internal/machine/playback-boundary.ts",
+          "label": "`src/internal/machine/playback-boundary.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/playback-boundary.ts"
+        },
+        {
+          "path": "src/internal/machine/backend-requests.ts",
+          "label": "`src/internal/machine/backend-requests.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/backend-requests.ts"
+        },
+        {
+          "path": "src/internal/machine/playback-deadlines.ts",
+          "label": "`src/internal/machine/playback-deadlines.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/playback-deadlines.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/player-transport-state.mjs",
+          "label": "`tests/api-stability/player-transport-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/player-transport-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/playback-boundary.mjs",
+          "label": "`tests/api-stability/playback-boundary.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/playback-boundary.mjs"
+        },
+        {
+          "path": "tests/seek-boundary-contracts.mjs",
+          "label": "`tests/seek-boundary-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/seek-boundary-contracts.mjs"
+        },
+        {
+          "path": "tests/play-pause-cancellation.mjs",
+          "label": "`tests/play-pause-cancellation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/play-pause-cancellation.mjs"
+        },
+        {
+          "path": "tests/seek-delayed-observation.mjs",
+          "label": "`tests/seek-delayed-observation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/seek-delayed-observation.mjs"
+        }
+      ],
+      "invariant": "A superseded seek cannot resume playback or publish success. Excerpt, seekable and audiovisual boundaries agree; an explicit pause defeats stale resume intent.",
+      "boundary": "A03 owns transport semantics, not DOM shortcuts (G02), scrubber previews (F05), or backend-specific mechanics (D01/D04). A02 integrates changes to the composed Player.",
+      "audit_scopes": [
+        {
+          "id": "A03.intent",
+          "focus": "Play/pause and cancellation ordering"
+        },
+        {
+          "id": "A03.seeking",
+          "focus": "Latest seek, settlement and readiness"
+        },
+        {
+          "id": "A03.bounds",
+          "focus": "Excerpt, loop and end-of-media boundaries"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "D01",
+        "D04",
+        "F05",
+        "G02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "A04",
+      "parent": "A",
+      "title": "Settings, track selection and attachments",
+      "owns": "Desired versus accepted settings, transactional changes, selected-track identity, subtitle/font attachments and shared buffering policy.",
+      "source_anchors": [
+        {
+          "path": "src/internal/machine/settings.ts",
+          "label": "`src/internal/machine/settings.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/settings.ts"
+        },
+        {
+          "path": "src/internal/machine/advanced-controls.ts",
+          "label": "`src/internal/machine/advanced-controls.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/advanced-controls.ts"
+        },
+        {
+          "path": "src/internal/machine/attachments.ts",
+          "label": "`src/internal/machine/attachments.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/attachments.ts"
+        },
+        {
+          "path": "src/internal/machine/track-selection.ts",
+          "label": "`src/internal/machine/track-selection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/track-selection.ts"
+        },
+        {
+          "path": "src/internal/machine/track-confirmation.ts",
+          "label": "`src/internal/machine/track-confirmation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/track-confirmation.ts"
+        },
+        {
+          "path": "src/internal/machine/track-policy.ts",
+          "label": "`src/internal/machine/track-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/track-policy.ts"
+        },
+        {
+          "path": "src/internal/track-policy.ts",
+          "label": "`src/internal/track-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/track-policy.ts"
+        },
+        {
+          "path": "src/internal/buffering.ts",
+          "label": "`src/internal/buffering.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/buffering.ts"
+        },
+        {
+          "path": "src/internal/machine/buffering-policy.ts",
+          "label": "`src/internal/machine/buffering-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/buffering-policy.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/settings-transactions.mjs",
+          "label": "`tests/api-stability/settings-transactions.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/settings-transactions.mjs"
+        },
+        {
+          "path": "tests/api-stability/settings-observation-race.mjs",
+          "label": "`tests/api-stability/settings-observation-race.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/settings-observation-race.mjs"
+        },
+        {
+          "path": "tests/api-stability/track-selection-state.mjs",
+          "label": "`tests/api-stability/track-selection-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/track-selection-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/attachment-state.mjs",
+          "label": "`tests/api-stability/attachment-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/attachment-state.mjs"
+        },
+        {
+          "path": "tests/track-policy.mjs",
+          "label": "`tests/track-policy.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/track-policy.mjs"
+        }
+      ],
+      "invariant": "Failed setting changes leave a coherent accepted configuration. Track confirmation belongs to the current source/session and respects explicit user selection and policy.",
+      "boundary": "G04 renders settings; A04 owns their meaning. F01 owns subtitle execution. C05 and D02 implement buffering rather than redefining the shared policy. Public schema changes go through A01.",
+      "audit_scopes": [
+        {
+          "id": "A04.transactions",
+          "focus": "Settings commit, rollback and reopen"
+        },
+        {
+          "id": "A04.tracks",
+          "focus": "Track selection and confirmation"
+        },
+        {
+          "id": "A04.attachments",
+          "focus": "Attachment lifetime and preferences"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A02",
+        "D01",
+        "D02",
+        "F01",
+        "G04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "A05",
+      "parent": "A",
+      "title": "Effect execution and resource ownership",
+      "owns": "Effect authority, scheduling/retirement rules, acquisition/release accounting, cleanup outcomes and generic asynchronous policy.",
+      "source_anchors": [
+        {
+          "path": "src/internal/machine/protocol.ts",
+          "label": "`src/internal/machine/protocol.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/protocol.ts"
+        },
+        {
+          "path": "src/internal/machine/effect-runtime.ts",
+          "label": "`src/internal/machine/effect-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/effect-runtime.ts"
+        },
+        {
+          "path": "src/internal/machine/resource-ledger.ts",
+          "label": "`src/internal/machine/resource-ledger.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/resource-ledger.ts"
+        },
+        {
+          "path": "src/internal/machine/async-policy.ts",
+          "label": "`src/internal/machine/async-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/async-policy.ts"
+        },
+        {
+          "path": "src/internal/effects/runtime.ts",
+          "label": "`src/internal/effects/runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/effects/runtime.ts"
+        },
+        {
+          "path": "src/internal/effects/resources.ts",
+          "label": "`src/internal/effects/resources.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/effects/resources.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/effect-runtime-state.mjs",
+          "label": "`tests/api-stability/effect-runtime-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/effect-runtime-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/resource-ledger-state.mjs",
+          "label": "`tests/api-stability/resource-ledger-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/resource-ledger-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/resource-ledger-monotonic.mjs",
+          "label": "`tests/api-stability/resource-ledger-monotonic.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/resource-ledger-monotonic.mjs"
+        },
+        {
+          "path": "tests/api-stability/resource-acquisition.mjs",
+          "label": "`tests/api-stability/resource-acquisition.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/resource-acquisition.mjs"
+        },
+        {
+          "path": "tests/api-stability/player-executor.mjs",
+          "label": "`tests/api-stability/player-executor.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/player-executor.mjs"
+        }
+      ],
+      "invariant": "Every acquired resource has one responsible owner and a valid release path. Retiring authority prevents new effects but must not suppress required physical cleanup.",
+      "boundary": "This component owns generic resource/effect machinery, not every resource user. Protocol changes require both producer and consumer review. A02 owns root composition edits.",
+      "audit_scopes": [
+        {
+          "id": "A05.authority",
+          "focus": "Effect identity, lanes and retirement"
+        },
+        {
+          "id": "A05.ledger",
+          "focus": "Acquisition, transfer and release accounting"
+        },
+        {
+          "id": "A05.cleanup",
+          "focus": "Failure, cancellation and reentrant cleanup"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "B05",
+        "E01",
+        "E02",
+        "F02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "A06",
+      "parent": "A",
+      "title": "Publication, observations and diagnostics",
+      "owns": "Public projections, observation capture, monitoring/watchdogs, bounded traces, error classification/redaction and performance attribution data.",
+      "source_anchors": [
+        {
+          "path": "src/internal/machine/player-publication.ts",
+          "label": "`src/internal/machine/player-publication.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/player-publication.ts"
+        },
+        {
+          "path": "src/internal/machine/player-monitor.ts",
+          "label": "`src/internal/machine/player-monitor.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/player-monitor.ts"
+        },
+        {
+          "path": "src/internal/machine/selectors.ts",
+          "label": "`src/internal/machine/selectors.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/selectors.ts"
+        },
+        {
+          "path": "src/internal/machine/telemetry.ts",
+          "label": "`src/internal/machine/telemetry.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/telemetry.ts"
+        },
+        {
+          "path": "src/internal/machine/trace.ts",
+          "label": "`src/internal/machine/trace.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/trace.ts"
+        },
+        {
+          "path": "src/internal/machine/data.ts",
+          "label": "`src/internal/machine/data.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/data.ts"
+        },
+        {
+          "path": "src/internal/machine/stage-taps.ts",
+          "label": "`src/internal/machine/stage-taps.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/stage-taps.ts"
+        },
+        {
+          "path": "src/internal/state.ts",
+          "label": "`src/internal/state.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/state.ts"
+        },
+        {
+          "path": "src/internal/errors.ts",
+          "label": "`src/internal/errors.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/errors.ts"
+        },
+        {
+          "path": "src/internal/playback-statistics.ts",
+          "label": "`src/internal/playback-statistics.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/playback-statistics.ts"
+        },
+        {
+          "path": "src/internal/watchdogs.ts",
+          "label": "`src/internal/watchdogs.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/watchdogs.ts"
+        },
+        {
+          "path": "src/internal/effects/observations.ts",
+          "label": "`src/internal/effects/observations.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/effects/observations.ts"
+        },
+        {
+          "path": "src/internal/effects/media-observations.ts",
+          "label": "`src/internal/effects/media-observations.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/effects/media-observations.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/player-publication-state.mjs",
+          "label": "`tests/api-stability/player-publication-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/player-publication-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/telemetry.mjs",
+          "label": "`tests/api-stability/telemetry.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/telemetry.mjs"
+        },
+        {
+          "path": "tests/api-stability/trace-replay.mjs",
+          "label": "`tests/api-stability/trace-replay.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/trace-replay.mjs"
+        },
+        {
+          "path": "tests/api-stability/error-classification.mjs",
+          "label": "`tests/api-stability/error-classification.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/error-classification.mjs"
+        },
+        {
+          "path": "tests/watchdogs.mjs",
+          "label": "`tests/watchdogs.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/watchdogs.mjs"
+        }
+      ],
+      "invariant": "Publication is coherent under reentrant callbacks and stale observations. Diagnostics are bounded, redact sensitive URLs/headers and do not fabricate readiness, timing or recovery facts.",
+      "boundary": "Feature owners emit evidence; A06 defines shared publication and attribution semantics. H03 owns measurement methodology and runners. Changing error/event contracts also requires A01.",
+      "audit_scopes": [
+        {
+          "id": "A06.publication",
+          "focus": "Snapshot consistency and reentrancy"
+        },
+        {
+          "id": "A06.tracing",
+          "focus": "Bounded traces and replay diagnostics"
+        },
+        {
+          "id": "A06.monitoring",
+          "focus": "Watchdogs, errors and attribution"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A02",
+        "D03",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "B01",
+      "parent": "B",
+      "title": "Route discovery, inspection and admission",
+      "owns": "Which media facts are required, when inspection runs, how evidence is scoped, and which routes are eligible.",
+      "source_anchors": [
+        {
+          "path": "src/internal/machine/route-discovery.ts",
+          "label": "`src/internal/machine/route-discovery.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-discovery.ts"
+        },
+        {
+          "path": "src/internal/machine/route-inspection.ts",
+          "label": "`src/internal/machine/route-inspection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-inspection.ts"
+        },
+        {
+          "path": "src/internal/machine/route-evidence.ts",
+          "label": "`src/internal/machine/route-evidence.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-evidence.ts"
+        },
+        {
+          "path": "src/internal/machine/route-admission.ts",
+          "label": "`src/internal/machine/route-admission.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-admission.ts"
+        },
+        {
+          "path": "src/internal/machine/route-state.ts",
+          "label": "`src/internal/machine/route-state.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-state.ts"
+        },
+        {
+          "path": "src/internal/machine/routing.ts",
+          "label": "`src/internal/machine/routing.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/routing.ts"
+        },
+        {
+          "path": "src/internal/probe-requirements.ts",
+          "label": "`src/internal/probe-requirements.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/probe-requirements.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/route-discovery-state.mjs",
+          "label": "`tests/api-stability/route-discovery-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-discovery-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/route-inspection-state.mjs",
+          "label": "`tests/api-stability/route-inspection-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-inspection-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/route-admission-state.mjs",
+          "label": "`tests/api-stability/route-admission-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-admission-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/route-evidence-state.mjs",
+          "label": "`tests/api-stability/route-evidence-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-evidence-state.mjs"
+        },
+        {
+          "path": "tests/probe-requirements.mjs",
+          "label": "`tests/probe-requirements.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/probe-requirements.mjs"
+        }
+      ],
+      "invariant": "Admission must be supported by current source, browser and deployment evidence. Incomplete inspection or stale evidence cannot be treated as a positive capability result.",
+      "boundary": "C03 extracts facts; B01 decides whether they justify routing. B02 probes browser capabilities, B04 binds implementations, and B03 owns recovery/promotion policy.",
+      "audit_scopes": [
+        {
+          "id": "B01.discovery",
+          "focus": "Initial discovery and required facts"
+        },
+        {
+          "id": "B01.evidence",
+          "focus": "Evidence identity and invalidation"
+        },
+        {
+          "id": "B01.admission",
+          "focus": "Eligibility and refusal reasons"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "B02",
+        "B03",
+        "B04",
+        "C03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "B02",
+      "parent": "B",
+      "title": "Browser and runtime capability evidence",
+      "owns": "Browser support queries, late capability discovery, compatibility guards and exact configuration qualification.",
+      "source_anchors": [
+        {
+          "path": "src/internal/browser-media-capability.ts",
+          "label": "`src/internal/browser-media-capability.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/browser-media-capability.ts"
+        },
+        {
+          "path": "src/internal/browser-evidence-adapters.ts",
+          "label": "`src/internal/browser-evidence-adapters.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/browser-evidence-adapters.ts"
+        },
+        {
+          "path": "src/internal/media-capabilities.ts",
+          "label": "`src/internal/media-capabilities.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/media-capabilities.ts"
+        },
+        {
+          "path": "src/internal/runtime-capability.ts",
+          "label": "`src/internal/runtime-capability.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/runtime-capability.ts"
+        },
+        {
+          "path": "src/internal/execution-capabilities.ts",
+          "label": "`src/internal/execution-capabilities.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/execution-capabilities.ts"
+        },
+        {
+          "path": "src/internal/machine/capabilities.ts",
+          "label": "`src/internal/machine/capabilities.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/capabilities.ts"
+        },
+        {
+          "path": "src/internal/machine/browser-compatibility.ts",
+          "label": "`src/internal/machine/browser-compatibility.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/browser-compatibility.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/browser-media-capability.mjs",
+          "label": "`tests/browser-media-capability.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/browser-media-capability.mjs"
+        },
+        {
+          "path": "tests/media-capabilities.mjs",
+          "label": "`tests/media-capabilities.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/media-capabilities.mjs"
+        },
+        {
+          "path": "tests/runtime-capability-contracts.mjs",
+          "label": "`tests/runtime-capability-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/runtime-capability-contracts.mjs"
+        },
+        {
+          "path": "tests/native-readiness-contracts.mjs",
+          "label": "`tests/native-readiness-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-readiness-contracts.mjs"
+        },
+        {
+          "path": "tests/safari-decoder-guard.mjs",
+          "label": "`tests/safari-decoder-guard.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/safari-decoder-guard.mjs"
+        },
+        {
+          "path": "tests/media-capabilities-late-browser.mjs",
+          "label": "`tests/media-capabilities-late-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/media-capabilities-late-browser.mjs"
+        }
+      ],
+      "invariant": "API availability is not equivalent to successful decoding or qualified output. Negative, unknown, interrupted and positive evidence remain distinct and correctly scoped.",
+      "boundary": "E02 owns codec configuration mechanics. B01 consumes evidence. Browser/device support expansions require real output tests, not merely a successful support-query mock.",
+      "audit_scopes": [
+        {
+          "id": "B02.queries",
+          "focus": "Capability query behavior"
+        },
+        {
+          "id": "B02.scope",
+          "focus": "Caching, identity and late updates"
+        },
+        {
+          "id": "B02.qualification",
+          "focus": "Configuration-specific browser evidence"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "B01",
+        "D01",
+        "E02",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "B03",
+      "parent": "B",
+      "title": "Fallback, startup escalation and promotion",
+      "owns": "Tier attempts, startup budgets, promotion/recovery choices and decode policy without redefining public playback modes.",
+      "source_anchors": [
+        {
+          "path": "src/internal/tier-policy.ts",
+          "label": "`src/internal/tier-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/tier-policy.ts"
+        },
+        {
+          "path": "src/internal/startup-escalation.ts",
+          "label": "`src/internal/startup-escalation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/startup-escalation.ts"
+        },
+        {
+          "path": "src/internal/decode-policy.ts",
+          "label": "`src/internal/decode-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/decode-policy.ts"
+        },
+        {
+          "path": "src/internal/machine/decode-policy.ts",
+          "label": "`src/internal/machine/decode-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/decode-policy.ts"
+        },
+        {
+          "path": "src/internal/machine/startup.ts",
+          "label": "`src/internal/machine/startup.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/startup.ts"
+        },
+        {
+          "path": "src/internal/machine/route-recovery.ts",
+          "label": "`src/internal/machine/route-recovery.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-recovery.ts"
+        },
+        {
+          "path": "src/internal/machine/route-promotion.ts",
+          "label": "`src/internal/machine/route-promotion.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/route-promotion.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/tier-policy.mjs",
+          "label": "`tests/tier-policy.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/tier-policy.mjs"
+        },
+        {
+          "path": "tests/native-startup-recovery.mjs",
+          "label": "`tests/native-startup-recovery.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-startup-recovery.mjs"
+        },
+        {
+          "path": "tests/pause-promotion.mjs",
+          "label": "`tests/pause-promotion.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/pause-promotion.mjs"
+        },
+        {
+          "path": "tests/startup-escalation.mjs",
+          "label": "`tests/startup-escalation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/startup-escalation.mjs"
+        },
+        {
+          "path": "tests/api-stability/route-recovery-state.mjs",
+          "label": "`tests/api-stability/route-recovery-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-recovery-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/route-promotion-state.mjs",
+          "label": "`tests/api-stability/route-promotion-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/route-promotion-state.mjs"
+        }
+      ],
+      "invariant": "Fallback attempts are bounded and evidence-driven. Recovery or promotion cannot override a newer source, user pause, explicit route constraint or unsupported required feature.",
+      "boundary": "D03 owns Shaka network recovery mechanics; B03 owns cross-route policy. Route failure does not grant permission to silently reduce fidelity or bypass A04 settings.",
+      "audit_scopes": [
+        {
+          "id": "B03.startup",
+          "focus": "Startup budgets and escalation"
+        },
+        {
+          "id": "B03.fallback",
+          "focus": "Failure classification and bounded alternatives"
+        },
+        {
+          "id": "B03.promotion",
+          "focus": "Late improvement without intent loss"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "A03",
+        "A04",
+        "B01",
+        "D03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "B04",
+      "parent": "B",
+      "title": "Provider selection, costs and execution recipes",
+      "owns": "Provider inventories, preference/cost resolution and mapping eligible plans to execution recipes and component combinations.",
+      "source_anchors": [
+        {
+          "path": "src/internal/provider-catalog.ts",
+          "label": "`src/internal/provider-catalog.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-catalog.ts"
+        },
+        {
+          "path": "src/internal/provider-resolution.ts",
+          "label": "`src/internal/provider-resolution.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-resolution.ts"
+        },
+        {
+          "path": "src/internal/provider-plan-resolution.ts",
+          "label": "`src/internal/provider-plan-resolution.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-plan-resolution.ts"
+        },
+        {
+          "path": "src/internal/provider-cost.ts",
+          "label": "`src/internal/provider-cost.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-cost.ts"
+        },
+        {
+          "path": "src/internal/component-selection.ts",
+          "label": "`src/internal/component-selection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/component-selection.ts"
+        },
+        {
+          "path": "src/internal/component-recipes.ts",
+          "label": "`src/internal/component-recipes.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/component-recipes.ts"
+        },
+        {
+          "path": "src/internal/execution-recipes.ts",
+          "label": "`src/internal/execution-recipes.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/execution-recipes.ts"
+        },
+        {
+          "path": "src/internal/media-providers.ts",
+          "label": "`src/internal/media-providers.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/media-providers.ts"
+        },
+        {
+          "path": "src/internal/playback-plans.ts",
+          "label": "`src/internal/playback-plans.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/playback-plans.ts"
+        },
+        {
+          "path": "src/internal/machine/playback-plans.ts",
+          "label": "`src/internal/machine/playback-plans.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/playback-plans.ts"
+        },
+        {
+          "path": "src/internal/selection.ts",
+          "label": "`src/internal/selection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/selection.ts"
+        },
+        {
+          "path": "src/internal/external-decoder-selection.ts",
+          "label": "`src/internal/external-decoder-selection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/external-decoder-selection.ts"
+        },
+        {
+          "path": "src/internal/webgpu-codecs.ts",
+          "label": "`src/internal/webgpu-codecs.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/webgpu-codecs.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/component-selection.mjs",
+          "label": "`tests/component-selection.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/component-selection.mjs"
+        },
+        {
+          "path": "tests/provider-preferences.mjs",
+          "label": "`tests/provider-preferences.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-preferences.mjs"
+        },
+        {
+          "path": "tests/provider-resolution.mjs",
+          "label": "`tests/provider-resolution.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-resolution.mjs"
+        },
+        {
+          "path": "tests/plan-admission.mjs",
+          "label": "`tests/plan-admission.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/plan-admission.mjs"
+        },
+        {
+          "path": "tests/native-selection.mjs",
+          "label": "`tests/native-selection.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-selection.mjs"
+        }
+      ],
+      "invariant": "A cheaper provider is not eligible unless it satisfies the same required output contract. Missing assets and unqualified combinations must produce explicit rejection, not optimistic selection.",
+      "boundary": "B05 acquires providers; H02 packages them; E05 owns codec correctness. The mpv provider is treated as an atomic implementation boundary unless a separately approved design changes it.",
+      "audit_scopes": [
+        {
+          "id": "B04.catalog",
+          "focus": "Inventory and identity"
+        },
+        {
+          "id": "B04.selection",
+          "focus": "Preferences, cost and contract-preserving choice"
+        },
+        {
+          "id": "B04.recipes",
+          "focus": "Valid component composition"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "B01",
+        "B05",
+        "E05",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "B05",
+      "parent": "B",
+      "title": "Provider acquisition and shared runtimes",
+      "owns": "Runtime instances, lazy acquisition, provider updates, deployment identity and shared asset/cache ownership.",
+      "source_anchors": [
+        {
+          "path": "src/runtime.ts",
+          "label": "`src/runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/runtime.ts"
+        },
+        {
+          "path": "src/internal/provider-acquisition.ts",
+          "label": "`src/internal/provider-acquisition.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-acquisition.ts"
+        },
+        {
+          "path": "src/internal/provider-runtime.ts",
+          "label": "`src/internal/provider-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-runtime.ts"
+        },
+        {
+          "path": "src/internal/provider-build.ts",
+          "label": "`src/internal/provider-build.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-build.ts"
+        },
+        {
+          "path": "src/internal/provider-deployment.ts",
+          "label": "`src/internal/provider-deployment.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-deployment.ts"
+        },
+        {
+          "path": "src/internal/provider-deployment-errors.ts",
+          "label": "`src/internal/provider-deployment-errors.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-deployment-errors.ts"
+        },
+        {
+          "path": "src/internal/provider-modules.ts",
+          "label": "`src/internal/provider-modules.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/provider-modules.ts"
+        },
+        {
+          "path": "src/internal/shared-provider-assets.ts",
+          "label": "`src/internal/shared-provider-assets.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shared-provider-assets.ts"
+        },
+        {
+          "path": "src/internal/assets.ts",
+          "label": "`src/internal/assets.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/assets.ts"
+        },
+        {
+          "path": "src/internal/machine/provider-acquisition.ts",
+          "label": "`src/internal/machine/provider-acquisition.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/provider-acquisition.ts"
+        },
+        {
+          "path": "src/internal/machine/provider-runtime.ts",
+          "label": "`src/internal/machine/provider-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/provider-runtime.ts"
+        },
+        {
+          "path": "src/internal/machine/provider-updates.ts",
+          "label": "`src/internal/machine/provider-updates.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/provider-updates.ts"
+        },
+        {
+          "path": "src/internal/machine/shared-assets.ts",
+          "label": "`src/internal/machine/shared-assets.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shared-assets.ts"
+        },
+        {
+          "path": "src/internal/machine/shared-runtime.ts",
+          "label": "`src/internal/machine/shared-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shared-runtime.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/provider-acquisition.mjs",
+          "label": "`tests/provider-acquisition.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-acquisition.mjs"
+        },
+        {
+          "path": "tests/provider-owner-failures.mjs",
+          "label": "`tests/provider-owner-failures.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-owner-failures.mjs"
+        },
+        {
+          "path": "tests/provider-runtime.mjs",
+          "label": "`tests/provider-runtime.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-runtime.mjs"
+        },
+        {
+          "path": "tests/shared-runtime.mjs",
+          "label": "`tests/shared-runtime.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shared-runtime.mjs"
+        },
+        {
+          "path": "tests/runtime-provider-promotion.mjs",
+          "label": "`tests/runtime-provider-promotion.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/runtime-provider-promotion.mjs"
+        },
+        {
+          "path": "tests/asset-deployment.mjs",
+          "label": "`tests/asset-deployment.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/asset-deployment.mjs"
+        }
+      ],
+      "invariant": "Shared resources survive while valid owners need them, but retired owners cannot reuse or release a successor's resource. Deployment changes invalidate the correct identities.",
+      "boundary": "E06 initializes engine-level assets; B05 manages shared provider-level ownership. A01 owns runtime type contracts and H02 owns delivered manifests and layout.",
+      "audit_scopes": [
+        {
+          "id": "B05.acquisition",
+          "focus": "Lazy load, concurrent owners and failure"
+        },
+        {
+          "id": "B05.updates",
+          "focus": "Provider revisions and deployment changes"
+        },
+        {
+          "id": "B05.sharing",
+          "focus": "Cache identity, reuse and disposal"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A05",
+        "B04",
+        "E06",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "C01",
+      "parent": "C",
+      "title": "Source adapters and local byte access",
+      "owns": "Public custom source materialization, local files/ArrayBuffers, safe byte offsets and source-level policy.",
+      "source_anchors": [
+        {
+          "path": "src/sources.ts",
+          "label": "`src/sources.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/sources.ts"
+        },
+        {
+          "path": "web/file-reader.js",
+          "label": "`web/file-reader.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/file-reader.js"
+        },
+        {
+          "path": "src/internal/machine/byte-reader.ts",
+          "label": "`src/internal/machine/byte-reader.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/byte-reader.ts"
+        },
+        {
+          "path": "src/internal/machine/local-reader.ts",
+          "label": "`src/internal/machine/local-reader.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/local-reader.ts"
+        },
+        {
+          "path": "src/internal/machine/source-policy.ts",
+          "label": "`src/internal/machine/source-policy.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/source-policy.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/file-reader.mjs",
+          "label": "`tests/file-reader.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/file-reader.mjs"
+        },
+        {
+          "path": "tests/api-stability/byte-reader.mjs",
+          "label": "`tests/api-stability/byte-reader.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/byte-reader.mjs"
+        },
+        {
+          "path": "tests/api-stability/local-reader-state.mjs",
+          "label": "`tests/api-stability/local-reader-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/local-reader-state.mjs"
+        },
+        {
+          "path": "tests/large-files.mjs",
+          "label": "`tests/large-files.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/large-files.mjs"
+        }
+      ],
+      "invariant": "Reads return only the requested bytes from the intended source. Length/offset validation is overflow-safe and cancellation cannot expose a successor source's data.",
+      "boundary": "A02 owns source session lifecycle; C02 owns HTTP/range transport; C03 interprets bytes. Custom-source disposal semantics require A01 and A05 review.",
+      "audit_scopes": [
+        {
+          "id": "C01.adapters",
+          "focus": "Custom source input and materialization"
+        },
+        {
+          "id": "C01.reads",
+          "focus": "Offsets, partial reads and large files"
+        },
+        {
+          "id": "C01.lifetime",
+          "focus": "Local handles and cancellation"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A02",
+        "A05",
+        "C02",
+        "C03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "C02",
+      "parent": "C",
+      "title": "Remote ranges, authorization and I/O workers",
+      "owns": "Range deadlines, bounded transport/cache behavior, representation identity and authorization updates across worker/native bridges.",
+      "source_anchors": [
+        {
+          "path": "web/range-reader.js",
+          "label": "`web/range-reader.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/range-reader.js"
+        },
+        {
+          "path": "web/io-worker.js",
+          "label": "`web/io-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/io-worker.js"
+        },
+        {
+          "path": "web/private-mpv/range-source.js",
+          "label": "`web/private-mpv/range-source.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/range-source.js"
+        },
+        {
+          "path": "src/internal/machine/range-reader.ts",
+          "label": "`src/internal/machine/range-reader.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/range-reader.ts"
+        },
+        {
+          "path": "src/internal/machine/io-worker.ts",
+          "label": "`src/internal/machine/io-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/io-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/private-range-source.ts",
+          "label": "`src/internal/machine/private-range-source.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-range-source.ts"
+        },
+        {
+          "path": "native/stream_bridge.c",
+          "label": "`native/stream_bridge.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/stream_bridge.c"
+        },
+        {
+          "path": "native/stream_bridge.h",
+          "label": "`native/stream_bridge.h`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/stream_bridge.h"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/range-reader.mjs",
+          "label": "`tests/range-reader.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/range-reader.mjs"
+        },
+        {
+          "path": "tests/range-reader-deadline.mjs",
+          "label": "`tests/range-reader-deadline.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/range-reader-deadline.mjs"
+        },
+        {
+          "path": "tests/api-stability/range-reader-state.mjs",
+          "label": "`tests/api-stability/range-reader-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/range-reader-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/io-worker.mjs",
+          "label": "`tests/api-stability/io-worker.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/io-worker.mjs"
+        },
+        {
+          "path": "tests/api-stability/private-range-source.mjs",
+          "label": "`tests/api-stability/private-range-source.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/private-range-source.mjs"
+        }
+      ],
+      "invariant": "Ranges from different representations cannot be spliced into one source. Retries, timeouts and refreshed authorization preserve origin policy, bounded work and cancellation authority.",
+      "boundary": "D03 owns Shaka-specific network callbacks; this component owns generic finite-source transport. Native/worker ABI changes require the consumer engine owner and H01.",
+      "audit_scopes": [
+        {
+          "id": "C02.representation",
+          "focus": "ETag, size and representation changes"
+        },
+        {
+          "id": "C02.requests",
+          "focus": "Deadlines, retries, cancellation and backpressure"
+        },
+        {
+          "id": "C02.authorization",
+          "focus": "Allowed origins and authorization renewal"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "A05",
+        "D03",
+        "E01",
+        "H01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "C03",
+      "parent": "C",
+      "title": "Fast inspection and media metadata",
+      "owns": "Byte-to-media-fact interpretation, cheap inspection eligibility, metadata budgets and fallback to broader probing.",
+      "source_anchors": [
+        {
+          "path": "web/fast-source-inspector.js",
+          "label": "`web/fast-source-inspector.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/fast-source-inspector.js"
+        },
+        {
+          "path": "web/source-probe.js",
+          "label": "`web/source-probe.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/source-probe.js"
+        },
+        {
+          "path": "src/internal/machine/media-facts.ts",
+          "label": "`src/internal/machine/media-facts.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/media-facts.ts"
+        },
+        {
+          "path": "src/internal/machine/media-info.ts",
+          "label": "`src/internal/machine/media-info.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/media-info.ts"
+        },
+        {
+          "path": "src/internal/machine/metadata-budget.ts",
+          "label": "`src/internal/machine/metadata-budget.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/metadata-budget.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/fast-source-inspector.mjs",
+          "label": "`tests/fast-source-inspector.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/fast-source-inspector.mjs"
+        },
+        {
+          "path": "tests/probe-requirements.mjs",
+          "label": "`tests/probe-requirements.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/probe-requirements.mjs"
+        },
+        {
+          "path": "tests/api-stability/metadata-budget.mjs",
+          "label": "`tests/api-stability/metadata-budget.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/metadata-budget.mjs"
+        },
+        {
+          "path": "tests/api-stability/initial-inspection-state.mjs",
+          "label": "`tests/api-stability/initial-inspection-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/initial-inspection-state.mjs"
+        }
+      ],
+      "invariant": "A parser either provides justified facts or declines. Unsupported/truncated containers must not become invented metadata, uncontrolled allocation or falsely qualified direct playback.",
+      "boundary": "B01 owns use/invalidation of evidence; C03 owns its derivation. Changing a parser cannot independently broaden advertised route support. Reuse reference fixtures without treating FFmpeg output as infallible.",
+      "audit_scopes": [
+        {
+          "id": "C03.parsing",
+          "focus": "Container fields and malformed input"
+        },
+        {
+          "id": "C03.budget",
+          "focus": "Read/allocation budgets and large metadata"
+        },
+        {
+          "id": "C03.fallback",
+          "focus": "Decline behavior and cross-inspector comparison"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "B01",
+        "B02",
+        "C01",
+        "C02",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "C04",
+      "parent": "C",
+      "title": "FFmpeg ownership and remux production",
+      "owns": "FFmpeg worker/port ownership, remux source/producer lifecycle, packet processing and native remux bridge behavior.",
+      "source_anchors": [
+        {
+          "path": "web/native-remux-worker.js",
+          "label": "`web/native-remux-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/native-remux-worker.js"
+        },
+        {
+          "path": "web/native-remux-source-worker.js",
+          "label": "`web/native-remux-source-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/native-remux-source-worker.js"
+        },
+        {
+          "path": "web/private-remux.js",
+          "label": "`web/private-remux.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-remux.js"
+        },
+        {
+          "path": "web/private-ffmpeg/",
+          "label": "`web/private-ffmpeg/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/web/private-ffmpeg/"
+        },
+        {
+          "path": "src/internal/machine/ffmpeg-owner.ts",
+          "label": "`src/internal/machine/ffmpeg-owner.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/ffmpeg-owner.ts"
+        },
+        {
+          "path": "src/internal/machine/ffmpeg-bridge.ts",
+          "label": "`src/internal/machine/ffmpeg-bridge.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/ffmpeg-bridge.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-worker.ts",
+          "label": "`src/internal/machine/remux-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-source-worker.ts",
+          "label": "`src/internal/machine/remux-source-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-source-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-port-reader.ts",
+          "label": "`src/internal/machine/remux-port-reader.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-port-reader.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-producer.ts",
+          "label": "`src/internal/machine/remux-producer.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-producer.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-lifecycle.ts",
+          "label": "`src/internal/machine/remux-lifecycle.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-lifecycle.ts"
+        },
+        {
+          "path": "native/remux/remux.c",
+          "label": "`native/remux/remux.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/remux/remux.c"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/ffmpeg-owner-state.mjs",
+          "label": "`tests/api-stability/ffmpeg-owner-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/ffmpeg-owner-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/ffmpeg-bridge-state.mjs",
+          "label": "`tests/api-stability/ffmpeg-bridge-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/ffmpeg-bridge-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/remux-producer-state.mjs",
+          "label": "`tests/api-stability/remux-producer-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/remux-producer-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/remux-lifecycle.mjs",
+          "label": "`tests/api-stability/remux-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/remux-lifecycle.mjs"
+        },
+        {
+          "path": "tests/remux-regressions.mjs",
+          "label": "`tests/remux-regressions.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-regressions.mjs"
+        }
+      ],
+      "invariant": "Packet production has bounded ownership and a definite drain/EOF path. Cancellation cannot publish old packets or retain a dead worker/port/native allocation.",
+      "boundary": "C05 owns append/consumer scheduling and output packaging. E06 owns runtime flavor admission/loading; H01 owns builds. Folder anchors require per-file expansion before write assignment.",
+      "audit_scopes": [
+        {
+          "id": "C04.ownership",
+          "focus": "Worker, bridge and port lifetime"
+        },
+        {
+          "id": "C04.production",
+          "focus": "Packet timestamps, drain and cancellation"
+        },
+        {
+          "id": "C04.native",
+          "focus": "Native remux correctness and malformed packets"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "review_with": [
+        "A05",
+        "C02",
+        "C05",
+        "E06",
+        "H01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "C05",
+      "parent": "C",
+      "title": "Remux output, buffering and MSE integration",
+      "owns": "Output negotiation, MP4 views/splitting, remux scheduling, buffer accounting, append lifecycle and end-of-stream presentation coverage.",
+      "source_anchors": [
+        {
+          "path": "web/native-remux-player.js",
+          "label": "`web/native-remux-player.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/native-remux-player.js"
+        },
+        {
+          "path": "web/native-mse-worker.js",
+          "label": "`web/native-mse-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/native-mse-worker.js"
+        },
+        {
+          "path": "web/worker-remux-controller.js",
+          "label": "`web/worker-remux-controller.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/worker-remux-controller.js"
+        },
+        {
+          "path": "web/progressive-mp4.js",
+          "label": "`web/progressive-mp4.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/progressive-mp4.js"
+        },
+        {
+          "path": "web/split-mp4.js",
+          "label": "`web/split-mp4.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/split-mp4.js"
+        },
+        {
+          "path": "web/selected-mp4-view.js",
+          "label": "`web/selected-mp4-view.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/selected-mp4-view.js"
+        },
+        {
+          "path": "web/remux-packaging.js",
+          "label": "`web/remux-packaging.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/remux-packaging.js"
+        },
+        {
+          "path": "src/internal/machine/progressive-mp4.ts",
+          "label": "`src/internal/machine/progressive-mp4.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/progressive-mp4.ts"
+        },
+        {
+          "path": "src/internal/machine/split-mp4.ts",
+          "label": "`src/internal/machine/split-mp4.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/split-mp4.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-controller.ts",
+          "label": "`src/internal/machine/remux-controller.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-controller.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-buffer.ts",
+          "label": "`src/internal/machine/remux-buffer.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-buffer.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-negotiation.ts",
+          "label": "`src/internal/machine/remux-negotiation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-negotiation.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-output.ts",
+          "label": "`src/internal/machine/remux-output.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-output.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-packaging.ts",
+          "label": "`src/internal/machine/remux-packaging.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-packaging.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-scheduling.ts",
+          "label": "`src/internal/machine/remux-scheduling.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-scheduling.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/remux-buffering.mjs",
+          "label": "`tests/remux-buffering.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-buffering.mjs"
+        },
+        {
+          "path": "tests/remux-eof-coverage.mjs",
+          "label": "`tests/remux-eof-coverage.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-eof-coverage.mjs"
+        },
+        {
+          "path": "tests/api-stability/remux-controller.mjs",
+          "label": "`tests/api-stability/remux-controller.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/remux-controller.mjs"
+        },
+        {
+          "path": "tests/api-stability/remux-bounds.mjs",
+          "label": "`tests/api-stability/remux-bounds.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/remux-bounds.mjs"
+        },
+        {
+          "path": "tests/remux-packaging-contracts.mjs",
+          "label": "`tests/remux-packaging-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-packaging-contracts.mjs"
+        },
+        {
+          "path": "tests/remux-negotiation.mjs",
+          "label": "`tests/remux-negotiation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-negotiation.mjs"
+        }
+      ],
+      "invariant": "Append/backpressure work stays bounded and media timelines remain consistent through seek, flush and EOF. Completion is not declared while required audio/video output is missing.",
+      "boundary": "C04 supplies packets. D01 owns the host native backend; D02 owns Shaka-managed MSE, which must not gain a competing scheduler here. Output-contract changes require B04.",
+      "audit_scopes": [
+        {
+          "id": "C05.negotiation",
+          "focus": "Container/output contracts"
+        },
+        {
+          "id": "C05.buffering",
+          "focus": "Append queues, memory and backpressure"
+        },
+        {
+          "id": "C05.timeline",
+          "focus": "Seek, drain and audiovisual coverage"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "A04",
+        "B04",
+        "C04",
+        "D01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "D01",
+      "parent": "D",
+      "title": "Native media backend",
+      "owns": "HTML media element loading, controls, event observation, readiness and retirement in the native backend.",
+      "source_anchors": [
+        {
+          "path": "src/internal/native-player.ts",
+          "label": "`src/internal/native-player.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/native-player.ts"
+        },
+        {
+          "path": "src/internal/machine/native-backend.ts",
+          "label": "`src/internal/machine/native-backend.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-backend.ts"
+        },
+        {
+          "path": "src/internal/machine/native-load.ts",
+          "label": "`src/internal/machine/native-load.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-load.ts"
+        },
+        {
+          "path": "src/internal/machine/native-controls.ts",
+          "label": "`src/internal/machine/native-controls.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-controls.ts"
+        },
+        {
+          "path": "src/internal/machine/native-wait.ts",
+          "label": "`src/internal/machine/native-wait.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-wait.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/native-backend-state.mjs",
+          "label": "`tests/api-stability/native-backend-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-backend-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/native-load-state.mjs",
+          "label": "`tests/api-stability/native-load-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-load-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/native-controls-state.mjs",
+          "label": "`tests/api-stability/native-controls-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-controls-state.mjs"
+        },
+        {
+          "path": "tests/native-seek-frame-race.mjs",
+          "label": "`tests/native-seek-frame-race.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-seek-frame-race.mjs"
+        },
+        {
+          "path": "tests/native-startup-recovery.mjs",
+          "label": "`tests/native-startup-recovery.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-startup-recovery.mjs"
+        }
+      ],
+      "invariant": "The active element and accepted session agree. DOM media events cannot confirm a stale load/seek; disposal removes observations without disrupting another accepted session.",
+      "boundary": "Native audio service belongs to E03, subtitles to F01 and remux preparation to C04/C05. native-player.ts remains a single-writer integration file for those services.",
+      "audit_scopes": [
+        {
+          "id": "D01.load",
+          "focus": "Element load and startup evidence"
+        },
+        {
+          "id": "D01.control",
+          "focus": "Play, pause and seek observation"
+        },
+        {
+          "id": "D01.teardown",
+          "focus": "Listeners, URLs and stale media events"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "A03",
+        "C05",
+        "E03",
+        "F01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "D02",
+      "parent": "D",
+      "title": "Shaka backend, tracks and quality",
+      "owns": "Shaka backend/runtime integration, manifest lifecycle, track/variant observation and quality/ABR policy application.",
+      "source_anchors": [
+        {
+          "path": "src/internal/shaka-backend.ts",
+          "label": "`src/internal/shaka-backend.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-backend.ts"
+        },
+        {
+          "path": "src/internal/shaka-runtime.ts",
+          "label": "`src/internal/shaka-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-runtime.ts"
+        },
+        {
+          "path": "src/internal/shaka-api.ts",
+          "label": "`src/internal/shaka-api.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-api.ts"
+        },
+        {
+          "path": "src/internal/shaka-abr.ts",
+          "label": "`src/internal/shaka-abr.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-abr.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-backend.ts",
+          "label": "`src/internal/machine/shaka-backend.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-backend.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-runtime.ts",
+          "label": "`src/internal/machine/shaka-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-runtime.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-selection.ts",
+          "label": "`src/internal/machine/shaka-selection.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-selection.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-observation.ts",
+          "label": "`src/internal/machine/shaka-observation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-observation.ts"
+        },
+        {
+          "path": "src/internal/machine/quality-switching.ts",
+          "label": "`src/internal/machine/quality-switching.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/quality-switching.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/shaka-backend.mjs",
+          "label": "`tests/shaka-backend.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-backend.mjs"
+        },
+        {
+          "path": "tests/quality-switching.mjs",
+          "label": "`tests/quality-switching.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/quality-switching.mjs"
+        },
+        {
+          "path": "tests/api-stability/shaka-backend-state.mjs",
+          "label": "`tests/api-stability/shaka-backend-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/shaka-backend-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/shaka-selection.mjs",
+          "label": "`tests/api-stability/shaka-selection.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/shaka-selection.mjs"
+        },
+        {
+          "path": "tests/shaka-lifecycle.mjs",
+          "label": "`tests/shaka-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-lifecycle.mjs"
+        }
+      ],
+      "invariant": "Track/quality state reflects the current Shaka instance and source. Replay needs new output evidence; ABR and manual policy remain consistent without a second manifest/MSE scheduler.",
+      "boundary": "D03 owns network/recovery policy adapters; H02 owns provider-shaka package delivery. Changes in shaka-backend.ts go through D02 even when initiated by a network/subtitle agent.",
+      "audit_scopes": [
+        {
+          "id": "D02.lifecycle",
+          "focus": "Load, unload, replay and manifest timeline"
+        },
+        {
+          "id": "D02.selection",
+          "focus": "Tracks, variants and manual quality"
+        },
+        {
+          "id": "D02.abr",
+          "focus": "Adaptive quality and observable state"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "A04",
+        "D03",
+        "F01",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "D03",
+      "parent": "D",
+      "title": "Shaka networking and recovery",
+      "owns": "Streaming request observations, retry/recovery transitions, network error classification and source-scoped recovery signals.",
+      "source_anchors": [
+        {
+          "path": "src/internal/shaka-network.ts",
+          "label": "`src/internal/shaka-network.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-network.ts"
+        },
+        {
+          "path": "src/internal/shaka-recovery.ts",
+          "label": "`src/internal/shaka-recovery.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/shaka-recovery.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-network.ts",
+          "label": "`src/internal/machine/shaka-network.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-network.ts"
+        },
+        {
+          "path": "src/internal/machine/shaka-recovery.ts",
+          "label": "`src/internal/machine/shaka-recovery.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/shaka-recovery.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/shaka-network.mjs",
+          "label": "`tests/shaka-network.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-network.mjs"
+        },
+        {
+          "path": "tests/shaka-recovery.mjs",
+          "label": "`tests/shaka-recovery.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-recovery.mjs"
+        },
+        {
+          "path": "tests/api-stability/shaka-network-state.mjs",
+          "label": "`tests/api-stability/shaka-network-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/shaka-network-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/live-fault-server-contracts.mjs",
+          "label": "`tests/api-stability/live-fault-server-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/live-fault-server-contracts.mjs"
+        },
+        {
+          "path": "tests/shaka-lifecycle.mjs",
+          "label": "`tests/shaka-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-lifecycle.mjs"
+        }
+      ],
+      "invariant": "Recovery state is driven by observed current-source work, not guessed countdowns. Retired requests cannot recover or fail a new source; retry activity remains bounded and visible.",
+      "boundary": "D02 integrates backend callbacks. C02 owns non-Shaka range transport. A06/A01 review public diagnostics/events, and B03 reviews any proposed cross-route fallback.",
+      "audit_scopes": [
+        {
+          "id": "D03.requests",
+          "focus": "Request/response identity and cancellation"
+        },
+        {
+          "id": "D03.recovery",
+          "focus": "Recoverable versus terminal transitions"
+        },
+        {
+          "id": "D03.signals",
+          "focus": "Accurate public recovery evidence"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A06",
+        "B03",
+        "C02",
+        "D02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "D04",
+      "parent": "D",
+      "title": "Wasm and cooperative software backends",
+      "owns": "Wasm backend lifecycle, software/private backend settings and seek mechanics, including pause/resume and retirement.",
+      "source_anchors": [
+        {
+          "path": "src/internal/wasm-player.ts",
+          "label": "`src/internal/wasm-player.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/wasm-player.ts"
+        },
+        {
+          "path": "src/internal/private-software-player.ts",
+          "label": "`src/internal/private-software-player.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/private-software-player.ts"
+        },
+        {
+          "path": "src/internal/machine/wasm-lifecycle.ts",
+          "label": "`src/internal/machine/wasm-lifecycle.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/wasm-lifecycle.ts"
+        },
+        {
+          "path": "src/internal/machine/wasm-seek.ts",
+          "label": "`src/internal/machine/wasm-seek.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/wasm-seek.ts"
+        },
+        {
+          "path": "src/internal/machine/wasm-settings.ts",
+          "label": "`src/internal/machine/wasm-settings.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/wasm-settings.ts"
+        },
+        {
+          "path": "src/internal/machine/private-software.ts",
+          "label": "`src/internal/machine/private-software.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-software.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/wasm-lifecycle.mjs",
+          "label": "`tests/api-stability/wasm-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/wasm-lifecycle.mjs"
+        },
+        {
+          "path": "tests/api-stability/wasm-seek.mjs",
+          "label": "`tests/api-stability/wasm-seek.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/wasm-seek.mjs"
+        },
+        {
+          "path": "tests/api-stability/wasm-settings.mjs",
+          "label": "`tests/api-stability/wasm-settings.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/wasm-settings.mjs"
+        },
+        {
+          "path": "tests/private-software-player.mjs",
+          "label": "`tests/private-software-player.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-software-player.mjs"
+        },
+        {
+          "path": "tests/private-mpv-eof-race.mjs",
+          "label": "`tests/private-mpv-eof-race.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-mpv-eof-race.mjs"
+        }
+      ],
+      "invariant": "Backend-local readiness and seek completion honor the current session and user intent. EOF, cancellation and teardown settle operations without resurrecting retired playback.",
+      "boundary": "E01 owns worker/scheduler execution, E06 runtime admission, E02/E03/E04 the decode/output paths. D04 must not duplicate their clocks, ownership or qualification policy.",
+      "audit_scopes": [
+        {
+          "id": "D04.lifecycle",
+          "focus": "Initialization, readiness and teardown"
+        },
+        {
+          "id": "D04.seeking",
+          "focus": "Software seek, settlement and resume"
+        },
+        {
+          "id": "D04.settings",
+          "focus": "Backend settings, EOF and route parity"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "A03",
+        "E01",
+        "E02",
+        "E03",
+        "E06"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E01",
+      "parent": "E",
+      "title": "Playback hosts, workers and scheduling",
+      "owns": "Worker message execution, playback hosts, cooperative continuation scheduling and worker-tree termination, including the lower-level BrowserPlayer.",
+      "source_anchors": [
+        {
+          "path": "src/player.ts",
+          "label": "`src/player.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player.ts"
+        },
+        {
+          "path": "web/engine-worker.js",
+          "label": "`web/engine-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/engine-worker.js"
+        },
+        {
+          "path": "web/retained-engine-worker.js",
+          "label": "`web/retained-engine-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/retained-engine-worker.js"
+        },
+        {
+          "path": "web/software-full-engine-worker.js",
+          "label": "`web/software-full-engine-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/software-full-engine-worker.js"
+        },
+        {
+          "path": "web/private-mpv/playback-host.js",
+          "label": "`web/private-mpv/playback-host.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/playback-host.js"
+        },
+        {
+          "path": "web/private-mpv/playback-worker.js",
+          "label": "`web/private-mpv/playback-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/playback-worker.js"
+        },
+        {
+          "path": "web/private-mpv/scheduler.js",
+          "label": "`web/private-mpv/scheduler.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/scheduler.js"
+        },
+        {
+          "path": "web/private-mpv/continuations.js",
+          "label": "`web/private-mpv/continuations.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/continuations.js"
+        },
+        {
+          "path": "src/internal/machine/playback-host.ts",
+          "label": "`src/internal/machine/playback-host.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/playback-host.ts"
+        },
+        {
+          "path": "src/internal/machine/private-playback-worker.ts",
+          "label": "`src/internal/machine/private-playback-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-playback-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/private-scheduler.ts",
+          "label": "`src/internal/machine/private-scheduler.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-scheduler.ts"
+        },
+        {
+          "path": "src/internal/machine/legacy-playback-worker.ts",
+          "label": "`src/internal/machine/legacy-playback-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/legacy-playback-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/legacy-adaptive-decode.ts",
+          "label": "`src/internal/machine/legacy-adaptive-decode.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/legacy-adaptive-decode.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/private-playback-worker.mjs",
+          "label": "`tests/private-playback-worker.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-playback-worker.mjs"
+        },
+        {
+          "path": "tests/private-playback-host.mjs",
+          "label": "`tests/private-playback-host.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-playback-host.mjs"
+        },
+        {
+          "path": "tests/api-stability/private-scheduler.mjs",
+          "label": "`tests/api-stability/private-scheduler.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/private-scheduler.mjs"
+        },
+        {
+          "path": "tests/api-stability/private-continuations.mjs",
+          "label": "`tests/api-stability/private-continuations.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/private-continuations.mjs"
+        },
+        {
+          "path": "tests/api-stability/legacy-playback-worker-state.mjs",
+          "label": "`tests/api-stability/legacy-playback-worker-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/legacy-playback-worker-state.mjs"
+        }
+      ],
+      "invariant": "Old continuations and messages cannot execute against a new lifetime. Pausing/destroying stops inappropriate scheduling and drains or retires every pending command deterministically.",
+      "boundary": "E02/E03/E04 own decoder/audio/presentation endpoints. Legacy or experimental entrypoints require reachability classification before modification, not indiscriminate parity rewrites.",
+      "audit_scopes": [
+        {
+          "id": "E01.protocol",
+          "focus": "Host/worker requests and failures"
+        },
+        {
+          "id": "E01.scheduler",
+          "focus": "Continuation fairness and cancellation"
+        },
+        {
+          "id": "E01.termination",
+          "focus": "Worker-tree cleanup and bounded pending work"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A05",
+        "D04",
+        "E02",
+        "E03",
+        "E06"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E02",
+      "parent": "E",
+      "title": "Browser decoders, mailboxes and frame ordering",
+      "owns": "Video codec configuration, WebCodecs-facing decode mechanics, retained-decoder/mailbox ownership and frame ordering.",
+      "source_anchors": [
+        {
+          "path": "web/browser-decoder-worker.js",
+          "label": "`web/browser-decoder-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/browser-decoder-worker.js"
+        },
+        {
+          "path": "web/retained-decoder-worker.js",
+          "label": "`web/retained-decoder-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/retained-decoder-worker.js"
+        },
+        {
+          "path": "web/external-video-decoder.js",
+          "label": "`web/external-video-decoder.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/external-video-decoder.js"
+        },
+        {
+          "path": "web/video-codec-config.js",
+          "label": "`web/video-codec-config.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/video-codec-config.js"
+        },
+        {
+          "path": "web/private-mpv/decoder-mailbox.js",
+          "label": "`web/private-mpv/decoder-mailbox.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/decoder-mailbox.js"
+        },
+        {
+          "path": "web/private-mpv/retained-decoder.js",
+          "label": "`web/private-mpv/retained-decoder.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/retained-decoder.js"
+        },
+        {
+          "path": "src/internal/machine/external-video-decoder.ts",
+          "label": "`src/internal/machine/external-video-decoder.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/external-video-decoder.ts"
+        },
+        {
+          "path": "src/internal/machine/private-decoder-mailbox.ts",
+          "label": "`src/internal/machine/private-decoder-mailbox.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-decoder-mailbox.ts"
+        },
+        {
+          "path": "src/internal/machine/private-retained-decoder.ts",
+          "label": "`src/internal/machine/private-retained-decoder.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-retained-decoder.ts"
+        },
+        {
+          "path": "src/internal/machine/legacy-decoder-worker.ts",
+          "label": "`src/internal/machine/legacy-decoder-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/legacy-decoder-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/video-frame-order.ts",
+          "label": "`src/internal/machine/video-frame-order.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/video-frame-order.ts"
+        },
+        {
+          "path": "native/vd_browser.c",
+          "label": "`native/vd_browser.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/vd_browser.c"
+        },
+        {
+          "path": "native/browser_decoder_bridge.h",
+          "label": "`native/browser_decoder_bridge.h`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/browser_decoder_bridge.h"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/browser-decoder-worker.mjs",
+          "label": "`tests/browser-decoder-worker.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/browser-decoder-worker.mjs"
+        },
+        {
+          "path": "tests/video-frame-order.mjs",
+          "label": "`tests/video-frame-order.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/video-frame-order.mjs"
+        },
+        {
+          "path": "tests/private-decoder-mailbox.mjs",
+          "label": "`tests/private-decoder-mailbox.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-decoder-mailbox.mjs"
+        },
+        {
+          "path": "tests/private-retained-decoder.mjs",
+          "label": "`tests/private-retained-decoder.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-retained-decoder.mjs"
+        },
+        {
+          "path": "tests/video-codec-config.mjs",
+          "label": "`tests/video-codec-config.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/video-codec-config.mjs"
+        },
+        {
+          "path": "tests/api-stability/native-decoder-retirement.mjs",
+          "label": "`tests/api-stability/native-decoder-retirement.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-decoder-retirement.mjs"
+        }
+      ],
+      "invariant": "Decode outputs belong to the current codec configuration/epoch; frames are consumed, transferred or closed exactly as ownership requires. Flush/reorder behavior cannot leak stale frames.",
+      "boundary": "B02 owns capability claims; E04 owns presentation; E01 owns worker scheduling. Shared message shapes and native bridges require producer/consumer agreement and H01 qualification.",
+      "audit_scopes": [
+        {
+          "id": "E02.configuration",
+          "focus": "Codec configuration and reconfiguration"
+        },
+        {
+          "id": "E02.mailbox",
+          "focus": "Transfer, cancellation and decoder lifetime"
+        },
+        {
+          "id": "E02.ordering",
+          "focus": "PTS/reorder/flush behavior"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "review_with": [
+        "A05",
+        "B02",
+        "E01",
+        "E04",
+        "H01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E03",
+      "parent": "E",
+      "title": "Audio services, PCM and worklets",
+      "owns": "Native/private mpv audio services, PCM transport, worklet queues, audio-clock observations and native browser audio bridge.",
+      "source_anchors": [
+        {
+          "path": "src/internal/native-mpv-audio.ts",
+          "label": "`src/internal/native-mpv-audio.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/native-mpv-audio.ts"
+        },
+        {
+          "path": "src/internal/native-private-mpv-audio.ts",
+          "label": "`src/internal/native-private-mpv-audio.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/native-private-mpv-audio.ts"
+        },
+        {
+          "path": "src/internal/machine/native-audio.ts",
+          "label": "`src/internal/machine/native-audio.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-audio.ts"
+        },
+        {
+          "path": "src/internal/machine/private-audio.ts",
+          "label": "`src/internal/machine/private-audio.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-audio.ts"
+        },
+        {
+          "path": "src/internal/machine/private-audio-worker.ts",
+          "label": "`src/internal/machine/private-audio-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-audio-worker.ts"
+        },
+        {
+          "path": "src/internal/machine/private-pcm.ts",
+          "label": "`src/internal/machine/private-pcm.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-pcm.ts"
+        },
+        {
+          "path": "src/internal/machine/private-worklet.ts",
+          "label": "`src/internal/machine/private-worklet.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-worklet.ts"
+        },
+        {
+          "path": "src/internal/machine/pcm-worklet.ts",
+          "label": "`src/internal/machine/pcm-worklet.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/pcm-worklet.ts"
+        },
+        {
+          "path": "src/internal/machine/selective-worklet.ts",
+          "label": "`src/internal/machine/selective-worklet.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/selective-worklet.ts"
+        },
+        {
+          "path": "web/audio-worklet.js",
+          "label": "`web/audio-worklet.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/audio-worklet.js"
+        },
+        {
+          "path": "web/selective-sync-worklet.js",
+          "label": "`web/selective-sync-worklet.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/selective-sync-worklet.js"
+        },
+        {
+          "path": "web/private-mpv/audio-worker.js",
+          "label": "`web/private-mpv/audio-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/audio-worker.js"
+        },
+        {
+          "path": "web/private-mpv/audio-worklet.js",
+          "label": "`web/private-mpv/audio-worklet.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/audio-worklet.js"
+        },
+        {
+          "path": "web/private-mpv/playback-pcm.js",
+          "label": "`web/private-mpv/playback-pcm.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/playback-pcm.js"
+        },
+        {
+          "path": "native/ao_browser.c",
+          "label": "`native/ao_browser.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/ao_browser.c"
+        },
+        {
+          "path": "native/audio_bridge.h",
+          "label": "`native/audio_bridge.h`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/audio_bridge.h"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/audio-worklet.mjs",
+          "label": "`tests/audio-worklet.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/audio-worklet.mjs"
+        },
+        {
+          "path": "tests/private-pcm-worklet.mjs",
+          "label": "`tests/private-pcm-worklet.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-pcm-worklet.mjs"
+        },
+        {
+          "path": "tests/private-playback-pcm.mjs",
+          "label": "`tests/private-playback-pcm.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-playback-pcm.mjs"
+        },
+        {
+          "path": "tests/native-audio-scheduling.mjs",
+          "label": "`tests/native-audio-scheduling.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-audio-scheduling.mjs"
+        },
+        {
+          "path": "tests/api-stability/native-audio-lifecycle.mjs",
+          "label": "`tests/api-stability/native-audio-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-audio-lifecycle.mjs"
+        },
+        {
+          "path": "tests/native-audio-diagnostics.mjs",
+          "label": "`tests/native-audio-diagnostics.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/native-audio-diagnostics.mjs"
+        }
+      ],
+      "invariant": "PCM queues are bounded, channel/rate contracts are explicit, and seek/pause/EOF retire the correct audio generation. A clock estimate must not be misreported as measured A/V sync.",
+      "boundary": "E05 owns decode/adaptation correctness; E03 owns output and synchronization mechanics. Changes affecting the native backend are integrated through D01, not separate edits to its hub.",
+      "audit_scopes": [
+        {
+          "id": "E03.pcm",
+          "focus": "Format, channel, rate and transfer accounting"
+        },
+        {
+          "id": "E03.clock",
+          "focus": "Pause, drift, delay and synchronization"
+        },
+        {
+          "id": "E03.drain",
+          "focus": "Underrun, EOF and audio resource teardown"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "D01",
+        "D04",
+        "E01",
+        "E05"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E04",
+      "parent": "E",
+      "title": "Video presentation and GPU resource lifetime",
+      "owns": "Retained frame presentation, YUV/RGB presentation, GPU surfaces and native software-frame output integration.",
+      "source_anchors": [
+        {
+          "path": "web/retained-video.js",
+          "label": "`web/retained-video.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/retained-video.js"
+        },
+        {
+          "path": "web/video-presenter.js",
+          "label": "`web/video-presenter.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/video-presenter.js"
+        },
+        {
+          "path": "web/yuv-presenter.js",
+          "label": "`web/yuv-presenter.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/yuv-presenter.js"
+        },
+        {
+          "path": "web/webgl-yuv-presenter.js",
+          "label": "`web/webgl-yuv-presenter.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/webgl-yuv-presenter.js"
+        },
+        {
+          "path": "web/private-mpv/retained-presentation.js",
+          "label": "`web/private-mpv/retained-presentation.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/retained-presentation.js"
+        },
+        {
+          "path": "src/internal/machine/private-retained-presentation.ts",
+          "label": "`src/internal/machine/private-retained-presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-retained-presentation.ts"
+        },
+        {
+          "path": "src/internal/machine/legacy-retained-presentation.ts",
+          "label": "`src/internal/machine/legacy-retained-presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/legacy-retained-presentation.ts"
+        },
+        {
+          "path": "native/yuv-backend.c",
+          "label": "`native/yuv-backend.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/yuv-backend.c"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/retained-video.mjs",
+          "label": "`tests/retained-video.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/retained-video.mjs"
+        },
+        {
+          "path": "tests/private-retained-presentation.mjs",
+          "label": "`tests/private-retained-presentation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/private-retained-presentation.mjs"
+        },
+        {
+          "path": "tests/yuv-presenter-acquisition.mjs",
+          "label": "`tests/yuv-presenter-acquisition.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/yuv-presenter-acquisition.mjs"
+        },
+        {
+          "path": "tests/api-stability/private-retained-lease.mjs",
+          "label": "`tests/api-stability/private-retained-lease.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/private-retained-lease.mjs"
+        },
+        {
+          "path": "tests/api-stability/legacy-retained-shell.mjs",
+          "label": "`tests/api-stability/legacy-retained-shell.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/legacy-retained-shell.mjs"
+        }
+      ],
+      "invariant": "Presentation respects timestamp, format, color/chroma and lifetime contracts. Hidden/stopped surfaces do not leak work, while required visible or PiP output continues.",
+      "boundary": "G03 owns DOM/fullscreen/viewport presentation; E04 owns video pixels and GPU resources. Experimental WebGPU codecs are not production-qualified merely because this owner can audit them.",
+      "audit_scopes": [
+        {
+          "id": "E04.fidelity",
+          "focus": "Color, planes, strides and chroma"
+        },
+        {
+          "id": "E04.surfaces",
+          "focus": "Frame retention and GPU resource release"
+        },
+        {
+          "id": "E04.scheduling",
+          "focus": "Visible presentation and unchanged-frame work"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "review_with": [
+        "E01",
+        "E02",
+        "E03",
+        "G03",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E05",
+      "parent": "E",
+      "title": "Codec kernels and audio adaptation",
+      "owns": "Native codec wrappers, lossless/output adaptation and maintained SIMD kernels, with narrowly assigned codec-family qualification jobs.",
+      "source_anchors": [
+        {
+          "path": "native/audio-codecs/",
+          "label": "`native/audio-codecs/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/native/audio-codecs/"
+        },
+        {
+          "path": "native/adaptation/",
+          "label": "`native/adaptation/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/native/adaptation/"
+        },
+        {
+          "path": "native/simd/",
+          "label": "`native/simd/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/native/simd/"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/provider-audio-builds.mjs",
+          "label": "`tests/provider-audio-builds.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-audio-builds.mjs"
+        },
+        {
+          "path": "tests/provider-audio-repair.mjs",
+          "label": "`tests/provider-audio-repair.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-audio-repair.mjs"
+        },
+        {
+          "path": "tests/provider-lossless-audio.mjs",
+          "label": "`tests/provider-lossless-audio.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-lossless-audio.mjs"
+        },
+        {
+          "path": "tests/provider-conformance-installed.mjs",
+          "label": "`tests/provider-conformance-installed.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-conformance-installed.mjs"
+        },
+        {
+          "path": "experiments/playback-performance/test-maintained-kernels.sh",
+          "label": "`experiments/playback-performance/test-maintained-kernels.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/experiments/playback-performance/test-maintained-kernels.sh"
+        }
+      ],
+      "invariant": "Optimized or smaller implementations preserve the declared output contract. Bit-exact claims need matching samples; lossy tolerances and reference versions must be explicit.",
+      "boundary": "H01 owns toolchain/build recipes; H02 package metadata; B04 eligibility. Individual provider implementation files can be assigned here only after classifying them, not by blanket provider-audio-* write access.",
+      "audit_scopes": [
+        {
+          "id": "E05.decoders",
+          "focus": "Codec-family output and malformed streams"
+        },
+        {
+          "id": "E05.adaptation",
+          "focus": "Precision, channels and conversion contracts"
+        },
+        {
+          "id": "E05.kernels",
+          "focus": "Scalar/SIMD differential verification"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V3",
+        "V2",
+        "V4"
+      ],
+      "review_with": [
+        "B04",
+        "C04",
+        "E03",
+        "H01",
+        "H02",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "E06",
+      "parent": "E",
+      "title": "Engine preparation, assets and runtime isolation",
+      "owns": "Engine preparation/loading, private-engine admission, isolated versus cooperative runtime choice and initialization ABI.",
+      "source_anchors": [
+        {
+          "path": "src/internal/engine-preparation.ts",
+          "label": "`src/internal/engine-preparation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/engine-preparation.ts"
+        },
+        {
+          "path": "src/internal/runtime-worker.ts",
+          "label": "`src/internal/runtime-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/runtime-worker.ts"
+        },
+        {
+          "path": "src/internal/private-playback-admission.ts",
+          "label": "`src/internal/private-playback-admission.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/private-playback-admission.ts"
+        },
+        {
+          "path": "src/internal/remux-runtime.ts",
+          "label": "`src/internal/remux-runtime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/remux-runtime.ts"
+        },
+        {
+          "path": "src/internal/machine/engine-preparation.ts",
+          "label": "`src/internal/machine/engine-preparation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/engine-preparation.ts"
+        },
+        {
+          "path": "src/internal/machine/private-engine-admission.ts",
+          "label": "`src/internal/machine/private-engine-admission.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/private-engine-admission.ts"
+        },
+        {
+          "path": "src/internal/machine/remux-deployment.ts",
+          "label": "`src/internal/machine/remux-deployment.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/remux-deployment.ts"
+        },
+        {
+          "path": "src/internal/machine/resource-loader.ts",
+          "label": "`src/internal/machine/resource-loader.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/resource-loader.ts"
+        },
+        {
+          "path": "web/resource-loader.js",
+          "label": "`web/resource-loader.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/resource-loader.js"
+        },
+        {
+          "path": "web/prepared-engine.js",
+          "label": "`web/prepared-engine.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/prepared-engine.js"
+        },
+        {
+          "path": "web/private-mpv.js",
+          "label": "`web/private-mpv.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv.js"
+        },
+        {
+          "path": "web/private-mpv/engine.js",
+          "label": "`web/private-mpv/engine.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/private-mpv/engine.js"
+        },
+        {
+          "path": "native/player.c",
+          "label": "`native/player.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/player.c"
+        },
+        {
+          "path": "native/events.c",
+          "label": "`native/events.c`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/native/events.c"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/engine-preparation.mjs",
+          "label": "`tests/engine-preparation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/engine-preparation.mjs"
+        },
+        {
+          "path": "tests/resource-loader.mjs",
+          "label": "`tests/resource-loader.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/resource-loader.mjs"
+        },
+        {
+          "path": "tests/runtime-isolation.mjs",
+          "label": "`tests/runtime-isolation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/runtime-isolation.mjs"
+        },
+        {
+          "path": "tests/remux-profiles.mjs",
+          "label": "`tests/remux-profiles.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/remux-profiles.mjs"
+        },
+        {
+          "path": "tests/api-stability/private-engine-policy.mjs",
+          "label": "`tests/api-stability/private-engine-policy.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/private-engine-policy.mjs"
+        },
+        {
+          "path": "tests/api-stability/remux-deployment-state.mjs",
+          "label": "`tests/api-stability/remux-deployment-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/remux-deployment-state.mjs"
+        }
+      ],
+      "invariant": "Only matching, available runtime assets are admitted. Isolation/JSPI/Asyncify selection cannot manufacture unsupported capabilities; initialization failure cleans up all partially acquired resources.",
+      "boundary": "B05 owns provider-level sharing/deployment; H01 builds runtime bytes and H02 packages them. Native ABI and worker initialization changes must be tested with rebuilt matching assets.",
+      "audit_scopes": [
+        {
+          "id": "E06.admission",
+          "focus": "Runtime flavor and isolation constraints"
+        },
+        {
+          "id": "E06.loading",
+          "focus": "Asset identity and preparation failure"
+        },
+        {
+          "id": "E06.abi",
+          "focus": "Initialization, native events and compatibility"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "review_with": [
+        "A05",
+        "B05",
+        "D04",
+        "E01",
+        "H01",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "F01",
+      "parent": "F",
+      "title": "Subtitles, captions and overlays",
+      "owns": "Native/mpv subtitle service, browser captions, subtitle worker/timeline/presentation lifetime, fonts and bitmap/text output.",
+      "source_anchors": [
+        {
+          "path": "src/internal/native-mpv-subtitles.ts",
+          "label": "`src/internal/native-mpv-subtitles.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/native-mpv-subtitles.ts"
+        },
+        {
+          "path": "src/internal/plain-vtt.ts",
+          "label": "`src/internal/plain-vtt.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/plain-vtt.ts"
+        },
+        {
+          "path": "src/internal/machine/native-captions.ts",
+          "label": "`src/internal/machine/native-captions.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-captions.ts"
+        },
+        {
+          "path": "src/internal/machine/native-subtitle-lifetime.ts",
+          "label": "`src/internal/machine/native-subtitle-lifetime.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-subtitle-lifetime.ts"
+        },
+        {
+          "path": "src/internal/machine/native-subtitle-presentation.ts",
+          "label": "`src/internal/machine/native-subtitle-presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-subtitle-presentation.ts"
+        },
+        {
+          "path": "src/internal/machine/native-subtitle-timeline.ts",
+          "label": "`src/internal/machine/native-subtitle-timeline.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/native-subtitle-timeline.ts"
+        },
+        {
+          "path": "src/internal/machine/subtitle-worker.ts",
+          "label": "`src/internal/machine/subtitle-worker.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/subtitle-worker.ts"
+        },
+        {
+          "path": "web/mpv-subtitle-worker.js",
+          "label": "`web/mpv-subtitle-worker.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/mpv-subtitle-worker.js"
+        },
+        {
+          "path": "web/subtitle-overlay.js",
+          "label": "`web/subtitle-overlay.js`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/web/subtitle-overlay.js"
+        },
+        {
+          "path": "native/subtitles/",
+          "label": "`native/subtitles/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/native/subtitles/"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/subtitle-overlay.mjs",
+          "label": "`tests/subtitle-overlay.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/subtitle-overlay.mjs"
+        },
+        {
+          "path": "tests/subtitle-deadline-race.mjs",
+          "label": "`tests/subtitle-deadline-race.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/subtitle-deadline-race.mjs"
+        },
+        {
+          "path": "tests/api-stability/native-subtitle-timeline.mjs",
+          "label": "`tests/api-stability/native-subtitle-timeline.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/native-subtitle-timeline.mjs"
+        },
+        {
+          "path": "tests/api-stability/subtitle-worker-lifecycle.mjs",
+          "label": "`tests/api-stability/subtitle-worker-lifecycle.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/subtitle-worker-lifecycle.mjs"
+        },
+        {
+          "path": "tests/subtitle-composition-browser.mjs",
+          "label": "`tests/subtitle-composition-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/subtitle-composition-browser.mjs"
+        }
+      ],
+      "invariant": "Cue/bitmap/font work is scoped to the current attachment, source and timeline. Seek, delay, style change and removal cannot leave stale subtitles or unbounded polling.",
+      "boundary": "A04 owns attachment/selection policy. D01/D02 own backend integration hubs, E03 the audio clock, G04 track/style controls. Native service changes require H01 rebuild.",
+      "audit_scopes": [
+        {
+          "id": "F01.content",
+          "focus": "Text, styled and bitmap fidelity"
+        },
+        {
+          "id": "F01.timeline",
+          "focus": "Seek, delay, deadlines and cue boundaries"
+        },
+        {
+          "id": "F01.lifetime",
+          "focus": "Fonts, worker and overlay retirement"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A04",
+        "D01",
+        "D02",
+        "E03",
+        "H01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "F02",
+      "parent": "F",
+      "title": "Preview authority, controller and cache",
+      "owns": "Preview request/caller identity, cache admission/retention, foreground protection, cancellation and independent preview-session lifetime.",
+      "source_anchors": [
+        {
+          "path": "src/preview/controller.ts",
+          "label": "`src/preview/controller.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/controller.ts"
+        },
+        {
+          "path": "src/preview/player-preview.ts",
+          "label": "`src/preview/player-preview.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/player-preview.ts"
+        },
+        {
+          "path": "src/internal/preview-session.ts",
+          "label": "`src/internal/preview-session.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/preview-session.ts"
+        },
+        {
+          "path": "src/internal/machine/preview.ts",
+          "label": "`src/internal/machine/preview.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview.ts"
+        },
+        {
+          "path": "src/internal/machine/preview-session.ts",
+          "label": "`src/internal/machine/preview-session.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview-session.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/preview.mjs",
+          "label": "`tests/preview.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview.mjs"
+        },
+        {
+          "path": "tests/preview-facade.mjs",
+          "label": "`tests/preview-facade.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-facade.mjs"
+        },
+        {
+          "path": "tests/preview-session.mjs",
+          "label": "`tests/preview-session.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-session.mjs"
+        },
+        {
+          "path": "tests/api-stability/preview-core.mjs",
+          "label": "`tests/api-stability/preview-core.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/preview-core.mjs"
+        },
+        {
+          "path": "tests/api-stability/consumer-preview-acquisition.mjs",
+          "label": "`tests/api-stability/consumer-preview-acquisition.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/consumer-preview-acquisition.mjs"
+        }
+      ],
+      "invariant": "Preview work cannot mutate primary playback. Cache/accounting stay bounded, stale results are rejected, protected foreground entries remain protected and teardown settles callers/resources.",
+      "boundary": "F02 is the single writer for controller.ts and machine/preview.ts. F03 strategy and F04 provider tasks request integration here rather than independently editing these hubs. PR #6 already changes this area.",
+      "audit_scopes": [
+        {
+          "id": "F02.requests",
+          "focus": "Caller identity, deduplication and cancellation"
+        },
+        {
+          "id": "F02.cache",
+          "focus": "Admission, eviction and byte accounting"
+        },
+        {
+          "id": "F02.lifecycle",
+          "focus": "Provider/session replacement and teardown"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A05",
+        "E01",
+        "F03",
+        "F04",
+        "F05"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "F03",
+      "parent": "F",
+      "title": "Preview pregeneration, strategies and sampling",
+      "owns": "On-demand/pregeneration strategies, sampling focus, bounded background scheduling and strategy changes.",
+      "source_anchors": [
+        {
+          "path": "src/preview/pregeneration.ts",
+          "label": "`src/preview/pregeneration.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/pregeneration.ts"
+        },
+        {
+          "path": "src/preview/strategies.ts",
+          "label": "`src/preview/strategies.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/strategies.ts"
+        },
+        {
+          "path": "src/preview/samplers.ts",
+          "label": "`src/preview/samplers.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/samplers.ts"
+        },
+        {
+          "path": "src/internal/machine/preview-pregeneration.ts",
+          "label": "`src/internal/machine/preview-pregeneration.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview-pregeneration.ts"
+        },
+        {
+          "path": "src/internal/machine/preview-demuxe.ts",
+          "label": "`src/internal/machine/preview-demuxe.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview-demuxe.ts"
+        },
+        {
+          "path": "src/internal/machine/preview-interaction.ts",
+          "label": "`src/internal/machine/preview-interaction.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview-interaction.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/preview-pregeneration.mjs",
+          "label": "`tests/preview-pregeneration.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-pregeneration.mjs"
+        },
+        {
+          "path": "tests/preview-strategies.mjs",
+          "label": "`tests/preview-strategies.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-strategies.mjs"
+        },
+        {
+          "path": "tests/preview-range.mjs",
+          "label": "`tests/preview-range.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-range.mjs"
+        },
+        {
+          "path": "tests/preview-options-browser.mjs",
+          "label": "`tests/preview-options-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-options-browser.mjs"
+        }
+      ],
+      "invariant": "Background scheduling yields to playback/foreground work and respects finite source/range budgets. Strategy changes stop obsolete jobs without discarding unrelated useful state.",
+      "boundary": "F02 owns cache/admission execution and shared controller edits. F03 can audit them, but a proposed scheduling improvement is not permission to weaken foreground protection or infer battery savings.",
+      "audit_scopes": [
+        {
+          "id": "F03.sampling",
+          "focus": "Coverage, focus and valid sample times"
+        },
+        {
+          "id": "F03.scheduling",
+          "focus": "Foreground priority and bounded background work"
+        },
+        {
+          "id": "F03.strategy",
+          "focus": "Strategy replacement and custom input validation"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "F02",
+        "F04",
+        "F05",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "F04",
+      "parent": "F",
+      "title": "Preview providers, extraction and images",
+      "owns": "Provider capability decisions, independent frame extraction, approximate/exact semantics and preview image representation/cleanup.",
+      "source_anchors": [
+        {
+          "path": "src/preview/providers.ts",
+          "label": "`src/preview/providers.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/providers.ts"
+        },
+        {
+          "path": "src/preview/session-provider.ts",
+          "label": "`src/preview/session-provider.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/session-provider.ts"
+        },
+        {
+          "path": "src/preview/software.ts",
+          "label": "`src/preview/software.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/software.ts"
+        },
+        {
+          "path": "src/preview/images.ts",
+          "label": "`src/preview/images.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/preview/images.ts"
+        },
+        {
+          "path": "src/internal/machine/preview-image.ts",
+          "label": "`src/internal/machine/preview-image.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/preview-image.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/preview-images.mjs",
+          "label": "`tests/preview-images.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-images.mjs"
+        },
+        {
+          "path": "tests/preview-facade.mjs",
+          "label": "`tests/preview-facade.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-facade.mjs"
+        },
+        {
+          "path": "tests/preview-software.mjs",
+          "label": "`tests/preview-software.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-software.mjs"
+        },
+        {
+          "path": "tests/preview-shaka-browser.mjs",
+          "label": "`tests/preview-shaka-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-shaka-browser.mjs"
+        }
+      ],
+      "invariant": "A provider cannot label an approximate frame as exact or start unsupported work optimistically. Images and temporary decoder resources have explicit ownership and cleanup.",
+      "boundary": "F02 owns provider ordering/request orchestration; C03 metadata, E02 decoder behavior and F05 image consumption are separate. session-provider.ts is in the current PR #6 change set.",
+      "audit_scopes": [
+        {
+          "id": "F04.eligibility",
+          "focus": "Provider eligibility and exactness"
+        },
+        {
+          "id": "F04.extraction",
+          "focus": "Independent decode, seek and timestamps"
+        },
+        {
+          "id": "F04.images",
+          "focus": "Image lifetime, crops and resource cleanup"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A05",
+        "C03",
+        "E02",
+        "F02",
+        "F05"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "F05",
+      "parent": "F",
+      "title": "Scrubber preview interaction",
+      "owns": "Hover/touch preview intent, buffering eligibility, pointer cancellation, stale display rejection and scrubber interaction state.",
+      "source_anchors": [
+        {
+          "path": "src/player/preview.ts",
+          "label": "`src/player/preview.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/preview.ts"
+        },
+        {
+          "path": "src/internal/machine/scrubber.ts",
+          "label": "`src/internal/machine/scrubber.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/scrubber.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/scrubber-preview.mjs",
+          "label": "`tests/scrubber-preview.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/scrubber-preview.mjs"
+        },
+        {
+          "path": "tests/api-stability/scrubber-state.mjs",
+          "label": "`tests/api-stability/scrubber-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/scrubber-state.mjs"
+        },
+        {
+          "path": "tests/preview-ui.mjs",
+          "label": "`tests/preview-ui.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/preview-ui.mjs"
+        },
+        {
+          "path": "tests/timeline-pointer.mjs",
+          "label": "`tests/timeline-pointer.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/timeline-pointer.mjs"
+        }
+      ],
+      "invariant": "Displayed previews match current pointer/source intent. Leaving, cancelling, replacing or destroying clears stale intent; previewing does not accidentally seek primary playback.",
+      "boundary": "G02 owns keyboard/timeline control intent, A03 seek semantics, G01 the component root and F02 request lifetime. Current PR #6 touches these files; review/qualify that work first.",
+      "audit_scopes": [
+        {
+          "id": "F05.hover",
+          "focus": "Stationary hover and eligibility changes"
+        },
+        {
+          "id": "F05.touch",
+          "focus": "Touch drag and pointer cancellation"
+        },
+        {
+          "id": "F05.display",
+          "focus": "Source changes and stale thumbnail suppression"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "F02",
+        "F04",
+        "G01",
+        "G02",
+        "G03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "G01",
+      "parent": "G",
+      "title": "Player component lifecycle and queue",
+      "owns": "The player web-component root, connect/disconnect/configuration lifecycle, queue behavior and integration wiring.",
+      "source_anchors": [
+        {
+          "path": "src/player/index.ts",
+          "label": "`src/player/index.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/index.ts"
+        },
+        {
+          "path": "src/internal/machine/element-lifecycle.ts",
+          "label": "`src/internal/machine/element-lifecycle.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/element-lifecycle.ts"
+        },
+        {
+          "path": "src/internal/machine/element-queue.ts",
+          "label": "`src/internal/machine/element-queue.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/element-queue.ts"
+        },
+        {
+          "path": "src/internal/machine/element-configuration.ts",
+          "label": "`src/internal/machine/element-configuration.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/element-configuration.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/player-component.mjs",
+          "label": "`tests/player-component.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-component.mjs"
+        },
+        {
+          "path": "tests/api-stability/element-lifecycle-state.mjs",
+          "label": "`tests/api-stability/element-lifecycle-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/element-lifecycle-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/element-queue-state.mjs",
+          "label": "`tests/api-stability/element-queue-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/element-queue-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/element-configuration-state.mjs",
+          "label": "`tests/api-stability/element-configuration-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/element-configuration-state.mjs"
+        }
+      ],
+      "invariant": "Queue and component lifetime track the accepted Player. Reconnection or rapid replacement cannot duplicate observers, create orphan players or attach controls to retired media.",
+      "boundary": "Single writer for src/player/index.ts. G02/G04/F05 can propose integration changes, not write separate regions at once. API behavior remains A01–A04 responsibility. PR #6 is in-flight here.",
+      "audit_scopes": [
+        {
+          "id": "G01.lifecycle",
+          "focus": "Connect, disconnect and reconnect"
+        },
+        {
+          "id": "G01.queue",
+          "focus": "Ordered queue and source replacement"
+        },
+        {
+          "id": "G01.wiring",
+          "focus": "Component composition and configuration"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A02",
+        "F05",
+        "G02",
+        "G03",
+        "G04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "G02",
+      "parent": "G",
+      "title": "Controls, shortcuts and timeline navigation",
+      "owns": "Input-to-control mapping, keyboard/pointer action interpretation and timeline navigation/view state.",
+      "source_anchors": [
+        {
+          "path": "src/player/interaction.ts",
+          "label": "`src/player/interaction.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/interaction.ts"
+        },
+        {
+          "path": "src/internal/machine/element-controls.ts",
+          "label": "`src/internal/machine/element-controls.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/element-controls.ts"
+        },
+        {
+          "path": "src/internal/machine/element-view.ts",
+          "label": "`src/internal/machine/element-view.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/element-view.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/player-seek-target.mjs",
+          "label": "`tests/player-seek-target.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-seek-target.mjs"
+        },
+        {
+          "path": "tests/playground-shortcuts.mjs",
+          "label": "`tests/playground-shortcuts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/playground-shortcuts.mjs"
+        },
+        {
+          "path": "tests/api-stability/element-controls-state.mjs",
+          "label": "`tests/api-stability/element-controls-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/element-controls-state.mjs"
+        },
+        {
+          "path": "tests/timeline-pointer.mjs",
+          "label": "`tests/timeline-pointer.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/timeline-pointer.mjs"
+        },
+        {
+          "path": "tests/player-component.mjs",
+          "label": "`tests/player-component.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-component.mjs"
+        }
+      ],
+      "invariant": "Numeric shortcuts, Home/End, dragging and displayed bounds use the same active range contract. Editable controls and cancelled gestures must not issue unintended playback actions.",
+      "boundary": "A03 defines seek/boundary semantics; F05 owns thumbnail intent; G01 integrates root event handlers. No parallel edits to index.ts; current excerpt work is already in PR #6.",
+      "audit_scopes": [
+        {
+          "id": "G02.shortcuts",
+          "focus": "Keyboard mapping and focus safety"
+        },
+        {
+          "id": "G02.navigation",
+          "focus": "Range-aware seek targets and clearing ranges"
+        },
+        {
+          "id": "G02.controls",
+          "focus": "Pointer action and visual-state consistency"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A03",
+        "F05",
+        "G01",
+        "G03"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "G03",
+      "parent": "G",
+      "title": "Layout, presentation modes and accessibility",
+      "owns": "DOM layout, viewport/fullscreen/PiP behavior, mobile interaction surfaces, themes and accessible controls.",
+      "source_anchors": [
+        {
+          "path": "src/presentation.ts",
+          "label": "`src/presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/presentation.ts"
+        },
+        {
+          "path": "src/player/presentation.ts",
+          "label": "`src/player/presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/presentation.ts"
+        },
+        {
+          "path": "src/player/mobile.ts",
+          "label": "`src/player/mobile.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/mobile.ts"
+        },
+        {
+          "path": "src/player/viewport.ts",
+          "label": "`src/player/viewport.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/viewport.ts"
+        },
+        {
+          "path": "src/player/styles.ts",
+          "label": "`src/player/styles.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/styles.ts"
+        },
+        {
+          "path": "src/player/themes.ts",
+          "label": "`src/player/themes.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/themes.ts"
+        },
+        {
+          "path": "src/player/icons.ts",
+          "label": "`src/player/icons.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/icons.ts"
+        },
+        {
+          "path": "src/internal/machine/presentation.ts",
+          "label": "`src/internal/machine/presentation.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/presentation.ts"
+        },
+        {
+          "path": "src/internal/machine/viewport-lease.ts",
+          "label": "`src/internal/machine/viewport-lease.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/viewport-lease.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/player-presentation.mjs",
+          "label": "`tests/player-presentation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-presentation.mjs"
+        },
+        {
+          "path": "tests/player-mobile.mjs",
+          "label": "`tests/player-mobile.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-mobile.mjs"
+        },
+        {
+          "path": "tests/integration-presentation.mjs",
+          "label": "`tests/integration-presentation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/integration-presentation.mjs"
+        },
+        {
+          "path": "tests/api-stability/presentation-state.mjs",
+          "label": "`tests/api-stability/presentation-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/presentation-state.mjs"
+        },
+        {
+          "path": "tests/player-component.mjs",
+          "label": "`tests/player-component.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-component.mjs"
+        }
+      ],
+      "invariant": "Presentation changes preserve playback ownership and operable controls. Focus, keyboard access and touch geometry remain usable; hidden/visible/PiP transitions do not orphan surfaces.",
+      "boundary": "E04 owns decoded video pixels and GPU resources. G01 owns component wiring. Audit accessibility beyond current tests; an existing browser test name does not establish complete accessibility coverage.",
+      "audit_scopes": [
+        {
+          "id": "G03.modes",
+          "focus": "Fullscreen, PiP and viewport lifetime"
+        },
+        {
+          "id": "G03.responsive",
+          "focus": "Mobile geometry and theme/layout behavior"
+        },
+        {
+          "id": "G03.accessibility",
+          "focus": "Focus, naming and keyboard/touch accessibility"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "E04",
+        "F05",
+        "G01",
+        "G02",
+        "G05"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "G04",
+      "parent": "G",
+      "title": "Advanced settings and component controls",
+      "owns": "Settings menus, reusable control rendering and feedback for tracks, effects and advanced playback options.",
+      "source_anchors": [
+        {
+          "path": "src/player/advanced-settings.ts",
+          "label": "`src/player/advanced-settings.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/advanced-settings.ts"
+        },
+        {
+          "path": "src/player/components.ts",
+          "label": "`src/player/components.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/player/components.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/api-stability/advanced-settings.mjs",
+          "label": "`tests/api-stability/advanced-settings.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/advanced-settings.mjs"
+        },
+        {
+          "path": "tests/api-stability/advanced-playback.mjs",
+          "label": "`tests/api-stability/advanced-playback.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/advanced-playback.mjs"
+        },
+        {
+          "path": "tests/player-component.mjs",
+          "label": "`tests/player-component.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/player-component.mjs"
+        }
+      ],
+      "invariant": "UI distinguishes pending, accepted, rejected and unavailable settings. A failed transaction cannot leave the menu claiming a configuration the player never applied.",
+      "boundary": "A04 owns semantic policy and machine/advanced-controls.ts; G04 owns rendering/interaction. Root integration changes go through G01 and new public controls through A01.",
+      "audit_scopes": [
+        {
+          "id": "G04.menus",
+          "focus": "Track and advanced-option interaction"
+        },
+        {
+          "id": "G04.feedback",
+          "focus": "Pending/rejected/accepted state"
+        },
+        {
+          "id": "G04.consistency",
+          "focus": "Reopen, replacement and control synchronization"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A04",
+        "F01",
+        "G01"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "G05",
+      "parent": "G",
+      "title": "Application bindings and media adapters",
+      "owns": "Application integration API, media-element bridge and Video.js adapter behavior and lifetime.",
+      "source_anchors": [
+        {
+          "path": "src/integration/",
+          "label": "`src/integration/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/src/integration/"
+        },
+        {
+          "path": "src/media-element/",
+          "label": "`src/media-element/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/src/media-element/"
+        },
+        {
+          "path": "src/adapters/videojs.ts",
+          "label": "`src/adapters/videojs.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/adapters/videojs.ts"
+        },
+        {
+          "path": "src/internal/machine/bindings.ts",
+          "label": "`src/internal/machine/bindings.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/bindings.ts"
+        },
+        {
+          "path": "src/internal/machine/videojs.ts",
+          "label": "`src/internal/machine/videojs.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/src/internal/machine/videojs.ts"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/integration.mjs",
+          "label": "`tests/integration.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/integration.mjs"
+        },
+        {
+          "path": "tests/integration-types.ts",
+          "label": "`tests/integration-types.ts`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/integration-types.ts"
+        },
+        {
+          "path": "tests/api-stability/binding-state.mjs",
+          "label": "`tests/api-stability/binding-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/binding-state.mjs"
+        },
+        {
+          "path": "tests/api-stability/videojs-state.mjs",
+          "label": "`tests/api-stability/videojs-state.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/videojs-state.mjs"
+        },
+        {
+          "path": "tests/integration-browser.mjs",
+          "label": "`tests/integration-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/integration-browser.mjs"
+        }
+      ],
+      "invariant": "Adapters preserve the intended public playback contract and dispose listeners/resources correctly. Consumer-facing promises, events and state cannot disagree across wrappers.",
+      "boundary": "A01 owns shared public contracts, G03 presentation and H02 package entrypoints. Expand directory anchors to exact files before assigning writes; examples are explicit task additions, not blanket scope.",
+      "audit_scopes": [
+        {
+          "id": "G05.bindings",
+          "focus": "Application subscriptions and ownership"
+        },
+        {
+          "id": "G05.media",
+          "focus": "Media-element contract behavior"
+        },
+        {
+          "id": "G05.videojs",
+          "focus": "Video.js adaptation and lifecycle"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "A02",
+        "G03",
+        "H02"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "H01",
+      "parent": "H",
+      "title": "Native builds, toolchains and upstream patches",
+      "owns": "Reproducible engine builds, pinned sources/toolchains, patch application, build portability and native artifact provenance.",
+      "source_anchors": [
+        {
+          "path": "scripts/build.sh",
+          "label": "`scripts/build.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/build.sh"
+        },
+        {
+          "path": "scripts/link.sh",
+          "label": "`scripts/link.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/link.sh"
+        },
+        {
+          "path": "scripts/link-hybrid.sh",
+          "label": "`scripts/link-hybrid.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/link-hybrid.sh"
+        },
+        {
+          "path": "scripts/build-remux.sh",
+          "label": "`scripts/build-remux.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/build-remux.sh"
+        },
+        {
+          "path": "scripts/build-subtitles.py",
+          "label": "`scripts/build-subtitles.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/build-subtitles.py"
+        },
+        {
+          "path": "scripts/build-software-yuv.sh",
+          "label": "`scripts/build-software-yuv.sh`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/build-software-yuv.sh"
+        },
+        {
+          "path": "scripts/build-components.mjs",
+          "label": "`scripts/build-components.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/build-components.mjs"
+        },
+        {
+          "path": "sources.lock.json",
+          "label": "`sources.lock.json`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/sources.lock.json"
+        },
+        {
+          "path": "toolchain.lock.json",
+          "label": "`toolchain.lock.json`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/toolchain.lock.json"
+        },
+        {
+          "path": "Dockerfile",
+          "label": "`Dockerfile`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/Dockerfile"
+        },
+        {
+          "path": "patches/",
+          "label": "`patches/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/patches/"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/build-recipe-portability.py",
+          "label": "`tests/build-recipe-portability.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/build-recipe-portability.py"
+        },
+        {
+          "path": "tests/provider-audio-builds.mjs",
+          "label": "`tests/provider-audio-builds.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-audio-builds.mjs"
+        },
+        {
+          "path": "tests/runtime-isolation.mjs",
+          "label": "`tests/runtime-isolation.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/runtime-isolation.mjs"
+        }
+      ],
+      "invariant": "A runtime artifact can be traced to its source, toolchain, build flags and patches. Build success alone is not decoder correctness or browser/runtime qualification.",
+      "boundary": "Feature owners own native code; H01 owns its build path. Dependency/ABI or patch-content changes require the corresponding feature owner and H04 provenance review. Build outputs must be isolated.",
+      "audit_scopes": [
+        {
+          "id": "H01.reproduction",
+          "focus": "Source/toolchain pins and build determinism"
+        },
+        {
+          "id": "H01.patches",
+          "focus": "Patch applicability, provenance and portability"
+        },
+        {
+          "id": "H01.artifacts",
+          "focus": "Artifact identity and rebuild dependencies"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V3",
+        "V2"
+      ],
+      "review_with": [
+        "C04",
+        "E02",
+        "E05",
+        "E06",
+        "H02",
+        "H04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "H02",
+      "parent": "H",
+      "title": "Packages, bundler, CLI and deployment",
+      "owns": "Package manifests, exports and lockfiles, bundling/delivery, CLI, deployment workflows and generated-output production.",
+      "source_anchors": [
+        {
+          "path": "packages/",
+          "label": "`packages/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/packages/"
+        },
+        {
+          "path": "bin/demuxe.mjs",
+          "label": "`bin/demuxe.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/bin/demuxe.mjs"
+        },
+        {
+          "path": "package.json",
+          "label": "`package.json`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/package.json"
+        },
+        {
+          "path": "package-lock.json",
+          "label": "`package-lock.json`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/package-lock.json"
+        },
+        {
+          "path": "tsconfig.json",
+          "label": "`tsconfig.json`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tsconfig.json"
+        },
+        {
+          "path": "scripts/package-beta.py",
+          "label": "`scripts/package-beta.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/package-beta.py"
+        },
+        {
+          "path": "scripts/package-core.py",
+          "label": "`scripts/package-core.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/package-core.py"
+        },
+        {
+          "path": "scripts/copy-shaka-assets.mjs",
+          "label": "`scripts/copy-shaka-assets.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/copy-shaka-assets.mjs"
+        },
+        {
+          "path": "hosting/",
+          "label": "`hosting/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/hosting/"
+        },
+        {
+          "path": ".github/workflows/bundler.yml",
+          "label": "`.github/workflows/bundler.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/bundler.yml"
+        },
+        {
+          "path": ".github/workflows/modular-release.yml",
+          "label": "`.github/workflows/modular-release.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/modular-release.yml"
+        },
+        {
+          "path": ".github/workflows/pages.yml",
+          "label": "`.github/workflows/pages.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/pages.yml"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/beta-consumer.mjs",
+          "label": "`tests/beta-consumer.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/beta-consumer.mjs"
+        },
+        {
+          "path": "tests/asset-deployment.mjs",
+          "label": "`tests/asset-deployment.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/asset-deployment.mjs"
+        },
+        {
+          "path": "tests/asset-deployment-browser.mjs",
+          "label": "`tests/asset-deployment-browser.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/asset-deployment-browser.mjs"
+        },
+        {
+          "path": "tests/provider-conformance-installed.mjs",
+          "label": "`tests/provider-conformance-installed.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-conformance-installed.mjs"
+        },
+        {
+          "path": "tests/shaka-package.mjs",
+          "label": "`tests/shaka-package.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-package.mjs"
+        },
+        {
+          "path": "tests/shaka-optional-build.mjs",
+          "label": "`tests/shaka-optional-build.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/shaka-optional-build.mjs"
+        }
+      ],
+      "invariant": "Installed consumers receive the declared imports and matching verified assets in each supported delivery mode. A working checkout is not evidence that an npm/archive consumer works.",
+      "boundary": "packages/ is an inventory anchor, not exclusive ownership of all implementation code. H02 owns packaging metadata and bundler/CLI logic; delegate provider implementations to feature owners using exact files. Never hand-edit generated output.",
+      "audit_scopes": [
+        {
+          "id": "H02.consumer",
+          "focus": "Exports, dependency closure and installed consumers"
+        },
+        {
+          "id": "H02.delivery",
+          "focus": "Asset versus embedded bundles and optional providers"
+        },
+        {
+          "id": "H02.deployment",
+          "focus": "CLI, hosting, manifests and release assembly"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V3",
+        "V2"
+      ],
+      "review_with": [
+        "A01",
+        "B04",
+        "B05",
+        "D02",
+        "E06",
+        "H01",
+        "H04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "H03",
+      "parent": "H",
+      "title": "Verification infrastructure and evidence",
+      "owns": "Test harnesses/suite registry, fault servers, fixture identity, repeatable browser qualification and benchmark methodology; evidence archiving.",
+      "source_anchors": [
+        {
+          "path": "tests/api-stability/run.mjs",
+          "label": "`tests/api-stability/run.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/run.mjs"
+        },
+        {
+          "path": "tests/api-stability/suites.mjs",
+          "label": "`tests/api-stability/suites.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/suites.mjs"
+        },
+        {
+          "path": "tests/head-to-head/",
+          "label": "`tests/head-to-head/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/tests/head-to-head/"
+        },
+        {
+          "path": "tests/provider-conformance/",
+          "label": "`tests/provider-conformance/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-conformance/"
+        },
+        {
+          "path": "fixtures/",
+          "label": "`fixtures/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/fixtures/"
+        },
+        {
+          "path": "scripts/compatibility-fixtures.py",
+          "label": "`scripts/compatibility-fixtures.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/compatibility-fixtures.py"
+        },
+        {
+          "path": ".github/workflows/api-contracts.yml",
+          "label": "`.github/workflows/api-contracts.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/api-contracts.yml"
+        },
+        {
+          "path": ".github/workflows/provider-conformance.yml",
+          "label": "`.github/workflows/provider-conformance.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/provider-conformance.yml"
+        },
+        {
+          "path": ".github/workflows/streaming-recovery.yml",
+          "label": "`.github/workflows/streaming-recovery.yml`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/.github/workflows/streaming-recovery.yml"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/provider-conformance-installed.mjs",
+          "label": "`tests/provider-conformance-installed.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/provider-conformance-installed.mjs"
+        },
+        {
+          "path": "tests/head-to-head/contracts.mjs",
+          "label": "`tests/head-to-head/contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/head-to-head/contracts.mjs"
+        },
+        {
+          "path": "tests/api-stability/live-check-contracts.mjs",
+          "label": "`tests/api-stability/live-check-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/live-check-contracts.mjs"
+        },
+        {
+          "path": "tests/api-stability/live-fault-server-contracts.mjs",
+          "label": "`tests/api-stability/live-fault-server-contracts.mjs`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/api-stability/live-fault-server-contracts.mjs"
+        }
+      ],
+      "invariant": "A passing gate means the intended assertions ran against the identified build and real output where required. Missing cases, skipped checks and stale reports cannot become passes.",
+      "boundary": "H03 does not own all feature tests or all production fixes. Feature owners author regressions; H03 reviews runner/oracle changes. Historical results are immutable, new evidence goes to unique run directories.",
+      "audit_scopes": [
+        {
+          "id": "H03.harness",
+          "focus": "Coverage membership, supervision and false-pass prevention"
+        },
+        {
+          "id": "H03.fixtures",
+          "focus": "Fixtures, fault injection and reproducibility"
+        },
+        {
+          "id": "H03.evidence",
+          "focus": "Browser/artifact identity and performance protocol"
+        }
+      ],
+      "verification_lanes": [
+        "V1",
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "review_with": [
+        "A06",
+        "H01",
+        "H02",
+        "H04"
+      ],
+      "allowed_write_paths": []
+    },
+    {
+      "id": "H04",
+      "parent": "H",
+      "title": "Documentation, licensing and policy coherence",
+      "owns": "Contribution/testing documentation, license boundaries and notices, preserved provenance, and cross-domain security review standards.",
+      "source_anchors": [
+        {
+          "path": "CONTRIBUTING.md",
+          "label": "`CONTRIBUTING.md`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/CONTRIBUTING.md"
+        },
+        {
+          "path": "LICENSING.md",
+          "label": "`LICENSING.md`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/LICENSING.md"
+        },
+        {
+          "path": "licensing/",
+          "label": "`licensing/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/licensing/"
+        },
+        {
+          "path": "LICENSES/",
+          "label": "`LICENSES/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/LICENSES/"
+        },
+        {
+          "path": "scripts/check-licenses.py",
+          "label": "`scripts/check-licenses.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/scripts/check-licenses.py"
+        },
+        {
+          "path": "tests/licenses.py",
+          "label": "`tests/licenses.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/licenses.py"
+        },
+        {
+          "path": "docs/TESTING-STANDARD.md",
+          "label": "`docs/TESTING-STANDARD.md`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/docs/TESTING-STANDARD.md"
+        },
+        {
+          "path": "docs/BENCHMARK-PROTOCOL.md",
+          "label": "`docs/BENCHMARK-PROTOCOL.md`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/docs/BENCHMARK-PROTOCOL.md"
+        },
+        {
+          "path": "third_party/",
+          "label": "`third_party/`",
+          "url": "https://github.com/Jagalite/demuxe/tree/d467c6bbe693bd64f142d62d391519883250792f/third_party/"
+        }
+      ],
+      "starting_tests": [
+        {
+          "path": "tests/licenses.py",
+          "label": "`tests/licenses.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/licenses.py"
+        },
+        {
+          "path": "tests/build-recipe-portability.py",
+          "label": "`tests/build-recipe-portability.py`",
+          "url": "https://github.com/Jagalite/demuxe/blob/d467c6bbe693bd64f142d62d391519883250792f/tests/build-recipe-portability.py"
+        }
+      ],
+      "invariant": "Documentation and package claims match qualified behavior and authoritative provenance. Tests/hashes/licenses are not altered merely to make a change pass, and agents cannot grant rights they do not hold.",
+      "boundary": "Feature documentation remains the relevant component's responsibility. H04 coordinates policy and provenance, not unilateral relicensing or blanket third-party edits. Human approval is required for legal/licensing decisions.",
+      "audit_scopes": [
+        {
+          "id": "H04.coherence",
+          "focus": "Documentation versus actual contracts and qualification"
+        },
+        {
+          "id": "H04.provenance",
+          "focus": "License boundaries, notices and preserved hashes"
+        },
+        {
+          "id": "H04.security",
+          "focus": "Review rules for untrusted media, URLs and dependencies"
+        }
+      ],
+      "verification_lanes": [
+        "V0",
+        "V1"
+      ],
+      "review_with": [
+        "A01",
+        "C02",
+        "C03",
+        "H01",
+        "H02",
+        "H03"
+      ],
+      "allowed_write_paths": []
+    }
+  ],
+  "support_roles": [
+    {
+      "id": "S01",
+      "title": "Coordinator and scheduler",
+      "responsibility": "Task deduplication, exact write lease allocation, runner budgeting, and conflict resolution"
+    },
+    {
+      "id": "S02",
+      "title": "Integration and contracts reviewer",
+      "responsibility": "Review cross-component policy, ABI, public API, and shared integration boundaries"
+    },
+    {
+      "id": "S03",
+      "title": "Independent deterministic verifier",
+      "responsibility": "Challenge reproductions, event ordering, invariants, and unit/contract oracle quality"
+    },
+    {
+      "id": "S04",
+      "title": "Independent browser and artifact verifier",
+      "responsibility": "Validate real output, browser resource cleanup, asset identity, and relevant physical fidelity"
+    }
+  ],
+  "in_flight_snapshot": {
+    "pr_number": 6,
+    "url": "https://github.com/Jagalite/demuxe/pull/6",
+    "state_at_review": "open draft",
+    "reviewed_on": "2026-10-15",
+    "refresh_before_assignment": true
+  },
+  "totals": {
+    "parents": 8,
+    "components": 40,
+    "audit_scopes": 120,
+    "support_roles": 4
+  }
+}
