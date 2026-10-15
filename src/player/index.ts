@@ -15,7 +15,7 @@ import {initialElementView,transitionElementView,elementTitle,elementTrackOption
 import {initialElementControls,transitionElementControls,type ElementControlsCommand} from '../internal/machine/element-controls.js';
 import {initialElementLifecycle,transitionElementLifecycle,elementSourceCurrent} from '../internal/machine/element-lifecycle.js';
 import {initialElementQueue,transitionElementQueue,queueSelectionAllowed,queueClosesRollback} from '../internal/machine/element-queue.js';
-import {formatTime, outputDimensions, resolveSeekTarget, shortcut} from './interaction.js';
+import {formatTime, outputDimensions, resolveSeekTarget, seekBounds, shortcut} from './interaction.js';
 import {ScrubberPreview} from './preview.js';
 import {styles} from './styles.js';
 import {mobileStyles, mobileControlsQuery, type PlayerControlsMode} from './mobile.js';
@@ -476,8 +476,8 @@ export class DemuxePlayerElement extends Base {
     this.iconButton('mute',state.muted?'muted':'volume',state.muted?labels.unmute:labels.mute);this.attr('mute','aria-pressed',String(state.muted));
     this.configure({type:'reflection',enter:true});try{this.toggleAttribute('muted',state.muted);}finally{this.configure({type:'reflection',enter:false});}
     if(this.shadowRoot!.activeElement!==this.$('volume'))this.input('volume').value=String(state.volume);this.$('volume').style.setProperty('--volume-progress',`${Number(this.input('volume').value)*100}%`);
-    const window=state.seekable;this.input('timeline').disabled=pending||!window?.length;for(const id of ['back','forward'])(this.$(id) as HTMLButtonElement).disabled=pending||!window?.length;
-    if(window?.length){this.attr('timeline','min',String(window[0].start));this.attr('timeline','max',String(window.at(-1)!.end));}
+    const window=seekBounds(state.seekable,state.playbackRange);this.input('timeline').disabled=pending||!window;for(const id of ['back','forward'])(this.$(id) as HTMLButtonElement).disabled=pending||!window;
+    this.attr('timeline','min',String(window?.start??0));this.attr('timeline','max',String(window?.end??0));
     if(!this.dragging)this.input('timeline').value=String(state.currentTime);
     else {const target=resolveSeekTarget(Number(this.input('timeline').value),state.seekable,this.scrubTime??state.currentTime,state.playbackRange);if(target!==null)this.input('timeline').value=String(target);this.scrubTime=Number(this.input('timeline').value);}
     const displayedTime=formatTime(this.dragging?Number(this.input('timeline').value):state.currentTime);
@@ -525,7 +525,7 @@ export class DemuxePlayerElement extends Base {
     this.$('diagnostics-overlay').textContent=lines.join('\n');
   }
   private bufferedKey='';
-  private bufferedProgress(state:PlayerState){const ranges=state.seekable,min=ranges?.[0]?.start??0,max=ranges?.at(-1)?.end??0,span=max-min;
+  private bufferedProgress(state:PlayerState){const bounds=seekBounds(state.seekable,state.playbackRange),min=bounds?.start??0,max=bounds?.end??0,span=max-min;
     const key=JSON.stringify([min,max,state.buffered??state.cached??[]]);if(key===this.bufferedKey)return;this.bufferedKey=key;
     const layers=span>0?(state.buffered??state.cached??[]).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.end>min&&r.start<max).map(r=>{const start=Math.max(0,(r.start-min)/span*100),end=Math.min(100,(r.end-min)/span*100);return `linear-gradient(to right,transparent ${start}%,color-mix(in srgb,var(--demuxe-foreground) 45%,transparent) ${start}% ${end}%,transparent ${end}%)`;}):[];
     this.$('timeline').style.setProperty('--buffered',layers.join(',')||'linear-gradient(transparent,transparent)');
@@ -695,7 +695,7 @@ export class DemuxePlayerElement extends Base {
       if(key==='m')action=p.setMuted(!state.muted);
       if(key==='arrowup'||key==='arrowdown')action=p.setVolume(Math.max(0,Math.min(1,state.volume+(key==='arrowup'?.05:-.05))));
       if(key==='['||key===']')action=p.setPlaybackRate(Math.max(.5,Math.min(2,state.playbackRate+(key===']'?.25:-.25))));
-      if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const ranges=state.seekable;if(ranges?.length){const start=ranges[0].start,end=Math.max(start,ranges.at(-1)!.end-.1);if(key==='home')action=seek(start);if(key==='end')action=seek(end);if(/^[0-9]$/.test(key))action=seek(start+(end-start)*Number(key)/10);}
+      if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const bounds=seekBounds(state.seekable,state.playbackRange);if(bounds){const {start,end}=bounds;if(key==='home')action=seek(start);if(key==='end')action=seek(Math.max(start,end-.1));if(/^[0-9]$/.test(key))action=seek(start+(end-start)*Number(key)/10);}
       if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=seek(state.currentTime+delta);}
       if(action){event.preventDefault();this.run(action);}
     });
