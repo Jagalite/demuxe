@@ -5,7 +5,8 @@ import type { TrackPolicy } from '../types.js';
 import type { PreviewOptions, MediaSourceInput, OpenOptions, SubtitleOptions } from '../types.js';
 import { type PlayerControlsMode } from './mobile.js';
 export type { PlayerControlsMode } from './mobile.js';
-import { type PlayerLayout, type PlayerTheme } from './presentation.js';
+import { type PlayerLayout } from './presentation.js';
+import { type PlayerTheme } from './themes.js';
 export type { PlayerLayout, PlayerTheme } from './presentation.js';
 declare const Base: typeof HTMLElement;
 export declare const defaultLabels: Readonly<{
@@ -24,6 +25,10 @@ export declare const defaultLabels: Readonly<{
     deck: "Deck";
     demuxeTheme: "Demuxe";
     lightTheme: "Light";
+    oledTheme: "OLED";
+    contrastTheme: "High contrast";
+    paperTheme: "Paper";
+    terminalTheme: "Terminal";
     previews: "Timeline thumbnails";
     previewStrategy: "Thumbnail strategy";
     previewDemuxe: "Demuxe · broad coverage, local detail";
@@ -167,6 +172,10 @@ export declare class DemuxePlayerElement extends Base {
     set layout(value: PlayerLayout);
     get theme(): PlayerTheme;
     set theme(value: PlayerTheme);
+    private layoutMedia?;
+    private recomposeLayout;
+    /** Mobile controls recompose the Classic control row, matching the mobile stylesheet scope. */
+    private compactControls;
     private updatePresentation;
     private syncAppearance;
     private core?;

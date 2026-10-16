@@ -35,10 +35,13 @@ const mobileRules = `
 const portraitRules = `
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage:not(:has(#empty:not([hidden]))){min-height:calc(2 * max(6px,env(safe-area-inset-top,0px)) + 156px)}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play{width:56px;height:56px;min-width:56px;min-height:56px;flex-basis:56px}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play svg{width:32px;height:32px}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .topbar{grid-area:1/1/2/2}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport{grid-area:1/1/2/2;top:50%}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .controls{grid-area:2/1;position:relative;inset:auto;padding-top:4px;background:var(--demuxe-panel-background)}
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls *{opacity:1;visibility:visible;translate:none;pointer-events:auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls *{opacity:1;visibility:visible;translate:none;clip-path:none;pointer-events:auto}
 `;
 export const mobileStyles = `
 .settings{margin:0;left:auto}

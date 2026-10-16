@@ -181,6 +181,30 @@ try{
    await mobile.evaluate(()=>v.destroy());
   }finally{await touch.close();}
  });
+ await check('every theme is offered, labelled and distinct, and none draws over the picture',async()=>{
+  assert.deepEqual(await page.evaluate(()=>{const options=[...$('theme-select').options].map(o=>({value:o.value,label:o.textContent.trim()}));const applied=options.map(({value})=>{viewer.theme=value;const cs=getComputedStyle(viewer);return {attribute:viewer.getAttribute('theme'),palette:cs.getPropertyValue('--demuxe-background').trim()+cs.getPropertyValue('--demuxe-accent').trim(),overlay:getComputedStyle($('stage'),'::after').content};});viewer.theme='demuxe';return {themes:options.map(o=>o.value),labelled:options.every(o=>o.label.length>0),reflected:applied.every((a,i)=>a.attribute===options[i].value),palettes:new Set(applied.map(a=>a.palette)).size,overlays:applied.map(a=>a.overlay)};}),{themes:['demuxe','light','oled','contrast','paper','terminal'],labelled:true,reflected:true,palettes:6,overlays:Array(6).fill('none')});
+ });
+ await check('mobile Classic recomposes its row in reading order and desktop restores it',async()=>{
+  assert.deepEqual(await page.evaluate(()=>{const row=()=>[...$('control-row').children].map(node=>node.id==='time-display'?`time-display(${[...node.children].map(child=>child.id)})`:node.id).join(' ');viewer.layout='classic';viewer.controlsMode='mobile';const mobile=row();viewer.controlsMode='desktop';const desktop=row();viewer.layout='cinema';const cinema=row();viewer.layout='classic';viewer.controlsMode='auto';return {mobile,desktop,cinema,stray:!!viewer.shadowRoot.querySelector('#control-row > #time-display')&&viewer.controlsMode==='auto'&&!matchMedia('(max-width:600px), (pointer:coarse) and (max-width:960px)').matches};}),{mobile:'time-display(time,duration) queue-navigation control-spacer volume-control',desktop:'time volume-control queue-navigation control-spacer duration',cinema:'transport time-display(time,duration) volume-control control-spacer utility-actions queue-navigation',stray:false});
+ });
+ await check('moved players keep responsive composition and themes keep persistent chrome, focus and waiting visible',async()=>{
+  const narrow=await browser.newContext({viewport:{width:1200,height:1000},reducedMotion:'reduce'});
+  try{
+   const p=await narrow.newPage();await p.goto(origin+'/examples/player-presentation.html');
+   await p.evaluate(async()=>{window.v=document.querySelector('demuxe-player');await v.ready;v.layout='classic';v.controlsMode='auto';const parent=v.parentElement,holder=document.createElement('div');document.body.append(holder);holder.append(v);parent.append(v);holder.remove();});
+   await p.setViewportSize({width:390,height:844});await p.waitForTimeout(100);
+   assert.equal(await p.evaluate(()=>v.shadowRoot.getElementById('control-row').firstElementChild.id),'time-display','moved player recomposes for the phone viewport');
+   await p.setViewportSize({width:1200,height:1000});await p.waitForTimeout(100);
+   assert.deepEqual(await p.evaluate(()=>{const r=v.shadowRoot,$=id=>r.getElementById(id),shell=$('shell');const clip=id=>getComputedStyle($(id)).clipPath;v.theme='terminal';const out={};for(const layout of ['studio','deck','classic']){v.layout=layout;shell.classList.add('idle');out[layout]=clip('controls');shell.classList.add('seek-preview');out[layout+'-seek']=clip('controls');shell.classList.remove('idle','seek-preview');}v.theme='paper';const dots=r.querySelector('.buffering-indicator span'),diag=$('diagnostics-overlay');out.paperWaiting=getComputedStyle(dots).boxShadow!=='none';out.panelClip=getComputedStyle(diag).clipPath;v.theme='demuxe';v.layout='classic';return out;}),{studio:'inset(0px)','studio-seek':'inset(0px)',deck:'inset(0px)','deck-seek':'inset(0px)',classic:'inset(100% 0px 0px)','classic-seek':'inset(0px)',paperWaiting:true,panelClip:'inset(-64px)'});
+  }finally{await narrow.close();}
+ });
+ await check('themed waiting indicators keep visible geometry in forced colors',async()=>{
+  const forced=await browser.newContext({viewport:{width:1200,height:1000},reducedMotion:'reduce',forcedColors:'active'});
+  try{
+   const p=await forced.newPage();await p.goto(origin+'/examples/player-presentation.html');
+   assert.deepEqual(await p.evaluate(async()=>{const v=document.querySelector('demuxe-player');await v.ready;const span=v.shadowRoot.querySelector('.buffering-indicator span');return ['paper','terminal'].map(theme=>{v.theme=theme;const cs=getComputedStyle(span);return {theme,visible:cs.backgroundColor!=='rgba(0, 0, 0, 0)'||parseFloat(cs.borderTopWidth)>0};});}),[{theme:'paper',visible:true},{theme:'terminal',visible:true}]);
+  }finally{await forced.close();}
+ });
  await check('close restores empty-state utilities in cinema',async()=>{
   await page.evaluate(async()=>{viewer.layout='cinema';await viewer.close();});
   assert.equal(await page.locator('#viewer #open-menu').isVisible(),true);

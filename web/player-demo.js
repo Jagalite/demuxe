@@ -53,3 +53,6 @@ for(const button of layoutButtons)button.onclick=()=>{viewer.layout=button.datas
 new MutationObserver(syncLayout).observe(viewer,{attributes:true,attributeFilter:['layout']});
 syncLayout();
 $('layout-example').onclick=()=>$('demo').click();
+// ?theme=oled selects an initial theme; Settings → Appearance changes it afterwards.
+const themeParam=new URL(location.href).searchParams.get('theme');
+if(themeParam)try{viewer.theme=themeParam;}catch{}
