@@ -42,7 +42,7 @@ const portraitRules = `
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .topbar{grid-area:1/1/2/2}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport{grid-area:1/1/2/2;top:50%}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .controls{grid-area:2/1;position:relative;inset:auto;padding-top:4px;background:var(--demuxe-panel-background)}
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls *{opacity:1;visibility:visible;translate:none;pointer-events:auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls,:host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open).idle .controls *{opacity:1;visibility:visible;translate:none;clip-path:none;pointer-events:auto}
 `;
 export const mobileStyles = `
 .settings{margin:0;left:auto}

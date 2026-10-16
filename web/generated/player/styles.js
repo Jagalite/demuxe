@@ -90,8 +90,8 @@ button{transition:background var(--t-quick),color var(--t-quick),border-color va
 .controls .timeline,.controls .times{transition:opacity var(--t-quick) var(--motion-ease),translate var(--t-base) var(--motion-ease)}.controls .times{transition-delay:calc(var(--motion-stagger)*1.4)}
 .idle:not(.seek-preview) .controls .timeline,.idle:not(.seek-preview) .controls .times{opacity:0;translate:0 calc(var(--motion-distance)*.67);transition-delay:0ms;transition-timing-function:var(--motion-exit)}
 /* Panels enter from their anchor. [hidden] removes them at once, so dismissal is intentionally instant. */
-.settings,.diagnostics-overlay,.empty,.notice{opacity:1;translate:0 0;scale:1;clip-path:inset(0);transition:opacity var(--t-quick) var(--motion-ease),translate var(--t-base) var(--motion-ease),scale var(--t-base) var(--motion-ease),clip-path var(--t-base) var(--motion-ease)}
-@starting-style{.settings:not([hidden]),.diagnostics-overlay:not([hidden]),.empty:not([hidden]),.notice:not([hidden]){opacity:0;translate:0 calc(var(--motion-distance)*-.8);scale:var(--demuxe-motion-panel-scale,.985);clip-path:var(--demuxe-motion-panel-clip,inset(0))}}
+.settings,.diagnostics-overlay,.empty,.notice{opacity:1;translate:0 0;scale:1;clip-path:inset(-64px);transition:opacity var(--t-quick) var(--motion-ease),translate var(--t-base) var(--motion-ease),scale var(--t-base) var(--motion-ease),clip-path var(--t-base) var(--motion-ease)}
+@starting-style{.settings:not([hidden]),.diagnostics-overlay:not([hidden]),.empty:not([hidden]),.notice:not([hidden]){opacity:0;translate:0 calc(var(--motion-distance)*-.8);scale:var(--demuxe-motion-panel-scale,.985);clip-path:var(--demuxe-motion-panel-clip,inset(-64px))}}
 .settings[hidden] *,.empty[hidden] *,.notice[hidden] *{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto;transition:none!important;animation:none!important}}
 

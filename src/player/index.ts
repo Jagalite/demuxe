@@ -337,7 +337,7 @@ export class DemuxePlayerElement extends Base {
   connectedCallback(){
     const connection=transitionElementLifecycle(this.lifecycle,{type:'connect'});this.lifecycle=connection.state;const token=connection.connection!;if(!connection.accepted)return;
     for(const name of ['layout','theme','controlsMode','watchdogs','trackPolicy','previewOptions','previewThumbnails','assetBase','labels','controls','poster','autoplay','muted','title','titleMode','showSourceControls','showDiagnostics','allowFileDrop','seekStep','controlsAutoHideDelay','src'])if(Object.prototype.hasOwnProperty.call(this,name)){const value=(this as any)[name];delete (this as any)[name];(this as any)[name]=value;}
-    if(this.core)return;
+    if(this.core){this.updatePresentation();return;}
     const rejectReady=this.rejectReady;
     this.connecting=(async()=>{await this.cleanup;if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)return;
       let initializing:Player|undefined,subscription:(()=>void)|undefined,observer:ResizeObserver|undefined;

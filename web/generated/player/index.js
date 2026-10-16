@@ -467,8 +467,10 @@ export class DemuxePlayerElement extends Base {
                 delete this[name];
                 this[name] = value;
             }
-        if (this.core)
+        if (this.core) {
+            this.updatePresentation();
             return;
+        }
         const rejectReady = this.rejectReady;
         this.connecting = (async () => {
             await this.cleanup;

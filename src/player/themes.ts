@@ -38,10 +38,10 @@ ${light('.transport')}{background:var(--demuxe-overlay-background);border-radius
 /* Paper: panels lift like a sheet; waiting is two alternating ink dots. */
 :host([theme=paper]) .settings,:host([theme=paper]) .notice{box-shadow:0 18px 40px #2a26201f,0 2px 6px #2a262014}
 @starting-style{:host([theme=paper]) .settings:not([hidden]),:host([theme=paper]) .notice:not([hidden]){box-shadow:0 2px 4px #2a262000}}
-:host([theme=paper]) .buffering-indicator span{width:8px;height:8px;border:0;border-radius:50%;background:transparent;color:var(--demuxe-foreground);filter:none;animation:ink-dots 1.1s cubic-bezier(.4,0,.6,1) infinite}
+:host([theme=paper]) .buffering-indicator span{width:8px;height:8px;border:0;border-radius:50%;background:transparent;color:var(--demuxe-foreground);filter:none;box-shadow:-14px 0 0 0 currentColor,14px 0 0 0 color-mix(in srgb,currentColor 25%,transparent);animation:ink-dots 1.1s cubic-bezier(.4,0,.6,1) infinite}
 /* Terminal: chrome wipes on a scanline instead of sliding; waiting is a block cursor. */
 :host([theme=terminal]) .topbar,:host([theme=terminal]) .controls{clip-path:inset(0)}
-:host([theme=terminal]) .idle .topbar{clip-path:inset(0 0 100% 0)}:host([theme=terminal]) .idle .controls{clip-path:inset(100% 0 0 0)}
+:host([theme=terminal]) .shell:not(:is([data-layout=studio],[data-layout=deck])).idle .topbar{clip-path:inset(0 0 100% 0)}:host([theme=terminal]) .shell:not(:is([data-layout=studio],[data-layout=deck])).idle:not(.seek-preview) .controls{clip-path:inset(100% 0 0 0)}
 :host([theme=terminal]) .buffering-indicator span,:host([theme=terminal]) .busy:not([data-complete=true])::before{width:.6em;height:1.1em;border:0;border-radius:0;background:var(--demuxe-accent);filter:drop-shadow(0 0 4px #7dff9a99)}
 :host([theme=terminal]) .buffering-indicator span{width:14px;height:24px}
 /* OLED: pure fades, nothing slides across a dark picture. */
