@@ -2,39 +2,59 @@
 /** Presentation options belong to the element, never the playback engine. */
 export const playerLayouts = ['classic','cinema','rail','studio','focus','deck'] as const;
 export type PlayerLayout = typeof playerLayouts[number];
-export type PlayerTheme = 'demuxe' | 'light';
+export type {PlayerTheme} from './themes.js';
+import {scrimGradient} from './themes.js';
 export function isPlayerLayout(value:unknown):value is PlayerLayout {
   return typeof value==='string'&&(playerLayouts as readonly string[]).includes(value);
 }
+export const playerDocks = ['off','corner'] as const;
+export type PlayerDock = typeof playerDocks[number];
+// Below-picture compositions share the framed time display and keep controls visible.
+const framedLayouts:ReadonlySet<PlayerLayout> = new Set(['cinema','studio','deck']);
+const headerActionLayouts:ReadonlySet<PlayerLayout> = new Set(['studio']);
 
 /** Recompose existing controls. The stage, media host, panels and listeners survive. */
-export function applyLayout(root:ShadowRoot, layout:PlayerLayout, hasSource=false):void {
+/** compact: mobile controls are active, so Classic groups its times as the framed layouts do. */
+export function applyLayout(root:ShadowRoot, layout:PlayerLayout, hasSource=false, compact=false):void {
   const node=(id:string)=>root.getElementById(id)!;
-  const shell=node('shell'),composition=`${layout}:${hasSource}`;
+  const shell=node('shell'),composition=`${layout}:${hasSource}:${compact}`;
   if(shell.dataset.composition===composition)return;
   const focus=root.activeElement as HTMLElement|null;
   const transport=node('transport'),actions=node('utility-actions'),row=node('control-row'),controls=node('controls');
   let times=root.getElementById('time-display');
-  if(layout==='cinema'||layout==='studio'||layout==='deck'){
+  const groupTimes=()=>{
     if(!times){times=document.createElement('div');times.id='time-display';times.className='time-display';times.setAttribute('part','time-display');}
     times.append(node('time'),node('duration'));
-    row.prepend(transport,times,node('volume-control'));
+    return times!;
+  };
+  if(framedLayouts.has(layout)){
+    row.prepend(transport,groupTimes(),node('volume-control'));
     if(layout==='deck')controls.insertBefore(transport,node('timeline'));
-    if(hasSource&&layout!=='studio')row.append(actions);else node('topbar').append(actions);
+    if(hasSource&&!headerActionLayouts.has(layout))row.append(actions);else node('topbar').append(actions);
     row.append(node('queue-navigation'));
   }else{
     shell.insertBefore(transport,controls);
     node('topbar').append(actions);
-    row.prepend(node('time'));
-    row.append(node('duration'));
-    row.insertBefore(node('queue-navigation'),node('control-spacer'));
-    times?.remove();
+    if(compact&&layout==='classic'){
+      // Phone rows read "time / duration" then mute, in DOM order for focus and reading.
+      row.prepend(groupTimes());
+      row.insertBefore(node('queue-navigation'),node('control-spacer'));
+      row.append(node('volume-control'));
+    }else{
+      row.prepend(node('time'),node('volume-control'));
+      row.append(node('duration'));
+      row.insertBefore(node('queue-navigation'),node('control-spacer'));
+      times?.remove();
+    }
   }
   shell.dataset.layout=layout;
   shell.dataset.composition=composition;
   if(focus?.isConnected&&root.activeElement!==focus)focus.focus({preventScroll:true});
 }
 
+// Console layouts start from Studio's header and below-picture console.
+const consoleLayouts='[data-layout=studio]';
+const persistent=':is([data-layout=studio],[data-layout=deck])';
 export const presentationStyles = `
 .appearance-settings{min-width:0;margin:14px 0 0;padding:8px 0 0;border:0;border-top:1px solid var(--demuxe-border)}
 .appearance-settings legend{padding:0 8px 0 0;color:var(--demuxe-muted-foreground);font-size:11px}
@@ -56,9 +76,12 @@ export const presentationStyles = `
 .shell:not([data-layout=classic]) .controls .utility-actions{gap:0}
 .shell:not([data-layout=classic]) .player-title{font-weight:500;letter-spacing:.015em}
 
+/* Classic: each floating transport glyph sits on a soft disc. It vanishes into dark footage and stays legible over bright footage. */
+.shell[data-layout=classic] .transport .icon-button,.shell[data-layout=classic] .transport .icon-button:hover{background:radial-gradient(closest-side,var(--demuxe-scrim-background) 58%,color-mix(in srgb,var(--demuxe-scrim-background) 40%,transparent) 80%,transparent)}
+
 /* Cinema: broad, unboxed bottom strip with centered transport. */
 .shell[data-layout=cinema] .topbar{padding:16px 24px 36px}
-.shell[data-layout=cinema] .controls{padding:38px 24px 14px;background:linear-gradient(transparent,color-mix(in srgb,var(--demuxe-stage-background) 95%,transparent))}
+.shell[data-layout=cinema] .controls{padding:38px 24px 14px;background:${scrimGradient('to top','50%')}}
 .shell[data-layout=cinema] .times{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:4px 16px;align-items:center}
 .shell[data-layout=cinema] .transport{position:static;transform:none;translate:none;scale:1;background:none;padding:0;grid-column:2;grid-row:1;justify-self:center}
 .shell[data-layout=cinema] .time-display{grid-column:1;grid-row:1;align-self:start;padding-top:6px}
@@ -69,10 +92,9 @@ export const presentationStyles = `
 .shell[data-layout=cinema] .settings:has(#playback-options:not([hidden])){top:auto;bottom:112px;max-height:calc(100% - 128px)}
 .shell[data-layout=cinema].idle .utility-actions,.shell[data-layout=cinema].idle .queue-navigation{opacity:0;pointer-events:none}
 .shell[data-layout=cinema].idle.seek-preview .controls{background:transparent}
-:host([theme=light]) .shell[data-layout=cinema] .controls{background:var(--demuxe-overlay-background)}
 
 /* Rail: transport down the left edge, picture and timeline left open. */
-.shell[data-layout=rail] .transport{left:20px;top:50%;transform:translateY(-50%);flex-direction:column;padding:6px;border:1px solid var(--demuxe-border);border-radius:18px;background:var(--demuxe-overlay-background);backdrop-filter:blur(18px)}
+.shell[data-layout=rail] .transport{left:20px;top:50%;transform:translateY(-50%);flex-direction:column;padding:6px;border:1px solid var(--demuxe-border);border-radius:18px;background:var(--demuxe-scrim-background);backdrop-filter:blur(18px)}
 .shell[data-layout=rail] .transport .play{order:-1;background:var(--demuxe-foreground);color:var(--demuxe-background);border-radius:12px}
 .shell[data-layout=rail] .topbar{padding:16px 22px 30px}
 .shell[data-layout=rail] .controls{padding:30px 24px 16px}
@@ -82,21 +104,21 @@ export const presentationStyles = `
 .shell[data-layout=rail] .queue-navigation{margin-inline:auto}
 
 /* Studio: a persistent header and a balanced console below the picture. */
-.shell[data-layout=studio]{display:flex;flex-direction:column}
-.shell[data-layout=studio] .topbar{position:relative;inset:auto;flex:none;padding:8px 20px;background:var(--demuxe-panel-background);border-bottom:1px solid var(--demuxe-border)}
-.shell[data-layout=studio] .player-title{font-size:12px;letter-spacing:.04em}
-.shell[data-layout=studio] .stage{flex:1;height:auto;min-height:0}
-.shell[data-layout=studio] .controls{position:relative;inset:auto;flex:none;padding:4px 20px 12px;background:var(--demuxe-panel-background);border-top:1px solid var(--demuxe-border)}
-.shell[data-layout=studio] .times{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:4px 12px;align-items:center}
-.shell[data-layout=studio] .transport{position:static;transform:none;translate:none;scale:1;grid-column:2;grid-row:1;background:none;padding:0}
-.shell[data-layout=studio] .transport .play{background:var(--demuxe-control-background);border:1px solid var(--demuxe-border);border-radius:10px}
-.shell[data-layout=studio] .time-display{grid-column:1;grid-row:1}
-.shell[data-layout=studio] #volume-control{grid-column:3;grid-row:1;justify-self:end}
-.shell[data-layout=studio] #control-spacer{display:none}
-.shell[data-layout=studio] .time{text-shadow:none}
+.shell${consoleLayouts}{display:flex;flex-direction:column}
+.shell${consoleLayouts} .topbar{position:relative;inset:auto;flex:none;padding:8px 20px;background:var(--demuxe-panel-background);border-bottom:1px solid var(--demuxe-border)}
+.shell${consoleLayouts} .player-title{font-size:12px;letter-spacing:.04em}
+.shell${consoleLayouts} .stage{flex:1;height:auto;min-height:0}
+.shell${consoleLayouts} .controls{position:relative;inset:auto;flex:none;padding:4px 20px 12px;background:var(--demuxe-panel-background);border-top:1px solid var(--demuxe-border)}
+.shell${consoleLayouts} .times{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:4px 12px;align-items:center}
+.shell${consoleLayouts} .transport{position:static;transform:none;translate:none;scale:1;grid-column:2;grid-row:1;background:none;padding:0}
+.shell${consoleLayouts} .transport .play{background:var(--demuxe-control-background);border:1px solid var(--demuxe-border);border-radius:10px}
+.shell${consoleLayouts} .time-display{grid-column:1;grid-row:1}
+.shell${consoleLayouts} #volume-control{grid-column:3;grid-row:1;justify-self:end}
+.shell${consoleLayouts} #control-spacer{display:none}
+.shell${consoleLayouts} .time{text-shadow:none}
 
 /* Focus: a floating transport capsule and a quiet edge-to-edge timeline. */
-.shell[data-layout=focus] .transport{top:auto;bottom:90px;left:50%;transform:translateX(-50%);padding:8px 12px;gap:12px;border:1px solid var(--demuxe-border);border-radius:100px;background:var(--demuxe-overlay-background);backdrop-filter:blur(20px);box-shadow:0 8px 28px #0003}
+.shell[data-layout=focus] .transport{top:auto;bottom:90px;left:50%;transform:translateX(-50%);padding:8px 12px;gap:12px;border:1px solid var(--demuxe-border);border-radius:100px;background:var(--demuxe-scrim-background);backdrop-filter:blur(20px);box-shadow:0 8px 28px #0003}
 .shell[data-layout=focus] .transport .play{width:56px;height:56px;flex-basis:56px;min-width:56px;min-height:56px;border-radius:50%;background:var(--demuxe-foreground);color:var(--demuxe-background)}
 .shell[data-layout=focus] .transport .play svg{width:28px;height:28px}
 .shell[data-layout=focus] .topbar{padding:16px 20px 28px}
@@ -123,11 +145,11 @@ export const presentationStyles = `
 .shell[data-layout=deck] .time{text-shadow:none}
 
 /* Controls outside the picture remain usable during playback. */
-.shell:is([data-layout=studio],[data-layout=deck]).idle{cursor:auto}
-.shell:is([data-layout=studio],[data-layout=deck]).idle .controls,.shell:is([data-layout=studio],[data-layout=deck]).idle .controls *{opacity:1;translate:none;scale:1;visibility:visible;pointer-events:auto}
-.shell[data-layout=studio].idle .topbar,.shell[data-layout=studio].idle .topbar *{opacity:1;translate:none;scale:1;pointer-events:auto}
-.shell:is([data-layout=studio],[data-layout=deck]).idle.seek-preview .controls{background:var(--demuxe-panel-background)}
-:host(:fullscreen) .shell:is([data-layout=studio],[data-layout=deck]) .stage{height:auto;min-height:0;max-height:none}
+.shell${persistent}.idle{cursor:auto}
+.shell${persistent}.idle .controls,.shell${persistent}.idle .controls *{opacity:1;translate:none;scale:1;visibility:visible;pointer-events:auto}
+.shell${consoleLayouts}.idle .topbar,.shell${consoleLayouts}.idle .topbar *{opacity:1;translate:none;scale:1;pointer-events:auto}
+.shell${persistent}.idle.seek-preview .controls{background:var(--demuxe-panel-background)}
+:host(:fullscreen) .shell${persistent} .stage{height:auto;min-height:0;max-height:none}
 
 @container player (max-width:650px){
  .shell:not([data-layout=classic]) .topbar{padding:8px 12px 20px}
@@ -140,11 +162,11 @@ export const presentationStyles = `
  .shell[data-layout=cinema] .time-display{grid-column:1;grid-row:2;padding:4px 0;align-self:center}
  .shell[data-layout=cinema] #volume-control{grid-column:2;grid-row:1;align-self:center;padding:0;translate:none;justify-self:end}
  .shell[data-layout=cinema] .utility-actions{grid-column:2;grid-row:2}
- .shell[data-layout=studio] .topbar{padding:4px 10px}
- .shell[data-layout=studio] .times{grid-template-columns:minmax(0,1fr) auto;gap:0 8px}
- .shell[data-layout=studio] .transport{grid-column:1;grid-row:1;justify-self:start}
- .shell[data-layout=studio] #volume-control{grid-column:2;grid-row:1}
- .shell[data-layout=studio] .time-display{grid-column:1/-1;grid-row:2;justify-self:center;padding-top:4px}
+ .shell${consoleLayouts} .topbar{padding:4px 10px}
+ .shell${consoleLayouts} .times{grid-template-columns:minmax(0,1fr) auto;gap:0 8px}
+ .shell${consoleLayouts} .transport{grid-column:1;grid-row:1;justify-self:start}
+ .shell${consoleLayouts} #volume-control{grid-column:2;grid-row:1}
+ .shell${consoleLayouts} .time-display{grid-column:1/-1;grid-row:2;justify-self:center;padding-top:4px}
  .shell[data-layout=rail] .transport{left:12px;padding:4px;border-radius:14px}
  .shell[data-layout=focus] .transport{bottom:88px;padding:6px 10px;gap:4px}
  .shell[data-layout=deck] .controls{column-gap:12px;padding-block:10px}

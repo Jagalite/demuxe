@@ -20,14 +20,14 @@ import {ScrubberPreview} from './preview.js';
 import {styles} from './styles.js';
 import {mobileStyles, mobileControlsQuery, type PlayerControlsMode} from './mobile.js';
 export type {PlayerControlsMode} from './mobile.js';
-import {themeStyles} from './themes.js';
 import {icons} from './icons.js';
 import {playerShell} from './components.js';
 import {AdvancedSettings, advancedLabels, advancedSettingsStyles} from './advanced-settings.js';
-import {applyLayout, isPlayerLayout, playerLayouts, type PlayerLayout, type PlayerTheme, presentationStyles} from './presentation.js';
+import {applyLayout, isPlayerLayout, playerLayouts, type PlayerLayout, presentationStyles} from './presentation.js';
+import {isPlayerTheme, playerThemes, themeStyles, type PlayerTheme} from './themes.js';
 export type {PlayerLayout, PlayerTheme} from './presentation.js';
 const Base = (typeof HTMLElement==='undefined'?class {}:HTMLElement) as typeof HTMLElement;
-export const defaultLabels = Object.freeze({...advancedLabels,appearance:'Appearance',controlsMode:'Controls',controlsAuto:'Auto',controlsMobile:'Mobile',controlsDesktop:'Desktop',layout:'Layout',theme:'Theme',classic:'Classic',cinema:'Cinema',rail:'Rail',studio:'Studio',focus:'Focus',deck:'Deck',demuxeTheme:'Demuxe',lightTheme:'Light',previews:'Timeline thumbnails',previewStrategy:'Thumbnail strategy',previewDemuxe:'Demuxe · broad coverage, local detail',previewAdaptive:'Adaptive · nearby every 5s',previewGaussian:'Gaussian · dense near hover',previewDirectional:'Directional · follows movement',previewUniform:'Evenly spaced · 48 samples',previewInterval:'Whole video · every 5s',previewOnDemand:'On hover only',previewCustom:'Custom',previewHelp:'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',recovering:'Retrying stream…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen',expandPlayer:'Expand player',exitExpandedPlayer:'Exit expanded view',noFullscreen:'Fullscreen and browser expansion are unavailable here.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
+export const defaultLabels = Object.freeze({...advancedLabels,appearance:'Appearance',controlsMode:'Controls',controlsAuto:'Auto',controlsMobile:'Mobile',controlsDesktop:'Desktop',layout:'Layout',theme:'Theme',classic:'Classic',cinema:'Cinema',rail:'Rail',studio:'Studio',focus:'Focus',deck:'Deck',demuxeTheme:'Demuxe',lightTheme:'Light',oledTheme:'OLED',contrastTheme:'High contrast',paperTheme:'Paper',terminalTheme:'Terminal',previews:'Timeline thumbnails',previewStrategy:'Thumbnail strategy',previewDemuxe:'Demuxe · broad coverage, local detail',previewAdaptive:'Adaptive · nearby every 5s',previewGaussian:'Gaussian · dense near hover',previewDirectional:'Directional · follows movement',previewUniform:'Evenly spaced · 48 samples',previewInterval:'Whole video · every 5s',previewOnDemand:'On hover only',previewCustom:'Custom',previewHelp:'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',recovering:'Retrying stream…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen',expandPlayer:'Expand player',exitExpandedPlayer:'Exit expanded view',noFullscreen:'Fullscreen and browser expansion are unavailable here.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels,string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 
@@ -59,14 +59,23 @@ export class DemuxePlayerElement extends Base {
     if(!isPlayerLayout(value))throw new PlayerError('INVALID_ARGUMENT','Unknown player layout');
     this.setAttribute('layout',value);
   }
-  get theme():PlayerTheme {return this.getAttribute('theme')==='light'?'light':'demuxe';}
+  get theme():PlayerTheme {const value=this.getAttribute('theme');return isPlayerTheme(value)?value:'demuxe';}
   set theme(value:PlayerTheme){
-    if(value!=='demuxe'&&value!=='light')throw new PlayerError('INVALID_ARGUMENT','Unknown player theme');
+    if(!isPlayerTheme(value))throw new PlayerError('INVALID_ARGUMENT','Unknown player theme');
     this.setAttribute('theme',value);
+  }
+  private layoutMedia?:MediaQueryList;
+  private recomposeLayout=()=>{if(this.isConnected)this.updatePresentation();};
+  /** Mobile controls recompose the Classic control row, matching the mobile stylesheet scope. */
+  private compactControls(){
+    const mode=this.controlsMode;
+    if(mode!=='auto')return mode==='mobile';
+    if(!this.layoutMedia&&this.isConnected&&typeof matchMedia==='function'){this.layoutMedia=matchMedia(mobileControlsQuery);this.layoutMedia.addEventListener('change',this.recomposeLayout);}
+    return !!this.layoutMedia?.matches;
   }
   private updatePresentation(){
     this.hoverPreview?.hide();
-    applyLayout(this.shadowRoot!,this.layout,!!this.core?.state.sourceId);
+    applyLayout(this.shadowRoot!,this.layout,!!this.core?.state.sourceId,this.compactControls());
     this.$('shell').dataset.theme=this.theme;
     this.syncAppearance();
   }
@@ -359,7 +368,7 @@ export class DemuxePlayerElement extends Base {
       }
     })();
   }
-  disconnectedCallback(){const connection=transitionElementLifecycle(this.lifecycle,{type:'disconnect'});this.lifecycle=connection.state;const token=connection.connection!;queueMicrotask(()=>{
+  disconnectedCallback(){this.layoutMedia?.removeEventListener('change',this.recomposeLayout);this.layoutMedia=undefined;const connection=transitionElementLifecycle(this.lifecycle,{type:'disconnect'});this.lifecycle=connection.state;const token=connection.connection!;queueMicrotask(()=>{
     const retired=transitionElementLifecycle(this.lifecycle,{type:'disconnect-ready',connection:token,connected:this.isConnected});this.lifecycle=retired.state;if(!retired.accepted)return;
     void this.releaseOwnedResources(false).catch(error=>{if(!this.terminal)this.componentError(error);});
   });}
@@ -367,7 +376,7 @@ export class DemuxePlayerElement extends Base {
     if(old===value||this.configuration.reflectionDepth>0||this.terminal)return;
     if(name==='controls-mode'){
       const focused=this.shadowRoot?.activeElement as HTMLElement|null;
-      this.hoverPreview?.hide();this.reconcileSettings();this.syncAppearance();
+      this.hoverPreview?.hide();this.reconcileSettings();this.updatePresentation();
       if(!this.controlState.menuOpen&&focused&&['open-menu','diagnostics-toggle','volume'].some(id=>this.$(id)===focused)&&!focused.getClientRects().length)
         this.$(focused===this.$('volume')?'mute':'settings-toggle').focus({preventScroll:true});
       return;
@@ -460,7 +469,7 @@ export class DemuxePlayerElement extends Base {
     this.advanced?.reconcile();
     if(this.controlState.menuOpen)this.advanced?.update(state);
     this.syncPreviewStrategy();
-    applyLayout(this.shadowRoot!,this.layout,!!state.sourceId);
+    applyLayout(this.shadowRoot!,this.layout,!!state.sourceId,this.compactControls());
     const identity=`${state.sourceId}:${state.activeMode}`;if(this.control({type:'preview',identity,pending:!!state.pendingOperation,controls:this.controls,seekable:!!state.seekable?.length}).resetPreview){this.hoverPreview.hide();if(this.timelinePointer!==undefined)this.finishTimelineDrag();}
     // A host using the core directly owns its source list; release ours on replacement.
     const observedQueue=transitionElementQueue(this.queueState,{type:'observe-source',sourceId:state.sourceId});this.queueState=observedQueue.state;if(observedQueue.reset){this.queueResources.clear();this.renderQueue();}
@@ -601,7 +610,7 @@ export class DemuxePlayerElement extends Base {
     this.$('preview-strategy-label').textContent=this.labels.previewStrategy;
     for(const [value,key] of [['demuxe','previewDemuxe'],['adaptive','previewAdaptive'],['gaussian','previewGaussian'],['directional','previewDirectional'],['uniform','previewUniform'],['interval','previewInterval'],['on-demand','previewOnDemand'],['custom','previewCustom']] as const)this.$('preview-strategy').querySelector<HTMLOptionElement>(`option[value="${value}"]`)!.textContent=this.labels[key];
     for(const key of ['appearance','layout','theme','controlsMode'] as const)this.$(key+'-label').textContent=this.labels[key];
-    for(const [id,keys] of [['layout-select',playerLayouts],['theme-select',['demuxeTheme','lightTheme']],['controls-mode-select',['controlsAuto','controlsMobile','controlsDesktop']]] as const)
+    for(const [id,keys] of [['layout-select',playerLayouts],['theme-select',playerThemes.map(theme=>`${theme}Theme` as const)],['controls-mode-select',['controlsAuto','controlsMobile','controlsDesktop']]] as const)
       Array.from((this.$(id) as HTMLSelectElement).options).forEach((option,index)=>option.textContent=this.labels[keys[index]]);
     this.$('shortcuts-help').textContent=this.labels.shortcuts;this.renderQueue();this.$('choose-file').textContent=this.queueItems.length?this.labels.addFiles:this.labels.open;this.updateSourceLabel();this.$('diagnostics-overlay').setAttribute('aria-label',this.labels.diagnostics);for(const [id,key]of Object.entries({mute:'mute','settings-toggle':'settings','settings-close':'closeSettings',fullscreen:'fullscreen','open':'open','open-menu':'open','url-submit':'openURL','retry':'retry'}))this.$(id).textContent=this.labels[key as keyof typeof defaultLabels];for(const [id,icon,key]of [['back','back','back'],['forward','forward','forward'],['play','play','play'],['mute','volume','mute'],['settings-toggle','settings','settings'],['settings-close','close','closeSettings'],['open-menu','folder','open'],['diagnostics-toggle','eye','diagnostics']] as const){delete this.$(id).dataset.icon;this.iconButton(id,id==='diagnostics-toggle'&&this.$(id).getAttribute('aria-pressed')==='true'?'eyeOff':id==='open-menu'&&this.$(id).getAttribute('aria-expanded')==='true'?'folderOpen':icon,this.labels[key]);}delete this.$('fullscreen').dataset.icon;this.fullscreenChanged();for(const [id,key]of Object.entries({timeline:'seek',volume:'volume',file:'open',subtitleFile:'addSubtitle'}))this.$(id).setAttribute('aria-label',this.labels[key as keyof typeof defaultLabels]);const opener=this.$('open');opener.innerHTML=`<svg class="open-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons.folder}</svg><span></span><svg class="open-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>`;opener.querySelector('span')!.textContent=this.labels.open;for(const id of ['speed','audio','subtitles','previews'])this.$(id+'-label').textContent=this.labels[id as 'speed'|'audio'|'subtitles'|'previews'];this.$('settings-title').textContent=this.menuTrigger==='open-menu'?this.labels.open:this.labels.settings;this.$('media-file-label').textContent=this.labels.mediaFile;this.$('subtitle-file-label').textContent=this.labels.subtitleFile;for(const id of ['url','format','live'])this.$(id+'-label').textContent=this.labels[id==='live'?'streamLive':id as 'url'|'format'];}
   private renderShell(){this.shadowRoot!.innerHTML=`<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}${viewportStyles}</style>${playerShell()}`;
