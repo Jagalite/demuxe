@@ -181,6 +181,12 @@ try{
    await mobile.evaluate(()=>v.destroy());
   }finally{await touch.close();}
  });
+ await check('every theme is offered, labelled and distinct, and none draws over the picture',async()=>{
+  assert.deepEqual(await page.evaluate(()=>{const options=[...$('theme-select').options].map(o=>({value:o.value,label:o.textContent.trim()}));const applied=options.map(({value})=>{viewer.theme=value;const cs=getComputedStyle(viewer);return {attribute:viewer.getAttribute('theme'),palette:cs.getPropertyValue('--demuxe-background').trim()+cs.getPropertyValue('--demuxe-accent').trim(),overlay:getComputedStyle($('stage'),'::after').content};});viewer.theme='demuxe';return {themes:options.map(o=>o.value),labelled:options.every(o=>o.label.length>0),reflected:applied.every((a,i)=>a.attribute===options[i].value),palettes:new Set(applied.map(a=>a.palette)).size,overlays:applied.map(a=>a.overlay)};}),{themes:['demuxe','light','oled','contrast','paper','terminal'],labelled:true,reflected:true,palettes:6,overlays:Array(6).fill('none')});
+ });
+ await check('mobile Classic recomposes its row in reading order and desktop restores it',async()=>{
+  assert.deepEqual(await page.evaluate(()=>{const row=()=>[...$('control-row').children].map(node=>node.id==='time-display'?`time-display(${[...node.children].map(child=>child.id)})`:node.id).join(' ');viewer.layout='classic';viewer.controlsMode='mobile';const mobile=row();viewer.controlsMode='desktop';const desktop=row();viewer.layout='cinema';const cinema=row();viewer.layout='classic';viewer.controlsMode='auto';return {mobile,desktop,cinema,stray:!!viewer.shadowRoot.querySelector('#control-row > #time-display')&&viewer.controlsMode==='auto'&&!matchMedia('(max-width:600px), (pointer:coarse) and (max-width:960px)').matches};}),{mobile:'time-display(time,duration) queue-navigation control-spacer volume-control',desktop:'time volume-control queue-navigation control-spacer duration',cinema:'transport time-display(time,duration) volume-control control-spacer utility-actions queue-navigation',stray:false});
+ });
  await check('close restores empty-state utilities in cinema',async()=>{
   await page.evaluate(async()=>{viewer.layout='cinema';await viewer.close();});
   assert.equal(await page.locator('#viewer #open-menu').isVisible(),true);
