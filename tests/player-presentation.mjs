@@ -198,6 +198,13 @@ try{
    assert.deepEqual(await p.evaluate(()=>{const r=v.shadowRoot,$=id=>r.getElementById(id),shell=$('shell');const clip=id=>getComputedStyle($(id)).clipPath;v.theme='terminal';const out={};for(const layout of ['studio','deck','classic']){v.layout=layout;shell.classList.add('idle');out[layout]=clip('controls');shell.classList.add('seek-preview');out[layout+'-seek']=clip('controls');shell.classList.remove('idle','seek-preview');}v.theme='paper';const dots=r.querySelector('.buffering-indicator span'),diag=$('diagnostics-overlay');out.paperWaiting=getComputedStyle(dots).boxShadow!=='none';out.panelClip=getComputedStyle(diag).clipPath;v.theme='demuxe';v.layout='classic';return out;}),{studio:'inset(0px)','studio-seek':'inset(0px)',deck:'inset(0px)','deck-seek':'inset(0px)',classic:'inset(100% 0px 0px)','classic-seek':'inset(0px)',paperWaiting:true,panelClip:'inset(-64px)'});
   }finally{await narrow.close();}
  });
+ await check('themed waiting indicators keep visible geometry in forced colors',async()=>{
+  const forced=await browser.newContext({viewport:{width:1200,height:1000},reducedMotion:'reduce',forcedColors:'active'});
+  try{
+   const p=await forced.newPage();await p.goto(origin+'/examples/player-presentation.html');
+   assert.deepEqual(await p.evaluate(async()=>{const v=document.querySelector('demuxe-player');await v.ready;const span=v.shadowRoot.querySelector('.buffering-indicator span');return ['paper','terminal'].map(theme=>{v.theme=theme;const cs=getComputedStyle(span);return {theme,visible:cs.backgroundColor!=='rgba(0, 0, 0, 0)'||parseFloat(cs.borderTopWidth)>0};});}),[{theme:'paper',visible:true},{theme:'terminal',visible:true}]);
+  }finally{await forced.close();}
+ });
  await check('close restores empty-state utilities in cinema',async()=>{
   await page.evaluate(async()=>{viewer.layout='cinema';await viewer.close();});
   assert.equal(await page.locator('#viewer #open-menu').isVisible(),true);

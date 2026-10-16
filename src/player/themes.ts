@@ -46,4 +46,6 @@ ${light('.transport')}{background:var(--demuxe-overlay-background);border-radius
 :host([theme=terminal]) .buffering-indicator span{width:14px;height:24px}
 /* OLED: pure fades, nothing slides across a dark picture. */
 :host([theme=oled]) .buffering-indicator span{border-width:1.5px;filter:none}
+/* Forced colors drop shadows and author backgrounds; system colors keep themed waiting shapes visible. */
+@media(forced-colors:active){:host(:is([theme=paper],[theme=terminal])) .buffering-indicator span,:host([theme=terminal]) .busy:not([data-complete=true])::before{background:CanvasText;box-shadow:none}}
 `;
