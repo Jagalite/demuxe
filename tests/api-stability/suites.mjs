@@ -19,7 +19,7 @@ export const contracts = {
 // Every process is supervised, including its dev server and browser children.
 export const browsers = {
   core: [
-    {file:'public-api', report:'results/public-api', minimum:20},
+    {file:'public-api', report:'results/public-api', minimum:22},
     {file:'roadmap-browser', report:'results/api-roadmap', minimum:18},
   ],
   ui: [
