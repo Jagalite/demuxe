@@ -19,12 +19,12 @@ export const contracts = {
 // Every process is supervised, including its dev server and browser children.
 export const browsers = {
   core: [
-    {file:'public-api', report:'results/public-api', minimum:20},
+    {file:'public-api', report:'results/public-api', minimum:22},
     {file:'roadmap-browser', report:'results/api-roadmap', minimum:18},
   ],
   ui: [
     // Trusted touch input uses CDP; the shared gate also runs Firefox.
-    ...(['chromium','chrome'].includes(process.env.BROWSER??'chromium')?[{file:'player-navigation-preview',report:'results/api-stability/excerpt-preview',minimum:5}]:[]),
+    ...(['chromium','chrome'].includes(process.env.BROWSER??'chromium')?[{file:'player-navigation-preview',report:'results/api-stability/excerpt-preview',minimum:6}]:[]),
     {file:'player-component', report:'results/player-component', minimum:25},
     {file:'player-presentation', report:'results/player-presentation', minimum:12},
     {file:'api-stability/advanced-settings', report:'results/api-stability/advanced', minimum:24},

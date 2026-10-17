@@ -33,8 +33,8 @@ const mobileRules = `
  #shell.menu-open .transport{visibility:hidden}
 `;
 const portraitRules = `
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2;height:100%}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage:not(:has(#empty:not([hidden]))){min-height:calc(2 * max(6px,env(safe-area-inset-top,0px)) + 156px)}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play{width:56px;height:56px;min-width:56px;min-height:56px;flex-basis:56px}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play svg{width:32px;height:32px}
@@ -51,7 +51,7 @@ export const mobileStyles = `
 .settings:modal>.status:not(.sr){position:relative;inset:auto;max-width:100%;margin:8px 0}
 .mobile-menu-actions{display:none}
 .scrub-position{position:absolute;z-index:3;transform:translate(-50%,-100%);pointer-events:none;min-width:76px;padding:8px 12px;border:1px solid var(--demuxe-border);border-radius:8px;background:var(--demuxe-panel-background);color:var(--demuxe-foreground);font:600 14px/1.4 ui-monospace,monospace;text-align:center;white-space:nowrap}
-.controls:has(.scrub-position:not([hidden])) .thumbnail-preview{display:none}
+.controls:has(.thumbnail-preview:not([hidden])) .scrub-position{display:none}
 .timeline{touch-action:none}
 .stage{touch-action:manipulation}
 
