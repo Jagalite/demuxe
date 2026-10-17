@@ -33,8 +33,8 @@ const mobileRules = `
  #shell.menu-open .transport{visibility:hidden}
 `;
 const portraitRules = `
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
- :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open){display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+ :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage{grid-area:1/1/2/2;height:100%}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .stage:not(:has(#empty:not([hidden]))){min-height:calc(2 * max(6px,env(safe-area-inset-top,0px)) + 156px)}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play{width:56px;height:56px;min-width:56px;min-height:56px;flex-basis:56px}
  :host(:not(:fullscreen)) #shell[data-layout=classic]:not(:popover-open) .transport .play svg{width:32px;height:32px}

@@ -8,6 +8,8 @@ Changes since 1.1.1:
 
 - Add OLED, High contrast, Paper and Terminal player themes and improve Classic
   phone layout, safe-area spacing and control reading order.
+- Center Classic portrait transport controls within the video stage in WebKit,
+  including explicit mobile mode and constrained host layouts.
 - Keep excerpt shortcuts, timeline bounds and buffered progress inside the
   active playback range; restore full navigation when the range is cleared.
 - Preserve foreground thumbnail cache entries against background prefetch,
