@@ -79,6 +79,33 @@ for an existing tag without creating a release or staging npm.
 
 ## Qualify an unpublished candidate
 
+Before dispatching a full build, install the locked dependencies and run the
+browser receipt preflight:
+
+```sh
+npm ci --ignore-scripts
+node --test tests/release-browser-contracts.test.mjs
+```
+
+This checks the installed Playwright pin and rejects incomplete or failed
+browser receipts. The API case minimum is shared with the normal API gate, so
+adding a case does not require updating a second exact count. Both PR CI and
+the release build run this preflight before expensive compilation.
+
+On macOS, a retained candidate archive can exercise the complete Apple WebKit
+wrapper before another full build:
+
+```sh
+npx playwright install webkit
+node tests/api-stability/fixtures.mjs
+BETA_ARCHIVE=/absolute/path/to/demuxe-1.1.2.tgz node tests/webkit-release.mjs
+```
+
+The archive must match the checked-out source revision. The wrapper records
+archive and harness hashes; checks against a retained archive do not qualify
+changed runtime bytes. Publication still requires the complete candidate run.
+
+
 The manual workflow also accepts `qualify_only=true` and a full `source_ref`
 commit SHA. This runs the same clean engine builds, provider gates, exact-archive
 consumer/catalogue/API checks and macOS WebKit qualification used by a tag
@@ -91,6 +118,10 @@ or stage npm. The `qualified-release`, `pages-build-evidence` and
 gh workflow run pages.yml --ref release/1.1.2 \
   -f tag=v1.1.2 -f source_ref=<full-reviewed-commit-sha> -f qualify_only=true
 ```
+
+Candidate runs report a separate **Release candidate qualification** commit
+status, which stays pending until providers, archive checks and Apple WebKit
+finish. Ordinary PR checks passing does not complete this status.
 
 Review the entire run, including providers and Apple WebKit, before approving
 publication. Preserve the downloaded archives and their hashes. After approval,

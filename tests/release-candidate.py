@@ -3,6 +3,7 @@
 """Exercise candidate identity guards without publishing a tag or release."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -56,6 +57,36 @@ class CandidateGuards(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'different commit'):
             candidate.prepare('v1.1.2', self.git('rev-parse', 'HEAD'), self.root)
         self.assertEqual(self.git('rev-parse', 'v1.1.2'), self.commit)
+
+    def test_workflow_status_requires_every_qualification_gate(self):
+        workflow = (ROOT / '.github/workflows/pages.yml').read_text()
+        job = workflow.split('  qualification-result:\n', 1)[1].split('\n  providers:', 1)[0]
+        script = '\n'.join(line[10:] for line in job.split('        run: |\n', 1)[1].splitlines())
+        tools = self.root / 'tools'
+        tools.mkdir()
+        gh = tools / 'gh'
+        gh.write_text('#!/bin/sh\nprintf "%s\\n" "$@"\n')
+        gh.chmod(0o755)
+        gates = ['PENDING_RESULT', 'PROVIDER_RESULT', 'BUILD_RESULT', 'WEBKIT_RESULT']
+        env = {**os.environ, 'PATH': str(tools) + os.pathsep + os.environ['PATH'],
+               'CANDIDATE_COMMIT': self.commit, 'GITHUB_REPOSITORY': 'owner/repo',
+               'GITHUB_SERVER_URL': 'https://github.com', 'GITHUB_RUN_ID': '123',
+               **dict.fromkeys(gates, 'success')}
+        def run(values):
+            return subprocess.run(['bash', '-e', '-c', script], env=values,
+                                  capture_output=True, text=True)
+        passed = run(env)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        self.assertIn('state=success', passed.stdout.splitlines())
+        for gate in gates:
+            for value in ['failure', 'skipped', 'cancelled', '']:
+                with self.subTest(gate=gate, value=value):
+                    failed = run({**env, gate: value})
+                    self.assertEqual(failed.returncode, 0, failed.stderr)
+                    self.assertIn('state=failure', failed.stdout.splitlines())
+        invalid = run({**env, 'CANDIDATE_COMMIT': 'HEAD'})
+        self.assertNotEqual(invalid.returncode, 0)
+        self.assertEqual(invalid.stdout, '')
 
     def test_workflow_keeps_publication_out_of_candidate_runs(self):
         workflow = (ROOT / '.github/workflows/pages.yml').read_text()
