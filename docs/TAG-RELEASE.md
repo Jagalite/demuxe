@@ -77,6 +77,27 @@ stable release as latest; prerelease package versions remain GitHub prereleases.
 Tag updates/deletions do not deploy. A manual workflow dispatch rebuilds Pages
 for an existing tag without creating a release or staging npm.
 
+## Qualify an unpublished candidate
+
+The manual workflow also accepts `qualify_only=true` and a full `source_ref`
+commit SHA. This runs the same clean engine builds, provider gates, exact-archive
+consumer/catalogue/API checks and macOS WebKit qualification used by a tag
+release. It creates the proposed matching version tag only inside the Linux
+build checkout. It does not push that tag, deploy Pages, create a GitHub Release
+or stage npm. The `qualified-release`, `pages-build-evidence` and
+`webkit-macos-release-evidence` artifacts retain the candidate and receipts.
+
+```sh
+gh workflow run pages.yml --ref release/1.1.2 \
+  -f tag=v1.1.2 -f source_ref=<full-reviewed-commit-sha> -f qualify_only=true
+```
+
+Review the entire run, including providers and Apple WebKit, before approving
+publication. Preserve the downloaded archives and their hashes. After approval,
+the public tag must point to the same commit, and manual publication must use
+these exact qualified assets rather than rebuilding them. A candidate run that
+has pending or failed gates is not qualified.
+
 ## Repository setup
 
 Use GitHub Actions for Pages. Permit release tags in the `github-pages` and

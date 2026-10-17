@@ -9,9 +9,17 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing tag to rebuild and deploy
+        description: Existing tag to rebuild, or the proposed tag for qualification only
         required: true
         type: string
+      qualify_only:
+        description: Run all release gates and retain artifacts without publishing or deploying
+        type: boolean
+        default: false
+      source_ref:
+        description: Exact candidate commit for qualification only (tag is created locally on the runner)
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -25,7 +33,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.created == true
     uses: ./.github/workflows/ci-providers.yml
     with:
-      source_ref: refs/tags/${{ inputs.tag || github.ref_name }}
+      source_ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', inputs.tag || github.ref_name) }}
 
   build:
     if: github.event_name == 'workflow_dispatch' || github.event.created == true
@@ -40,9 +48,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', inputs.tag || github.ref_name) }}
           fetch-depth: 1
           persist-credentials: false
+      - name: Bind the unpublished candidate tag to the exact source commit
+        if: inputs.qualify_only
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.source_ref }}
+        run: python3 scripts/prepare-release-candidate.py --tag "$PAGES_TAG" --commit "$CANDIDATE_COMMIT"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -59,12 +72,13 @@ jobs:
           npm ci --ignore-scripts
           npm run prepare:shaka
       - name: Download and verify the published comparison baseline
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: python3 scripts/tag-release.py baseline
       - name: Check Pages assembly and tag guards
         run: |
           python3 tests/pages-build.py
           python3 tests/tag-release.py
+          python3 tests/release-candidate.py
           node --test tests/head-to-head/completion.test.mjs tests/head-to-head/playback-rate.test.mjs tests/beta-consumer-startup.mjs tests/shaka-package-evidence.test.mjs
           python3 tests/release-boundaries.py
           python3 tests/lgpl-catalogue.py
@@ -116,7 +130,7 @@ jobs:
           set -o pipefail
           bash scripts/build-beta-engines.sh --clean 2>&1 | tee build/clean-build.log
       - name: Build optional preparation engine and tagged release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: python3 scripts/tag-release.py package --tag "$PAGES_TAG"
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
@@ -131,15 +145,16 @@ jobs:
           BROWSER: firefox
         run: node tests/pages-demo.mjs
       - name: Generate fixtures and qualify the exact release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: xvfb-run -a python3 scripts/tag-release.py qualify --tag "$PAGES_TAG"
       - name: Qualify the API and mobile player matrix on the installed archive
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: |
-          export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          export BETA_ARCHIVE
           node tests/api-stability/archive-matrix.mjs
       - name: Retain qualified release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         uses: actions/upload-artifact@v4
         with:
           name: qualified-release
@@ -176,7 +191,7 @@ jobs:
             results/player-component/
             results/player-menu-review/
       - name: Retain unqualified runtime for failed release diagnosis
-        if: failure() && github.event_name == 'push'
+        if: failure() && (github.event_name == 'push' || inputs.qualify_only)
         uses: actions/upload-artifact@v4
         with:
           name: unqualified-runtime-debug
@@ -185,18 +200,19 @@ jobs:
           compression-level: 0
           retention-days: 1
       - uses: actions/upload-pages-artifact@v3
+        if: '!inputs.qualify_only'
         with:
           path: build/pages-site
 
   webkit:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || inputs.qualify_only
     needs: build
     runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ github.ref_name }}
+          ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', github.ref_name) }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -213,7 +229,8 @@ jobs:
         run: node tests/api-stability/fixtures.mjs
       - name: Qualify Apple WebKit against the exact installed release archive
         run: |
-          export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          export BETA_ARCHIVE
           node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -227,7 +244,7 @@ jobs:
       group: github-pages
       cancel-in-progress: false
     needs: [build, webkit]
-    if: always() && needs.build.result == 'success' && (github.event_name != 'push' || needs.webkit.result == 'success')
+    if: always() && !inputs.qualify_only && needs.build.result == 'success' && (github.event_name != 'push' || needs.webkit.result == 'success')
     runs-on: ubuntu-24.04
     permissions:
       pages: write
