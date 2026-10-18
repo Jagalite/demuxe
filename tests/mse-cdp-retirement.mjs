@@ -14,7 +14,7 @@ const origin=await new Promise((resolve,reject)=>{server.once('error',reject);se
 const executable=process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'/opt/google/chrome/chrome';
 const chrome=spawn(executable,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check','--autoplay-policy=no-user-gesture-required','--mute-audio','--remote-debugging-port=0','--remote-debugging-address=127.0.0.1',`--user-data-dir=${profile}`],{stdio:['ignore','ignore','pipe']});
 const exited=new Promise(resolve=>chrome.once('exit',(code,signal)=>resolve({code,signal})));
-let socket,serial=0;const pending=new Map();
+let socket,serial=0;const pending=new Map(),events=new Map();
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function send(method,params={},sessionId){
  const id=++serial;
@@ -25,17 +25,20 @@ try{
  const endpoint=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Chrome DevTools startup timed out')),15000);chrome.once('error',reject);chrome.stderr.on('data',data=>{const m=/DevTools listening on (ws:\/\/\S+)/.exec(String(data));if(m){clearTimeout(timer);resolve(m[1]);}});});
  socket=new WebSocket(endpoint);await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
  const disconnect=()=>{for(const entry of pending.values()){clearTimeout(entry.timer);entry.reject(Error('CDP connection closed'));}pending.clear();};socket.addEventListener('close',disconnect);socket.addEventListener('error',disconnect);
- socket.addEventListener('message',event=>{const message=JSON.parse(event.data),entry=pending.get(message.id);if(!entry)return;pending.delete(message.id);clearTimeout(entry.timer);message.error?entry.reject(Error(message.error.message)):entry.resolve(message.result);});
+ socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(events.has(message.sessionId)&&(['Runtime.exceptionThrown','Network.loadingFailed'].includes(message.method)||message.method==='Network.responseReceived'&&message.params.response.status>=400)){const entries=events.get(message.sessionId);if(entries.length<30)entries.push(message);}const entry=pending.get(message.id);if(!entry)return;pending.delete(message.id);clearTimeout(entry.timer);message.error?entry.reject(Error(message.error.message)):entry.resolve(message.result);});
  report.browser=await send('Browser.getVersion');await send('Target.setDiscoverTargets',{discover:true});
  for(const documentRetirement of ['immediate','delay50','navigate'])for(let iteration=0;iteration<rounds;iteration++){
   const frameRemovalDelayMs=documentRetirement==='delay50'?50:0;
   const row={iteration,documentRetirement,frameRemovalDelayMs,passed:false};report.checks.push(row);let browserContextId;
   try{
    ({browserContextId}=await send('Target.createBrowserContext'));
-   const {targetId}=await send('Target.createTarget',{url:origin+'/examples/custom-controls.html',browserContextId});
+   const {targetId}=await send('Target.createTarget',{url:'about:blank',browserContextId});
    const {sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});
-   const started=Date.now();while(!await evaluate(sessionId,'!!window.player')){if(Date.now()-started>15000)throw Error('Player document startup timed out');await delay(50);}
-   await evaluate(sessionId,`(async()=>{await player.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalNativeASS:true,experimentalBufferedNativeSeeks:true});window.playbackErrors=[];player.addEventListener('error',event=>playbackErrors.push(event.detail));const font=await(await fetch('/fixtures/DejaVuSans.ttf')).blob();await player.addFont(new File([font],'DejaVuSans.ttf'));const input=document.createElement('input');input.type='file';input.id='mse-cdp-media';document.body.append(input);})()`);
+   row.startupEvents=[];events.set(sessionId,row.startupEvents);await send('Runtime.enable',{},sessionId);await send('Page.enable',{},sessionId);await send('Network.enable',{},sessionId);
+   await send('Page.navigate',{url:origin+'/examples/custom-controls.html'},sessionId);
+   const started=Date.now();while(!await evaluate(sessionId,'!!document.querySelector("#surface")')){if(Date.now()-started>15000)throw Error('Player document startup timed out: '+JSON.stringify(row.startupEvents));await delay(50);}
+   events.delete(sessionId);delete row.startupEvents;
+   await evaluate(sessionId,`(async()=>{await window.player?.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalNativeASS:true,experimentalBufferedNativeSeeks:true});window.playbackErrors=[];player.addEventListener('error',event=>playbackErrors.push(event.detail));const font=await(await fetch('/fixtures/DejaVuSans.ttf')).blob();await player.addFont(new File([font],'DejaVuSans.ttf'));const input=document.createElement('input');input.type='file';input.id='mse-cdp-media';document.body.append(input);})()`);
    await evaluate(sessionId,`(async()=>{
     window.frameRetirements=[];window.frameNavigationTimeouts=0;window.frameRemovalDelayMs=${frameRemovalDelayMs};window.documentRetirement=${JSON.stringify(documentRetirement)};
     if(documentRetirement==='immediate')return;
@@ -69,7 +72,7 @@ try{
    do{targets=(await send('Target.getTargets')).targetInfos.filter(target=>target.type==='worker'&&target.browserContextId===browserContextId);if(!targets.length||Date.now()-retirement>=5000)break;await delay(25);}while(true);
    row.retirementMs=Date.now()-retirement;row.remainingTargets=targets;
    if(targets.length||row.playbackErrors.length)throw Error('Direct-CDP playback/retirement failed');row.passed=true;
-  }catch(error){row.error=String(error.stack);}
+  }catch(error){row.error=String(error.stack);if(row.startupEvents)throw error;}
   finally{if(browserContextId)await send('Target.disposeBrowserContext',{browserContextId}).catch(error=>{row.contextError=String(error);row.passed=false;});await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}
  }
  report.passed=report.checks.every(row=>row.passed);if(!report.passed)process.exitCode=1;
