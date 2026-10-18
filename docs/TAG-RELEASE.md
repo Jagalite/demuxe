@@ -189,3 +189,8 @@ The focused replay also runs the installed consumer's `native-remux` case once
 per trial. It records fixture and module hashes and disables consumer startup
 retries in this diagnostic lane. Private module replacements are recorded in
 each consumer receipt and cannot qualify a release archive.
+
+The Chrome replay also records eighty minimal MediaSource worker lifetimes across
+window/iframe ownership, self-close/parent termination and same-element source replacement. This isolates browser
+lifetime behavior without FFmpeg, decoded media or production player state; a
+passing probe alone does not resolve a failing playback teardown.

@@ -33,7 +33,7 @@ try{
 
  const env={...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot,DEMUXE_TRACE_WORKER_RELEASE:'1'};
  for(const key of ['ONLY','CASES','PROFILE','LIVE_NEGATIVE_CONTROL','DEMUXE_WEBKIT_TEST_MODULE'])delete env[key];
- const scripts=[...Array.from({length:rounds},()=>['tests/native-ass.mjs','tests/beta-consumer.mjs']).flat(),'tests/native-ass-selection-regressions.mjs','tests/native-ass-style-regressions.mjs'];
+ const scripts=[...(family==='chrome'?['tests/mse-worker-retirement.mjs']:[]),...Array.from({length:rounds},()=>['tests/native-ass.mjs','tests/beta-consumer.mjs']).flat(),'tests/native-ass-selection-regressions.mjs','tests/native-ass-style-regressions.mjs'];
  for(const [iteration,script]of scripts.entries()){
   const row={iteration,script,harnessSHA256:hash(await readFile(script)),passed:false};report.checks.push(row);
   const trialEnv=script==='tests/beta-consumer.mjs'?{...env,CASES:'native-remux',DEMUXE_DIAGNOSTIC_NO_RETRY:'1',...(report.runtimeOverlays.length?{DEMUXE_DIAGNOSTIC_MSE_WORKER:runtime.runtimeRoot+'/web/native-mse-worker.js'}:{})}:env;
