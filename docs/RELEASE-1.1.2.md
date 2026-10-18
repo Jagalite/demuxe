@@ -17,6 +17,8 @@ Changes since 1.1.1:
   resume stationary hover previews after buffering.
 - Show thumbnails during touch scrubbing and keep Terminal thumbnails visible
   above the controls. Touch movement commits only the final seek.
+- Detach media owned by an MSE worker before shutting down the worker, while
+  preserving newer media attachments during cleanup.
 - Expose source-scoped Shaka automatic retry state and show stream recovery in
   the player, with cleanup across source replacement and close.
 - Verify development-demo asset hashes against its deployment manifest and

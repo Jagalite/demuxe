@@ -28,6 +28,14 @@ on:
         description: Expected runtime archive SHA256 for diagnostic replay
         type: string
         default: ''
+      replay_ass_overlay:
+        description: Diagnostic only - overlay the reviewed worker controller on a private installed copy
+        type: boolean
+        default: false
+      replay_ass_rounds:
+        description: Independent main ASS trials (1 to 10; every failure is retained)
+        type: number
+        default: 3
 
 permissions:
   contents: read
@@ -101,6 +109,8 @@ jobs:
       BROWSER: ${{ matrix.browser }}
       REPLAY_SOURCE_COMMIT: ${{ inputs.source_ref }}
       REPLAY_ARCHIVE_SHA256: ${{ inputs.replay_ass_sha256 }}
+      REPLAY_CONTROLLER_OVERLAY: ${{ inputs.replay_ass_overlay && '1' || '' }}
+      REPLAY_ASS_ROUNDS: ${{ inputs.replay_ass_rounds }}
     steps:
       - uses: actions/checkout@v4
         with:

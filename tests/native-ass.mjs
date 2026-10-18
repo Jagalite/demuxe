@@ -20,9 +20,9 @@ try{
     const release=WorkerRemuxController.prototype.releaseResources;
     window.workerReleaseTrace=[];
     WorkerRemuxController.prototype.releaseResources=function(id){
-     const worker=this.worker,frame=this.workerOwner,row={id,hadWorker:!!worker,ownerConnectedBefore:frame?.isConnected};
+     const worker=this.worker,frame=this.workerOwner,mediaHandle=this.workerMediaHandle??this.video.srcObject,row={id,hadWorker:!!worker,ownerConnectedBefore:frame?.isConnected,mediaAttachedAtRelease:mediaHandle!=null&&this.video.srcObject===mediaHandle};
      workerReleaseTrace.push(row);
-     if(worker){const terminate=worker.terminate.bind(worker);worker.terminate=(...args)=>{row.terminateCalled=true;try{const value=terminate(...args);row.terminateReturned=true;return value;}catch(error){row.terminateError=String(error);throw error;}};}
+     if(worker){const terminate=worker.terminate.bind(worker);worker.terminate=(...args)=>{row.terminateCalled=true;row.mediaAttachedAtTerminate=mediaHandle!=null&&this.video.srcObject===mediaHandle;try{const value=terminate(...args);row.terminateReturned=true;return value;}catch(error){row.terminateError=String(error);throw error;}};}
      const completion=release.call(this,id);
      completion.then(()=>{row.ownerConnectedAfter=frame?.isConnected;row.cleanupFailures=this.control.cleanupFailures;},error=>{row.releaseError=String(error);});
      return completion;
@@ -82,6 +82,11 @@ try{
     worker.evaluate(()=>({responsive:true,location:location.href})).catch(cause=>({responsive:false,error:String(cause)})),
     new Promise(resolve=>{const timer=setTimeout(()=>resolve({probeTimedOut:true}),2000);timer.unref();}),
    ])})));
+   if(name==='chrome')try{
+    const session=await browser.newBrowserCDPSession();
+    try{item.browserWorkerTargets=(await session.send('Target.getTargets')).targetInfos.filter(target=>target.type.includes('worker'));}
+    finally{await session.detach();}
+   }catch(probeError){item.browserWorkerTargetsError=String(probeError);}
    item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);item.bufferedState=await page.evaluate(()=>{const owner=player.current?.backend?.remux,r=owner?.local??owner,video=r?.video;return r?{raps:r.raps,ranges:r.ranges?.(),canSeek4:owner.canSeekBuffered?.(4),videoBuffered:video?Array.from({length:video.buffered.length},(_,i)=>[video.buffered.start(i),video.buffered.end(i)]):[],targetReady:r.targetReady,acceptedGeneration:r.acceptedGeneration,generation:r.generation,timelineBias:r.timelineBias,mediaReadyState:r.media?.readyState}:null;}).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
  const page=await browser.newPage(),item={kind:'destroy-during-wasm-load'};result.cases.push(item);

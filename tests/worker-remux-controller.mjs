@@ -35,6 +35,24 @@ test('destroy waits for an already pending error shutdown',async t=>{
  await new Promise(r=>setImmediate(r));assert.equal(finished,false);assert.equal(worker.terminated,false);assert.equal(documentOwner.removed,undefined);assert.ok(worker.messages.some(message=>message.type==='shutdown'));
  worker.send({type:'closed'});await destroyed;assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
 });
+for(const shutdown of ['acknowledged','timeout'])test(`destroy detaches its MSE handle before terminating the worker and its document (${shutdown})`,async t=>{
+ if(shutdown==='timeout')t.mock.timers.enable({apis:['setTimeout']});
+ const {owner,worker,documentOwner}=await bootController(t),handle={owner:'retiring'},events=[];
+ worker.send({type:'element',operation:'attach',handle});assert.equal(owner.video.srcObject,handle);
+ const terminate=worker.terminate.bind(worker),remove=documentOwner.remove.bind(documentOwner),post=worker.postMessage.bind(worker);
+ worker.postMessage=message=>{if(message.type==='shutdown'){assert.equal(owner.video.srcObject,null,'Detach before requesting shutdown');events.push('shutdown');}post(message);};
+ worker.terminate=()=>{assert.equal(owner.video.srcObject,null,'MSE handle must be detached before worker termination');events.push('terminate');terminate();};
+ documentOwner.remove=()=>{assert.equal(owner.video.srcObject,null);events.push('remove');remove();};
+ const destroyed=owner.destroy();if(shutdown==='acknowledged')worker.send({type:'closed'});else t.mock.timers.tick(1000);await destroyed;
+ assert.deepEqual(events,['shutdown','terminate','remove']);assert.equal(owner.control.cleanupFailures,0);
+});
+test('retiring a worker preserves a successor MSE handle',async t=>{
+ const {owner,worker}=await bootController(t),oldHandle={},successor={};
+ worker.send({type:'element',operation:'attach',handle:oldHandle});
+ owner.video.srcObject=successor;const released=owner.release();
+ worker.send({type:'closed'});await released;
+ assert.equal(owner.video.srcObject,successor);assert.equal(worker.terminated,true);
+});
 test('concurrent destroy calls wait for the same worker-tree teardown',async t=>{
  const {owner,worker,documentOwner}=await bootController(t);
  const first=owner.destroy(),second=owner.destroy();assert.equal(first,second);

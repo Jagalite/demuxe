@@ -177,3 +177,10 @@ must match the supplied values before browser tests run.
 The separate **ASS archive replay** commit status describes diagnostics only.
 It cannot satisfy **Release candidate qualification**, publish assets or stage
 npm. A complete qualification remains necessary after resolving the failure.
+
+For a reviewed controller change, `replay_ass_overlay=true` replaces only
+`web/worker-remux-controller.js` in a private installed copy after verifying the
+original archive. The receipt records original and replacement module hashes;
+the archive itself is unchanged, and this diagnostic does not qualify the
+modified runtime. `replay_ass_rounds` accepts 1–10 independent main-suite trials.
+A final clean-source qualification must package and verify the fix normally.
