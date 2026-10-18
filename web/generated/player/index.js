@@ -142,6 +142,7 @@ export class DemuxePlayerElement extends Base {
             return;
         const operation = start.operation, item = this.queueResources.get(start.itemId);
         this.renderQueue();
+        let failed = false;
         try {
             await this.openSource(item.source, options ?? item.options);
             if (this.queueState.operation !== operation)
@@ -159,13 +160,14 @@ export class DemuxePlayerElement extends Base {
             }
         }
         catch (error) {
+            failed = playerError(error).code !== 'ABORTED';
             // A removed item must not survive as the core's rollback source.
             if (queueClosesRollback(this.queueState, operation, closePreviousOnFailure))
                 await this.core?.close();
             throw error;
         }
         finally {
-            const settled = transitionElementQueue(this.queueState, { type: 'settled', operation });
+            const settled = transitionElementQueue(this.queueState, { type: 'settled', operation, failed });
             this.queueState = settled.state;
             if (settled.accepted) {
                 this.renderQueue();

@@ -11,6 +11,7 @@ export type ElementQueueState = Readonly<{
     nextItem: number;
     nextOperation: number;
     operation: number | null;
+    failed: boolean;
     playIntent: boolean | undefined;
     sourceId: number | null;
     endedId: number | null;
@@ -37,6 +38,7 @@ export type ElementQueueCommand = Readonly<{
 }> | Readonly<{
     type: 'settled';
     operation: number;
+    failed?: boolean;
 }> | Readonly<{
     type: 'intent';
     play: boolean;

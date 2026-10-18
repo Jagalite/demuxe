@@ -476,6 +476,27 @@ await check('file and URL selection leave Space focused on playback',async()=>{
  for(const source of ['file','url']){await page.goto(origin+'/');await page.waitForFunction(()=>window.player);const v=page.locator('demuxe-player');if(source==='file'){const chooser=page.waitForEvent('filechooser');await v.locator('#open').click();await(await chooser).setFiles('fixtures/example.mp4');}else{await v.locator('#open-menu').click();await v.locator('#url').fill(origin+'/fixtures/example.mp4');await v.locator('#url-submit').click();}await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.evaluate(()=>player.pause());await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');}
 });
 await check('migrated playground uses the shipped component and core',async()=>{await page.goto(origin+'/');await page.waitForFunction(()=>window.player);assert.ok(await page.evaluate(()=>document.querySelector('demuxe-player').player===window.player));await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId!==null&&player.state.pendingOperation===null);assert.equal(await page.getByRole('button',{name:'Developer settings',exact:true}).count(),0);assert.equal(await page.evaluate(()=>player.state.automaticSelection),true);await page.evaluate(()=>player.pause());await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.status==='playing');await page.locator('demuxe-player').evaluate(el=>el.close());await page.waitForFunction(()=>player.state.status==='idle');});
+await check('a newly chosen file recovers after an unsupported-format open without reloading',async()=>{
+ await page.goto(origin+'/');await page.waitForFunction(()=>window.player);
+ const v=page.locator('demuxe-player');
+ await v.evaluate(el=>{el.autoplay=false;});
+ // Use the real routing failure, rather than rejecting an injected open method.
+ await v.locator('#file').setInputFiles({name:'unsupported.bin',mimeType:'application/octet-stream',buffer:Buffer.from('Not a media container')});
+ await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player');return !el.queueOperation&&!el.player.state.pendingOperation&&!el.shadowRoot.getElementById('error').hidden;});
+ assert.match(await v.locator('#error-text').textContent(),/No playback route satisfied|unrecognized file format/i);
+ await page.evaluate(()=>{window.recoveryCore=player;});
+ await v.locator('#file').setInputFiles('fixtures/example.mp4');
+ await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player');return !el.queueOperation&&!el.player.state.pendingOperation&&el.player.state.status==='paused'&&el.shadowRoot.getElementById('error').hidden;});
+ assert.ok(await page.evaluate(()=>player===recoveryCore&&player.state.sourceId!==null));
+ assert.equal(await v.locator('#queue-count').textContent(),'2 / 2');
+ assert.equal(await page.evaluate(()=>document.getElementById('status').textContent),'');
+ // Once recovery succeeds, more files append without interrupting playback.
+ const recovered=await page.evaluate(()=>player.state.sourceId);
+ await v.locator('#file').setInputFiles('fixtures/example.mp4');
+ assert.equal(await page.evaluate(()=>player.state.sourceId),recovered);
+ assert.equal(await v.locator('#queue-count').textContent(),'2 / 3');
+ await v.evaluate(el=>el.close());
+});
 await check('multiple selected files form one ordered queue and reuse the same core',async()=>{
  await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{

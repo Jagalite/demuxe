@@ -6,6 +6,9 @@ Package versions and internal Demuxe peer pins advance together.
 
 Changes since 1.1.1:
 
+- Recover file selection after an unsupported media open: choosing another file
+  starts it immediately and clears the stale playground error.
+
 - Add OLED, High contrast, Paper and Terminal player themes and improve Classic
   phone layout, safe-area spacing and control reading order.
 - Center Classic portrait transport controls within the video stage in WebKit,
