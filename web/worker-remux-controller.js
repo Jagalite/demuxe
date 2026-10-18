@@ -156,8 +156,8 @@ export class WorkerRemuxController {
   const worker=this.worker,frame=this.workerOwner,timer=this.timer,mediaHandle=this.workerMediaHandle;
   this.worker=this.workerOwner=this.resourceOwner=this.timer=this.workerMediaHandle=undefined;this.refreshSource=undefined;if(this.booting?.owner===id)this.booting=undefined;
   let resolve;const promise=new Promise(yes=>{resolve=yes;});this.releases.set(id,promise);const failures=this.control.cleanupFailures;const cleanup=action=>{try{action();}catch{this.transition({type:'cleanup-failed'});}};cleanup(()=>clearInterval(timer));
-  // Disconnect this owner's attachment while its worker can still process shutdown.
-  cleanup(()=>{if(mediaHandle!==undefined&&this.video.srcObject===mediaHandle)this.video.srcObject=null;});
+  // Reset this owner's media pipeline while its worker can still process shutdown.
+  cleanup(()=>{if(mediaHandle!==undefined&&this.video.srcObject===mediaHandle){this.video.srcObject=null;if(this.video.srcObject===null)this.video.load();}});
   let timeout,finished=false;
   const finish=()=>{if(finished)return;finished=true;cleanup(()=>clearTimeout(timeout));cleanup(()=>worker?.removeEventListener('message',closed));cleanup(()=>worker?.terminate());cleanup(()=>frame?.remove());if(this.control.cleanupFailures===failures){this.transition({type:'released',owner:id});this.releases.delete(id);}resolve();};
   const closed=({data})=>{if(data.type==='closed')finish();};
