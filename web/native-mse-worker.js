@@ -81,7 +81,7 @@ self.onmessage=async({data})=>{
   const decision=transition({type:'shutdown'});if(!decision.accepted)return;
   const retiring=owner,cancel=cancelBoot,media=attachedMedia;attachedMedia=undefined;owner=undefined;cancelBoot=undefined;clearInterval(stateTimer);retireRequests(decision.retire,new DOMException('Destroyed','AbortError'));cancel?.();
   // Parent teardown may run as soon as it receives the acknowledgement.
-  try{await retiring?.destroy();}finally{const mediaDetached=await waitForMediaDetachment(media);if(transition({type:'closed'}).accepted){close();postMessage({type:'closed',mediaDetached});}}return;
+  try{await retiring?.destroy();}finally{postMessage({type:'detach'});const mediaDetached=await waitForMediaDetachment(media);if(transition({type:'closed'}).accepted){close();postMessage({type:'closed',mediaDetached});}}return;
  }
  if(!remuxWorkerLive(control))return;
  if(data.type==='playback-intent'){owner?.setPlaybackIntent(data.playing);return;}
