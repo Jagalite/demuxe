@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {closeTestBrowser} from './browser-exit.mjs';
+import {closeTestBrowser,waitForPageWorkers} from './browser-exit.mjs';
 
 const pending = () => new Promise(() => {});
 for (const stage of ['session', 'processes', 'detach']) {
@@ -53,3 +53,13 @@ for (const [family, label] of [['firefox', 'Firefox'], ['webkit', 'WebKit']]) {
     await assert.rejects(closeTestBrowser({close: pending}, family, {timeoutMs: 20}), new RegExp(`${label} teardown timed out`));
   });
 }
+
+
+test('worker cleanup accepts delayed browser retirement and retains a bounded live-worker failure',async()=>{
+ for(const closesAt of [0,800,Infinity]){
+  let time=0;const page={workers:()=>time<closesAt?[{url:()=>'/owned-worker.js'}]:[]};
+  const receipt=await waitForPageWorkers(page,{timeoutMs:1000,now:()=>time,delay:async ms=>{time+=ms;}});
+  assert.equal(receipt.elapsedMs,closesAt===Infinity?1000:closesAt);
+  assert.deepEqual(receipt.remainingWorkerURLs,closesAt===Infinity?['/owned-worker.js']:[]);
+ }
+});

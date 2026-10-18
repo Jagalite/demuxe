@@ -11,7 +11,7 @@ import {serve} from './server.mjs';
 import {CampaignProgress} from './campaign-progress.mjs';
 import {markedAudio,markedImage,decodePNG,selectCases,performanceEligible,markedFixtureBlock} from './checks.mjs';
 import {frameObservation,validateFrameWindow} from './performance-metrics.mjs';
-import {closeBrowserObserved} from './browser-exit.mjs';
+import {closeBrowserObserved,waitForPageWorkers} from './browser-exit.mjs';
 import {waitInitialOutput} from './initial-output.mjs';
 import {remuxEvidence,requireRemuxCPU,nonisolatedPlaybackLanes,playbackLane,requiresNonisolated} from './remux-evidence.mjs';
 import {referenceAudio,waitReferenceAudio} from './specialist-audio.mjs';
@@ -428,7 +428,7 @@ try {
       progress.phase('cleanup');
       if(page) {
         result.cleanup=await deadline(page.evaluate(()=>api.stop()),4000,'cleanup').catch(error=>({error:String(error)}));
-        await delay(400);result.workersAfter=page.workers().length;
+        result.workerRetirement=await waitForPageWorkers(page);result.workersAfter=result.workerRetirement.remainingWorkerURLs.length;
         if((result.status==='passed'||result.screenPassed)&&(result.cleanup.error||result.cleanup.remainingSurfaces||result.workersAfter||result.cleanup.contexts.some(s=>s!=='closed'))) {
           result.status='failed';result.failureStage='cleanup';result.reason='Cleanup did not release observed surfaces, contexts or workers';
         }

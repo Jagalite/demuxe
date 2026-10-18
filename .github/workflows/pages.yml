@@ -206,7 +206,7 @@ jobs:
           npm ci --ignore-scripts
           npm run prepare:shaka
       - name: Check release browser contracts before building
-        run: node --test tests/release-browser-contracts.test.mjs
+        run: node --test tests/release-browser-contracts.test.mjs tests/head-to-head/browser-exit.test.mjs
       - name: Download and verify the published comparison baseline
         if: github.event_name == 'push' || inputs.qualify_only
         run: python3 scripts/tag-release.py baseline
