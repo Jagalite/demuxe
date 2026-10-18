@@ -15,6 +15,19 @@ try{
   page.on('worker',worker=>{const entry={url:worker.url(),created:Date.now()};item.workers.push(entry);worker.on('close',()=>entry.closed=Date.now());});
   try{
    await installPackageEntrypoint(page, origin);await page.goto(origin+'/examples/custom-controls.html');
+   if(process.env.DEMUXE_TRACE_WORKER_RELEASE==='1')await page.evaluate(async()=>{
+    const {WorkerRemuxController}=await import('/web/worker-remux-controller.js');
+    const release=WorkerRemuxController.prototype.releaseResources;
+    window.workerReleaseTrace=[];
+    WorkerRemuxController.prototype.releaseResources=function(id){
+     const worker=this.worker,frame=this.workerOwner,row={id,hadWorker:!!worker,ownerConnectedBefore:frame?.isConnected};
+     workerReleaseTrace.push(row);
+     if(worker){const terminate=worker.terminate.bind(worker);worker.terminate=(...args)=>{row.terminateCalled=true;try{const value=terminate(...args);row.terminateReturned=true;return value;}catch(error){row.terminateError=String(error);throw error;}};}
+     const completion=release.call(this,id);
+     completion.then(()=>{row.ownerConnectedAfter=frame?.isConnected;row.cleanupFailures=this.control.cleanupFailures;},error=>{row.releaseError=String(error);});
+     return completion;
+    };
+   });
    await page.evaluate(async kind=>{
     await player.destroy();const {Player}=await import('/web/generated/index.js');window.errors=[];window.frameTrace=[];const request=HTMLVideoElement.prototype.requestVideoFrameCallback;HTMLVideoElement.prototype.requestVideoFrameCallback=function(cb){return request.call(this,(now,m)=>{const r=player?.current?.backend?.remux;frameTrace.push({mediaTime:m.mediaTime,currentTime:this.currentTime,seeking:this.seeking,expected:r?.expectedVideoFrame?.(this.currentTime-(r.timelineBias??0)),bias:r?.timelineBias});if(frameTrace.length>100)frameTrace.shift();cb(now,m);});};
     window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:kind==='direct'?'never':'always',experimentalNativeASS:true,experimentalAudioAdaptation:kind.startsWith('flac')?'flac':undefined,audioGain:kind==='flac-gain'?.5:1,experimentalBufferedNativeSeeks:true});
@@ -61,9 +74,15 @@ try{
    await page.evaluate(()=>document.exitFullscreen());
    item.errors=await page.evaluate(()=>errors);assert.deepEqual(item.errors,[]);
    await page.evaluate(()=>player.open(mediaFile));assert.equal(await page.locator('.demuxe-native-ass').count(),0);
-   await page.evaluate(()=>player.destroy());for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);item.remainingWorkers=page.workers().map(worker=>worker.url());assert.deepEqual(item.remainingWorkers,[]);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
+   await page.evaluate(()=>player.destroy());for(let i=0;i<50&&page.workers().length;i++)await page.waitForTimeout(100);item.remainingWorkers=page.workers().map(worker=>worker.url());assert.deepEqual(item.remainingWorkers,[]);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.workerReleaseTrace=await page.evaluate(()=>window.workerReleaseTrace);item.passed=true;
    for(const key of ['active','animation','resize'])delete item[key].image;
-  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);item.bufferedState=await page.evaluate(()=>{const owner=player.current?.backend?.remux,r=owner?.local??owner,video=r?.video;return r?{raps:r.raps,ranges:r.ranges?.(),canSeek4:owner.canSeekBuffered?.(4),videoBuffered:video?Array.from({length:video.buffered.length},(_,i)=>[video.buffered.start(i),video.buffered.end(i)]):[],targetReady:r.targetReady,acceptedGeneration:r.acceptedGeneration,generation:r.generation,timelineBias:r.timelineBias,mediaReadyState:r.media?.readyState}:null;}).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
+  }catch(error){
+   item.workerReleaseTrace=await page.evaluate(()=>window.workerReleaseTrace).catch(()=>null);
+   item.workerProbes=await Promise.all(page.workers().map(async worker=>({url:worker.url(),...await Promise.race([
+    worker.evaluate(()=>({responsive:true,location:location.href})).catch(cause=>({responsive:false,error:String(cause)})),
+    new Promise(resolve=>{const timer=setTimeout(()=>resolve({probeTimedOut:true}),2000);timer.unref();}),
+   ])})));
+   item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);item.state=await page.evaluate(()=>({diagnostics:player.diagnostics,errors})).catch(()=>null);item.bufferedState=await page.evaluate(()=>{const owner=player.current?.backend?.remux,r=owner?.local??owner,video=r?.video;return r?{raps:r.raps,ranges:r.ranges?.(),canSeek4:owner.canSeekBuffered?.(4),videoBuffered:video?Array.from({length:video.buffered.length},(_,i)=>[video.buffered.start(i),video.buffered.end(i)]):[],targetReady:r.targetReady,acceptedGeneration:r.acceptedGeneration,generation:r.generation,timelineBias:r.timelineBias,mediaReadyState:r.media?.readyState}:null;}).catch(()=>null);process.exitCode=1;}finally{await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
  }
  const page=await browser.newPage(),item={kind:'destroy-during-wasm-load'};result.cases.push(item);
  let release,entered;const barrier=new Promise(r=>entered=r),unblock=new Promise(r=>release=r);
@@ -81,7 +100,7 @@ try{
   item.output=await page.evaluate(async()=>{await player.destroy();return await window.pending;});
   assert.match(item.output.error,/destroy|abort/i);release();await page.waitForTimeout(100);assert.equal(page.workers().length,0);assert.equal(await page.locator('.demuxe-native-ass').count(),0);item.frameTrace=await page.evaluate(()=>window.frameTrace);item.passed=true;
  }catch(error){item.frameTrace=await page.evaluate(()=>window.frameTrace);item.error=String(error.stack);process.exitCode=1;}finally{release();await page.evaluate(()=>player?.destroy()).catch(()=>{});await page.close();console.log(item.kind,item.passed?'PASS':item.error);await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}
-}finally{try{await closeTestBrowser(browser,name);}finally{server.kill();}}
+}finally{try{await closeTestBrowser(browser,name);}finally{server.kill();console.log('Native ASS report:',out);}}
 
 // BEGIN installed-package entrypoint adapter (keep identical across standalone harnesses).
 async function installPackageEntrypoint(page, origin) {

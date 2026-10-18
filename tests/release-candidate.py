@@ -88,6 +88,21 @@ class CandidateGuards(unittest.TestCase):
         self.assertNotEqual(invalid.returncode, 0)
         self.assertEqual(invalid.stdout, '')
 
+    def test_ass_replay_skips_builds_and_does_not_claim_qualification(self):
+        workflow = (ROOT / '.github/workflows/pages.yml').read_text()
+        for name in ['providers', 'build']:
+            job = workflow.split('  ' + name + ':\n', 1)[1].split('\n  ', 1)[0]
+            self.assertIn('!inputs.replay_ass_run', job)
+        self.assertIn("if: inputs.qualify_only && !inputs.replay_ass_run", workflow)
+        self.assertIn("if: always() && inputs.qualify_only && !inputs.replay_ass_run", workflow)
+        replay = workflow.split('  ass-replay:\n', 1)[1].split('\n  ass-replay-result:', 1)[0]
+        self.assertNotIn('statuses: write', replay)
+        self.assertIn('node tests/replay-ass-archive.mjs', replay)
+        self.assertNotIn('build-beta-engines', replay)
+        result = workflow.split('  ass-replay-result:\n', 1)[1].split('\n  build:', 1)[0]
+        self.assertIn("context='ASS archive replay'", result)
+        self.assertNotIn("context='Release candidate qualification'", result)
+
     def test_workflow_keeps_publication_out_of_candidate_runs(self):
         workflow = (ROOT / '.github/workflows/pages.yml').read_text()
         self.assertIn("if: always() && !inputs.qualify_only && needs.build.result", workflow)

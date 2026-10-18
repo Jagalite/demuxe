@@ -17,7 +17,15 @@ on:
         type: boolean
         default: false
       source_ref:
-        description: Exact candidate commit for qualification only (tag is created locally on the runner)
+        description: Exact source commit for candidate qualification or retained-archive replay
+        type: string
+        default: ''
+      replay_ass_run:
+        description: Diagnostic only - repository run containing unqualified-runtime-debug (skips all builds/publication)
+        type: string
+        default: ''
+      replay_ass_sha256:
+        description: Expected runtime archive SHA256 for diagnostic replay
         type: string
         default: ''
 
@@ -30,7 +38,7 @@ concurrency:
 
 jobs:
   qualification-pending:
-    if: inputs.qualify_only
+    if: inputs.qualify_only && !inputs.replay_ass_run
     runs-on: ubuntu-latest
     permissions:
       statuses: write
@@ -47,7 +55,7 @@ jobs:
             -f description='Exact archive and macOS WebKit qualification running'
 
   qualification-result:
-    if: always() && inputs.qualify_only
+    if: always() && inputs.qualify_only && !inputs.replay_ass_run
     needs: [qualification-pending, providers, build, webkit]
     runs-on: ubuntu-latest
     permissions:
@@ -73,13 +81,86 @@ jobs:
             -f description='Complete candidate qualification result'
 
   providers:
-    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    if: (github.event_name == 'workflow_dispatch' || github.event.created == true) && !inputs.replay_ass_run
     uses: ./.github/workflows/ci-providers.yml
     with:
       source_ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', inputs.tag || github.ref_name) }}
 
+  ass-replay:
+    if: github.event_name == 'workflow_dispatch' && inputs.replay_ass_run != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox]
+    env:
+      BROWSER: ${{ matrix.browser }}
+      REPLAY_SOURCE_COMMIT: ${{ inputs.source_ref }}
+      REPLAY_ARCHIVE_SHA256: ${{ inputs.replay_ass_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install fixture tools and start the release audio clock
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio xvfb fonts-dejavu-core
+          bash scripts/start-ci-audio.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: unqualified-runtime-debug
+          path: ${{ runner.temp }}/ass-replay
+          run-id: ${{ inputs.replay_ass_run }}
+          github-token: ${{ github.token }}
+      - name: Prepare the maintained release fixture recipes
+        run: python3 scripts/prepare-release-fixtures.py
+      - name: Replay all three ASS suites on verified retained bytes
+        run: |
+          BETA_ARCHIVE="$RUNNER_TEMP/ass-replay/demuxe-$(node -p 'require("./package.json").version').tgz"
+          export BETA_ARCHIVE
+          xvfb-run -a node tests/replay-ass-archive.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ass-replay-${{ matrix.browser }}
+          path: |
+            results/ass-archive-replay/
+            results/optimization-completion/
+            results/optimization-ass-fixes/
+            build/release-fixture-recipes.json
+          if-no-files-found: error
+
+  ass-replay-result:
+    if: always() && inputs.replay_ass_run != ''
+    needs: ass-replay
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Report diagnostic replay result on its harness commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPLAY_RESULT: ${{ needs.ass-replay.result }}
+        run: |
+          replay_state=failure
+          if [[ "$REPLAY_RESULT" == success ]]; then replay_state=success; fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state="$replay_state" -f context='ASS archive replay' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -f description='Retained-archive ASS diagnostic result; not release qualification'
+
   build:
-    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    if: (github.event_name == 'workflow_dispatch' || github.event.created == true) && !inputs.replay_ass_run
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
@@ -237,6 +318,8 @@ jobs:
             results/player-menu-review/
             results/player-mobile/
             results/worker-tree-containment/
+            results/optimization-completion/
+            results/optimization-ass-fixes/
       - name: Retain unqualified runtime for failed release diagnosis
         if: failure() && (github.event_name == 'push' || inputs.qualify_only)
         uses: actions/upload-artifact@v4

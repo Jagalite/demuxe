@@ -162,3 +162,18 @@ preparation run is separate from browser qualification. The full clean Linux
 engine build and tag-to-deployment run must still pass in Actions; local guard
 tests do not establish that end-to-end result. No release or npm version is
 created by those local tests.
+
+## Replay an ASS browser failure without rebuilding
+
+For a retained `unqualified-runtime-debug` artifact, dispatch the existing
+workflow with `replay_ass_run=<repository-run-id>`,
+`replay_ass_sha256=<runtime-tgz-sha256>` and `source_ref=<archive-source-commit>`.
+Keep `qualify_only=false` and supply the matching version tag. The replay skips
+provider/native builds, runs the three ASS suites in Chrome and Firefox, and
+retains failed-case worker retirement traces and responsiveness probes. The main ASS suite runs three independent times; selection and style run once.
+Every result is retained, and any failure fails the replay. Archive bytes and source identity
+must match the supplied values before browser tests run.
+
+The separate **ASS archive replay** commit status describes diagnostics only.
+It cannot satisfy **Release candidate qualification**, publish assets or stage
+npm. A complete qualification remains necessary after resolving the failure.
