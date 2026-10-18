@@ -21,7 +21,7 @@ try{
  report.fixtures=Object.fromEntries(await Promise.all(['build/optimization-fixtures/gain.mp4','build/optimization-fixtures/long-pcm.mkv','results/optimization-integration/reference/web/edge.mkv','fixtures/qualification.ass','fixtures/example.mp4','build/fixtures/tracks.mkv','build/routing-completion/fixtures/vp9-opus.mkv'].map(async file=>[file,hash(await readFile(file))])));
  assert.equal(runtime.manifest.sourceCommit,process.env.REPLAY_SOURCE_COMMIT,'Replay source mismatch');
  if(process.env.REPLAY_CONTROLLER_OVERLAY==='1'){
-  for(const file of ['web/worker-remux-controller.js','web/native-mse-worker.js']){
+  for(const file of ['web/worker-remux-controller.js','web/native-mse-worker.js','web/native-remux-player.js']){
    const target=runtime.runtimeRoot+'/'+file,original=await readFile(target),overlay=await readFile(new URL('../'+file,import.meta.url));
    if(hash(original)===hash(overlay))continue;
    report.runtimeOverlays.push({file,originalSHA256:hash(original),overlaySHA256:hash(overlay)});

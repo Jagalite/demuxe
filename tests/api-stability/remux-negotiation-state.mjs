@@ -47,7 +47,7 @@ function shell(t){
  return {p,sb,media,worker,sent,removed,appended,listeners,replace};
 }
 test('actual candidate acquisition after replacement releases only the old MediaSource resource',t=>{
- const {p,sb,media,worker,sent,removed,replace}=shell(t);media.addSourceBuffer=()=>{replace();return sb;};const replacement=[];p.negotiate({candidates,windowed:false},p.generation,media,worker,{},new Set());assert.deepEqual(removed,[sb]);assert.deepEqual(sent,[{type:'close'}]);assert.equal(p.media.replacement,true);assert.equal(p.worker.replacement,true);assert.deepEqual(p.sbs,replacement);assert.equal(p.negotiation.sourceBufferCreated,false);
+ const {p,sb,media,worker,sent,removed,replace}=shell(t);const acquired={...sb};media.addSourceBuffer=()=>{replace();return acquired;};const replacement=[];p.negotiate({candidates,windowed:false},p.generation,media,worker,{},new Set());assert.deepEqual(removed,[sb,acquired]);assert.deepEqual(sent,[{type:'close'}]);assert.equal(p.media.replacement,true);assert.equal(p.worker.replacement,true);assert.deepEqual(p.sbs,replacement);assert.equal(p.negotiation.sourceBufferCreated,false);
 });
 test('actual support probe replacement cannot allocate or select a container',t=>{
  const {p,media,worker,replace,sent}=shell(t);let adds=0;media.addSourceBuffer=()=>{adds++;};globalThis.MediaSource.isTypeSupported=()=>{replace();return true;};p.negotiate({candidates,windowed:false},p.generation,media,worker,{},new Set());assert.equal(adds,0);assert.deepEqual(sent,[{type:'close'}]);

@@ -208,3 +208,7 @@ Playwright failures and cannot replace the release qualification gate.
 When the CDP control fails its original five-second target deadline, it also records
 remaining targets after page garbage collection as a post-failure diagnostic.
 This observation cannot change the failed trial into a pass or qualify a release.
+
+Retained-archive overlays also record `web/native-remux-player.js` when testing
+SourceBuffer retirement. The installed-consumer diagnostic copies and records the same
+remux module alongside the native MSE worker; the release verifier rejects these overlays.

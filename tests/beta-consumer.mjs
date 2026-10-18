@@ -11,10 +11,13 @@ const assetRoot=path.join(root,'node_modules/demuxe');const manifest=JSON.parse(
 for(const [name,expected]of Object.entries(manifest.files)){const b=await readFile(path.join(assetRoot,name));assert.equal(createHash('sha256').update(b).digest('hex'),expected.sha256,name);}
 const result={testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex'),typecheck:true,family,consumerRoot:root,archiveSHA256:createHash('sha256').update(await readFile(archive)).digest('hex'),manifest,cases:[]};
 if(process.env.DEMUXE_DIAGNOSTIC_MSE_WORKER){
- const file='web/native-mse-worker.js',original=await readFile(path.join(assetRoot,file)),overlay=await readFile(process.env.DEMUXE_DIAGNOSTIC_MSE_WORKER);
- const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
- result.runtimeOverlay={scope:'Private-copy diagnostic only; not release qualification',file,originalSHA256:hash(original),overlaySHA256:hash(overlay)};
- await writeFile(path.join(assetRoot,file),overlay);
+ result.runtimeOverlay={scope:'Private-copy diagnostic only; not release qualification',files:[]};
+ for(const file of ['web/native-mse-worker.js','web/native-remux-player.js']){
+  const original=await readFile(path.join(assetRoot,file)),overlay=await readFile(path.join(path.dirname(process.env.DEMUXE_DIAGNOSTIC_MSE_WORKER),path.basename(file)));
+  const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+  result.runtimeOverlay.files.push({file,originalSHA256:hash(original),overlaySHA256:hash(overlay)});
+  await writeFile(path.join(assetRoot,file),overlay);
+ }
 }
 
 const mpvCases=['private-mpv-subtitles-auto','private-mpv-subtitles-asyncify','private-mpv-audio-auto','private-mpv-audio-asyncify','private-mpv-composed','private-mpv-cancellation','private-mpv-asset-mismatch'];

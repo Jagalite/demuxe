@@ -406,7 +406,7 @@ export class RemuxPlayer {
   const retiredBuffer=this.retiredBuffer??this.bufferState;this.retiredBuffer=null;
   // Detach the retired generation before invoking callbacks or host cleanup.
   // Reentrant opens then install independent resources which this cleanup cannot touch.
-  const {worker,sourceWorker,sourcePort,mailbox,cancelWait,cancelPrime,primeResource,bufferResources,updateResources,sourceBufferListeners}=this;
+  const {worker,sourceWorker,sourcePort,mailbox,cancelWait,cancelPrime,primeResource,bufferResources,updateResources,sourceBufferListeners,media,sbs}=this;
   this.bufferResources=new Map();this.updateResources=new Map();this.sourceBufferListeners=new Set();this.primeResource=null;
   this.worker=this.sourceWorker=this.sourcePort=this.mailbox=this.cancelWait=this.cancelPrime=null;
   if(worker){(this.stats.cancellations??=[]).push({adaptation:this.remuxStats.adaptation?{...this.remuxStats.adaptation}:undefined,generatedBytes:this.remuxStats.generatedBytes||0,pendingBytes:(retiredBuffer.pending??[]).reduce((n,part)=>n+part.bytes,0),retainedCompressedBytesUpperBound:retiredBuffer.segments.reduce((n,segment)=>n+segment.bytes,0),sourceFetchedBytes:this.sourceStats.fetchedBytes||0,inFlightOutputUpperBound:(this.windowed?16:8)*1024*1024});if(this.stats.cancellations.length>64)this.stats.cancellations.shift();}
@@ -414,6 +414,8 @@ export class RemuxPlayer {
   const cleanup=action=>{try{action();}catch{this.stats.cleanupFailures=(this.stats.cleanupFailures??0)+1;}};
   for(const {sb,handler} of updateResources?.values()??[])cleanup(()=>sb.removeEventListener('updateend',handler));updateResources?.clear();
   for(const {sb,handler} of sourceBufferListeners??[])cleanup(()=>sb.removeEventListener('error',handler));sourceBufferListeners?.clear();
+  // Release the retiring generation's native append work before replacing its attachment.
+  for(const sb of sbs??[]){if(media?.readyState==='open'){if(sb.updating)cleanup(()=>sb.abort());cleanup(()=>media.removeSourceBuffer(sb));}}
   if(cancelPrime)cleanup(cancelPrime);else if(primeResource){clearTimeout(primeResource.timer);if(primeResource.frame)cleanup(()=>this.video.cancelVideoFrameCallback(primeResource.frame));}
   cleanup(()=>cancelWait?.(error));
   if(mailbox)cleanup(()=>{const h=new Int32Array(mailbox,0,16);Atomics.store(h,4,1);Atomics.store(h,0,3);Atomics.notify(h,0);});
