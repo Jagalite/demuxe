@@ -68,6 +68,11 @@ try{
    const retirement=row.teardown.startedAt;let targets;
    do{targets=(await send('Target.getTargets')).targetInfos.filter(target=>target.type==='worker'&&target.browserContextId===browserContextId);if(!targets.length||Date.now()-retirement>=5000)break;await delay(25);}while(true);
    row.retirementMs=Date.now()-retirement;row.remainingTargets=targets;
+   if(targets.length){
+    // Post-failure observation only: never resets the original deadline or pass.
+    const gcStarted=Date.now();await send('HeapProfiler.collectGarbage',{},sessionId);
+    await delay(250);row.afterPageGC={elapsedMs:Date.now()-gcStarted,remainingTargets:(await send('Target.getTargets')).targetInfos.filter(target=>target.type==='worker'&&target.browserContextId===browserContextId)};
+   }
    if(targets.length||row.playbackErrors.length)throw Error('Direct-CDP playback/retirement failed');row.passed=true;
   }catch(error){row.error=String(error.stack);if(row.startupEvents)throw error;}
   finally{if(browserContextId)await send('Target.disposeBrowserContext',{browserContextId}).catch(error=>{row.contextError=String(error);row.passed=false;});await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');}

@@ -204,3 +204,7 @@ and requires every worker shutdown acknowledgement. All retirement work counts w
 same five-second deadline. Earlier delay and navigation controls still leaked workers.
 This control is retained alongside the
 Playwright failures and cannot replace the release qualification gate.
+
+When the CDP control fails its original five-second target deadline, it also records
+remaining targets after page garbage collection as a post-failure diagnostic.
+This observation cannot change the failed trial into a pass or qualify a release.
