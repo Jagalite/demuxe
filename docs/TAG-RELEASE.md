@@ -194,3 +194,12 @@ The Chrome replay also records eighty minimal MediaSource worker lifetimes acros
 window/iframe ownership, self-close/parent termination and same-element source replacement. This isolates browser
 lifetime behavior without FFmpeg, decoded media or production player state; a
 passing probe alone does not resolve a failing playback teardown.
+
+The Chrome lane also drives twenty remux/ASS replacement sequences per document-retirement mode through a
+page-only CDP session, without attaching debuggers to workers. It must observe
+active MSE worker targets before teardown and zero worker targets within five
+seconds afterward. It compares immediate owned-iframe removal, a diagnostic-only 50 ms delay,
+and a fresh-document navigation barrier after worker termination. All retirement
+work counts within the same five-second deadline; navigation timeouts fail the
+navigation control rather than qualifying a timed fallback. This debugging/document-lifetime control is retained alongside the
+Playwright failures and cannot replace the release qualification gate.
