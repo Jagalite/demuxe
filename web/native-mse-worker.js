@@ -3,7 +3,7 @@ import {RemuxPlayer} from './native-remux-player.js';
 import {initialRemuxWorker,transitionRemuxWorker,remuxWorkerLive,remuxWorkerOperationCurrent,initialRemuxElement,observeRemuxElement,seekRemuxElement,pauseRemuxElement} from './generated/internal/machine/remux-worker.js';
 // Reuse the maintained scheduler, eviction rules and generation owner. FFmpeg
 // and source I/O remain in separate child workers; neither blocks this loop.
-let owner,cancelBoot,control=initialRemuxWorker(),element=initialRemuxElement();
+let owner,cancelBoot,attachedMedia,control=initialRemuxWorker(),element=initialRemuxElement();
 const pending=new Map();
 const transition=command=>{const result=transitionRemuxWorker(control,command);control=result.state;return result;};
 const aborted=()=>new DOMException('Superseded','AbortError');
@@ -54,7 +54,7 @@ const video=new ElementState();
 const state=()=>({duration:owner?.duration,tracks:owner?.tracks,generation:owner?.generation,eof:owner?.eof,muxedFrames:owner?.muxedFrames,frames:owner?.muxedFrames?owner.frames:undefined,waitingForMedia:owner?.waitingForMedia,snapshot:owner?.snapshot()});
 async function boot(operation,options){
  if(!globalThis.MediaSource?.canConstructInDedicatedWorker)throw Error('Worker MSE unavailable');
- const media=new MediaSource();if(!media.handle)throw Error('MediaSourceHandle unavailable');
+ const media=attachedMedia=new MediaSource();if(!media.handle)throw Error('MediaSourceHandle unavailable');
  await new Promise((resolve,reject)=>{
   let timer,settled=false;
   const finish=error=>{if(settled)return;settled=true;clearTimeout(timer);media.removeEventListener('sourceopen',opened);if(cancelBoot===cancel)cancelBoot=undefined;error?reject(error):resolve();};
@@ -62,16 +62,26 @@ async function boot(operation,options){
   try{timer=setTimeout(()=>finish(Error('Worker MSE attachment timed out')),3000);media.addEventListener('sourceopen',opened,{once:true});postMessage({type:'element',operation:'attach',handle:media.handle},[media.handle]);}catch(error){finish(error);}
  });
  if(!remuxWorkerOperationCurrent(control,operation))throw aborted();
- const candidate=new RemuxPlayer(video,{...options,bufferedSeeks:false,mseOwner:'window',attachMedia:media=>{if(remuxWorkerLive(control))postMessage({type:'element',operation:'attach',handle:media.handle},[media.handle]);}});
+ const candidate=new RemuxPlayer(video,{...options,bufferedSeeks:false,mseOwner:'window',attachMedia:media=>{if(remuxWorkerLive(control)){attachedMedia=media;postMessage({type:'element',operation:'attach',handle:media.handle},[media.handle]);}}});
  if(!remuxWorkerOperationCurrent(control,operation)){await candidate.destroy();throw aborted();}
  owner=candidate;candidate.onError=message=>{if(owner===candidate&&remuxWorkerLive(control))postMessage({type:'error',message});};
+}
+// Detachment is asynchronous across the element/worker MSE boundary. Keep the
+// event loop alive for it within the parent's existing one-second shutdown budget.
+async function waitForMediaDetachment(media){
+ if(!media||media.readyState==='closed')return true;
+ return new Promise(resolve=>{
+  let timer,settled=false;const finish=()=>{if(settled)return;settled=true;clearTimeout(timer);media.removeEventListener('sourceclose',finish);resolve(media.readyState==='closed');};
+  media.addEventListener('sourceclose',finish,{once:true});timer=setTimeout(finish,500);
+  if(media.readyState==='closed')finish();
+ });
 }
 self.onmessage=async({data})=>{
  if(data.type==='shutdown'){
   const decision=transition({type:'shutdown'});if(!decision.accepted)return;
-  const retiring=owner,cancel=cancelBoot;owner=undefined;cancelBoot=undefined;clearInterval(stateTimer);retireRequests(decision.retire,new DOMException('Destroyed','AbortError'));cancel?.();
+  const retiring=owner,cancel=cancelBoot,media=attachedMedia;attachedMedia=undefined;owner=undefined;cancelBoot=undefined;clearInterval(stateTimer);retireRequests(decision.retire,new DOMException('Destroyed','AbortError'));cancel?.();
   // Parent teardown may run as soon as it receives the acknowledgement.
-  try{await retiring?.destroy();}finally{if(transition({type:'closed'}).accepted){close();postMessage({type:'closed'});}}return;
+  try{await retiring?.destroy();}finally{const mediaDetached=await waitForMediaDetachment(media);if(transition({type:'closed'}).accepted){close();postMessage({type:'closed',mediaDetached});}}return;
  }
  if(!remuxWorkerLive(control))return;
  if(data.type==='playback-intent'){owner?.setPlaybackIntent(data.playing);return;}

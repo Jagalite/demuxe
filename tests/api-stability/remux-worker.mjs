@@ -34,13 +34,13 @@ test('element observations are detached and optimistic seek/pause preserve the r
 
 const source=(await readFile(new URL('../../web/native-mse-worker.js',import.meta.url),'utf8')).replace(/^import .*;$/gm,'');
 function adapter(){
- const messages=[],media=[],owners=[],timers=new Map();let sequence=0,callId=0,now=0,closed=0,attach=true,onPost,scheduleFailure;
- class Media extends EventTarget {static canConstructInDedicatedWorker=true;handle={};listeners=0;constructor(){super();media.push(this);}addEventListener(...args){this.listeners++;super.addEventListener(...args);}removeEventListener(...args){this.listeners--;super.removeEventListener(...args);}}
+ const messages=[],media=[],owners=[],timers=new Map();let sequence=0,callId=0,now=0,closed=0,attach=true,detach=true,onPost,scheduleFailure;
+ class Media extends EventTarget {static canConstructInDedicatedWorker=true;handle={};readyState='closed';listeners=0;constructor(){super();media.push(this);}addEventListener(...args){this.listeners++;super.addEventListener(...args);}removeEventListener(...args){this.listeners--;super.removeEventListener(...args);}}
  class RemuxPlayer {constructor(video,options){this.video=video;this.options=options;this.generation=0;owners.push(this);}async open(source,target){this.source=source;this.generation++;return {target};}async seek(target){this.generation++;return {target};}setPlaybackIntent(playing){this.playing=playing;}async setBuffering(value){this.buffering=value;}snapshot(){return {position:this.video.currentTime,capability:{sourceBufferCreated:false}};}async destroy(){this.destroyed=true;}}
- const context=vm.createContext({...machine,RemuxPlayer,MediaSource:Media,DOMException,performance:{now:()=>now},Map,self:{},setTimeout:(callback,delay)=>{if(scheduleFailure)throw scheduleFailure;const id=++sequence;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),setInterval:()=>++sequence,clearInterval(){},postMessage:message=>{messages.push(message);onPost?.(message);if(attach&&message.type==='element'&&message.operation==='attach')media.find(item=>item.handle===message.handle).dispatchEvent(new Event('sourceopen'));},close:()=>closed++});
+ const context=vm.createContext({...machine,RemuxPlayer,MediaSource:Media,DOMException,performance:{now:()=>now},Map,self:{},setTimeout:(callback,delay)=>{if(scheduleFailure)throw scheduleFailure;const id=++sequence;timers.set(id,{callback,delay});return id;},clearTimeout:id=>timers.delete(id),setInterval:()=>++sequence,clearInterval(){},postMessage:message=>{messages.push(message);onPost?.(message);if(attach&&message.type==='element'&&message.operation==='attach')(()=>{const owned=media.find(item=>item.handle===message.handle);owned.readyState='open';owned.dispatchEvent(new Event('sourceopen'));})();},close:()=>closed++});
  vm.runInContext(source,context);
- const send=data=>context.self.onmessage({data});
- return{messages,media,owners,timers,send,call:(method,value)=>send({type:'call',id:++callId,method,value}),get state(){return vm.runInContext('control',context);},get closed(){return closed;},set attach(value){attach=value;},set onPost(value){onPost=value;},set scheduleFailure(value){scheduleFailure=value;},set now(value){now=value;},fire(id){const timer=timers.get(id);timers.delete(id);timer.callback();},async ready(){await this.call('boot',{});await this.call('open',{source:{file:{}},target:0,refresh:true,sourceKey:'a'});return owners[0];}};
+ const send=data=>{if(data.type==='shutdown'&&detach)for(const owned of media){owned.readyState='closed';owned.dispatchEvent(new Event('sourceclose'));}return context.self.onmessage({data});};
+ return{messages,media,owners,timers,send,call:(method,value)=>send({type:'call',id:++callId,method,value}),get state(){return vm.runInContext('control',context);},get closed(){return closed;},set attach(value){attach=value;},set detach(value){detach=value;},set onPost(value){onPost=value;},set scheduleFailure(value){scheduleFailure=value;},set now(value){now=value;},fire(id){const timer=timers.get(id);timers.delete(id);timer.callback();},async ready(){await this.call('boot',{});await this.call('open',{source:{file:{}},target:0,refresh:true,sourceKey:'a'});return owners[0];}};
 }
 test('actual worker shutdown cancels boot attachment and blocks late owner construction/replies',async()=>{
  const a=adapter();a.attach=false;const boot=a.call('boot',{});assert.equal(a.media[0].listeners,1);await a.send({type:'shutdown'});await boot;a.media[0].dispatchEvent(new Event('sourceopen'));assert.equal(a.owners.length,0);assert.equal(a.media[0].listeners,0);assert.equal(a.timers.size,0);assert.equal(a.messages.filter(message=>message.type==='reply').length,0);assert.equal(a.closed,1);await a.send({type:'shutdown'});assert.equal(a.closed,1);
@@ -104,4 +104,28 @@ test('shutdown acknowledges only after requesting worker scope closure',async()=
  a.onPost=message=>{if(message.type==='closed'){assert.equal(a.closed,1,'Scope close must precede the parent termination acknowledgement');acknowledgements++;}};
  await a.send({type:'shutdown'});assert.equal(acknowledgements,1);
  await a.send({type:'shutdown'});assert.equal(acknowledgements,1);
+});
+
+
+test('shutdown waits for attached MediaSource detachment before acknowledging',async()=>{
+ const a=adapter();await a.ready();a.detach=false;
+ const closing=a.send({type:'shutdown'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(a.closed,0);assert.equal(a.messages.some(m=>m.type==='closed'),false);
+ const media=a.media.at(-1);media.readyState='closed';media.dispatchEvent(new Event('sourceclose'));await closing;
+ assert.equal(a.closed,1);assert.equal(a.messages.at(-1).mediaDetached,true);assert.equal(a.timers.size,0);
+});
+test('media detachment wait remains within the parent shutdown budget',async()=>{
+ const a=adapter();await a.ready();a.detach=false;
+ const closing=a.send({type:'shutdown'});await new Promise(resolve=>setImmediate(resolve));
+ const [id,timer]=[...a.timers.entries()][0];assert.equal(timer.delay,500);a.fire(id);await closing;
+ assert.equal(a.closed,1);assert.equal(a.messages.at(-1).mediaDetached,false);assert.equal(a.timers.size,0);
+});
+
+test('shutdown waits for the latest replacement MediaSource rather than the boot attachment',async()=>{
+ const a=adapter(),owner=await a.ready(),first=a.media[0],replacement=new first.constructor();
+ owner.options.attachMedia(replacement);first.readyState='closed';a.detach=false;
+ const closing=a.send({type:'shutdown'});await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(a.closed,0);assert.equal(a.timers.size,1);
+ replacement.readyState='closed';replacement.dispatchEvent(new Event('sourceclose'));await closing;
+ assert.equal(a.messages.at(-1).mediaDetached,true);assert.equal(a.timers.size,0);
 });

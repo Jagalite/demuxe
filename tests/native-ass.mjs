@@ -22,7 +22,7 @@ try{
     WorkerRemuxController.prototype.releaseResources=function(id){
      const worker=this.worker,frame=this.workerOwner,mediaHandle=this.workerMediaHandle??this.video.srcObject,row={id,hadWorker:!!worker,ownerConnectedBefore:frame?.isConnected,mediaAttachedAtRelease:mediaHandle!=null&&this.video.srcObject===mediaHandle};
      workerReleaseTrace.push(row);
-     if(worker){worker.addEventListener('message',({data})=>{if(data.type==='closed')row.shutdownAcknowledged=true;});const terminate=worker.terminate.bind(worker);worker.terminate=(...args)=>{row.terminateCalled=true;row.mediaAttachedAtTerminate=mediaHandle!=null&&this.video.srcObject===mediaHandle;try{const value=terminate(...args);row.terminateReturned=true;return value;}catch(error){row.terminateError=String(error);throw error;}};}
+     if(worker){worker.addEventListener('message',({data})=>{if(data.type==='closed'){row.shutdownAcknowledged=true;row.mediaDetachedAtAcknowledgement=data.mediaDetached;}});const terminate=worker.terminate.bind(worker);worker.terminate=(...args)=>{row.terminateCalled=true;row.mediaAttachedAtTerminate=mediaHandle!=null&&this.video.srcObject===mediaHandle;try{const value=terminate(...args);row.terminateReturned=true;return value;}catch(error){row.terminateError=String(error);throw error;}};}
      const completion=release.call(this,id);
      completion.then(()=>{row.ownerConnectedAfter=frame?.isConnected;row.cleanupFailures=this.control.cleanupFailures;},error=>{row.releaseError=String(error);});
      return completion;
