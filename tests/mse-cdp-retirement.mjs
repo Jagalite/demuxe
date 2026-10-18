@@ -27,7 +27,7 @@ try{
  const disconnect=()=>{for(const entry of pending.values()){clearTimeout(entry.timer);entry.reject(Error('CDP connection closed'));}pending.clear();};socket.addEventListener('close',disconnect);socket.addEventListener('error',disconnect);
  socket.addEventListener('message',event=>{const message=JSON.parse(event.data);if(events.has(message.sessionId)&&(['Runtime.exceptionThrown','Network.loadingFailed'].includes(message.method)||message.method==='Network.responseReceived'&&message.params.response.status>=400)){const entries=events.get(message.sessionId);if(entries.length<30)entries.push(message);}const entry=pending.get(message.id);if(!entry)return;pending.delete(message.id);clearTimeout(entry.timer);message.error?entry.reject(Error(message.error.message)):entry.resolve(message.result);});
  report.browser=await send('Browser.getVersion');await send('Target.setDiscoverTargets',{discover:true});
- for(const documentRetirement of ['immediate','delay50','navigate'])for(let iteration=0;iteration<rounds;iteration++){
+ for(const documentRetirement of ['immediate','cooperative'])for(let iteration=0;iteration<rounds;iteration++){
   const frameRemovalDelayMs=documentRetirement==='delay50'?50:0;
   const row={iteration,documentRetirement,frameRemovalDelayMs,passed:false};report.checks.push(row);let browserContextId;
   try{
@@ -40,18 +40,14 @@ try{
    events.delete(sessionId);delete row.startupEvents;
    await evaluate(sessionId,`(async()=>{await window.player?.destroy();const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode:'native',nativeRemux:'always',experimentalNativeASS:true,experimentalBufferedNativeSeeks:true});window.playbackErrors=[];player.addEventListener('error',event=>playbackErrors.push(event.detail));const font=await(await fetch('/fixtures/DejaVuSans.ttf')).blob();await player.addFont(new File([font],'DejaVuSans.ttf'));const input=document.createElement('input');input.type='file';input.id='mse-cdp-media';document.body.append(input);})()`);
    await evaluate(sessionId,`(async()=>{
-    window.frameRetirements=[];window.frameNavigationTimeouts=0;window.frameRemovalDelayMs=${frameRemovalDelayMs};window.documentRetirement=${JSON.stringify(documentRetirement)};
+    window.frameRetirements=[];window.frameNavigationTimeouts=0;window.cooperativeAcknowledgements=0;window.frameRemovalDelayMs=${frameRemovalDelayMs};window.documentRetirement=${JSON.stringify(documentRetirement)};
     if(documentRetirement==='immediate')return;
     const {WorkerRemuxController}=await import('/web/worker-remux-controller.js'),release=WorkerRemuxController.prototype.releaseResources;
     WorkerRemuxController.prototype.releaseResources=function(id){
      const frame=this.workerOwner;
-     if(frame&&!frame.diagnosticDelayedRemoval){frame.diagnosticDelayedRemoval=true;const remove=frame.remove.bind(frame);frame.remove=()=>{frameRetirements.push(new Promise(resolve=>{
-      const previousDocument=frame.contentDocument;let timer,finished=false;
-      const loaded=()=>{if(frame.contentDocument!==previousDocument)finish();};
-      const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);frame.removeEventListener('load',loaded);remove();resolve();};
-      if(documentRetirement==='delay50')timer=setTimeout(finish,frameRemovalDelayMs);
-      else{frame.addEventListener('load',loaded);timer=setTimeout(()=>{frameNavigationTimeouts++;finish();},500);frame.src='about:blank';}
-     }));};}
+     if(frame&&!frame.diagnosticDelayedRemoval){frame.diagnosticDelayedRemoval=true;
+     if(documentRetirement==='cooperative'){this.worker.addEventListener('message',({data})=>{if(data.type==='closed')cooperativeAcknowledgements++;});this.worker.terminate=()=>{};frame.remove=()=>{frameRetirements.push(Promise.resolve());};return release.call(this,id);}
+    }
      return release.call(this,id);
     };
    })()`);
@@ -64,8 +60,9 @@ try{
    row.targetsBeforeRetirement=(await send('Target.getTargets')).targetInfos.filter(target=>target.type==='worker'&&target.browserContextId===browserContextId);
    row.mseOwner=await evaluate(sessionId,"player.current.backend.remux.snapshot().mseOwner");
    if(row.mseOwner!=='worker'||!row.targetsBeforeRetirement.length||row.targetsBeforeRetirement.some(target=>target.attached))throw Error('Control did not observe active, debugger-detached worker MSE');
-   row.teardown=await evaluate(sessionId,'(async()=>{await player.open(mediaFile);const startedAt=Date.now();await player.destroy();await Promise.all(frameRetirements);return {startedAt,delayedFrames:frameRetirements.length,navigationTimeouts:frameNavigationTimeouts};})()');
+   row.teardown=await evaluate(sessionId,'(async()=>{await player.open(mediaFile);const startedAt=Date.now();await player.destroy();await Promise.all(frameRetirements);return {startedAt,delayedFrames:frameRetirements.length,navigationTimeouts:frameNavigationTimeouts,cooperativeAcknowledgements};})()');
    if(documentRetirement!=='immediate'&&!row.teardown.delayedFrames)throw Error('Document-retirement control did not run');
+   if(documentRetirement==='cooperative'&&row.teardown.cooperativeAcknowledgements!==row.teardown.delayedFrames)throw Error('Cooperative shutdown acknowledgement missing');
    if(documentRetirement==='navigate'&&row.teardown.navigationTimeouts)throw Error('Document navigation barrier not observed');
    row.playbackErrors=await evaluate(sessionId,'playbackErrors');
    const retirement=row.teardown.startedAt;let targets;
