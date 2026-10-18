@@ -70,7 +70,8 @@ self.onmessage=async({data})=>{
  if(data.type==='shutdown'){
   const decision=transition({type:'shutdown'});if(!decision.accepted)return;
   const retiring=owner,cancel=cancelBoot;owner=undefined;cancelBoot=undefined;clearInterval(stateTimer);retireRequests(decision.retire,new DOMException('Destroyed','AbortError'));cancel?.();
-  try{await retiring?.destroy();}finally{if(transition({type:'closed'}).accepted){postMessage({type:'closed'});close();}}return;
+  // Parent teardown may run as soon as it receives the acknowledgement.
+  try{await retiring?.destroy();}finally{if(transition({type:'closed'}).accepted){close();postMessage({type:'closed'});}}return;
  }
  if(!remuxWorkerLive(control))return;
  if(data.type==='playback-intent'){owner?.setPlaybackIntent(data.playing);return;}

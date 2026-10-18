@@ -97,3 +97,11 @@ test('actual controller refreshes only the requesting source and discards late a
  worker.emit({type:'refresh',id:12,sourceKey:sourceA,resource:'late'});worker.emit({type:'refresh',id:13,sourceKey:sourceB,resource:'current'});await new Promise(resolve=>setImmediate(resolve));
  assert.deepEqual(calls,['a','b']);assert.match(messages.find(message=>message.type==='refreshed'&&message.id===12).error,/Superseded/);assert.equal(messages.find(message=>message.type==='refreshed'&&message.id===13).update.url,'current');
 });
+
+
+test('shutdown acknowledges only after requesting worker scope closure',async()=>{
+ const a=adapter();await a.ready();let acknowledgements=0;
+ a.onPost=message=>{if(message.type==='closed'){assert.equal(a.closed,1,'Scope close must precede the parent termination acknowledgement');acknowledgements++;}};
+ await a.send({type:'shutdown'});assert.equal(acknowledgements,1);
+ await a.send({type:'shutdown'});assert.equal(acknowledgements,1);
+});

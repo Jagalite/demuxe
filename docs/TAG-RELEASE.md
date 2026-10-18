@@ -179,8 +179,13 @@ It cannot satisfy **Release candidate qualification**, publish assets or stage
 npm. A complete qualification remains necessary after resolving the failure.
 
 For a reviewed controller change, `replay_ass_overlay=true` replaces only
-`web/worker-remux-controller.js` in a private installed copy after verifying the
+the changed controller and native MSE worker modules in a private installed copy after verifying the
 original archive. The receipt records original and replacement module hashes;
 the archive itself is unchanged, and this diagnostic does not qualify the
 modified runtime. `replay_ass_rounds` accepts 1–10 independent main-suite trials.
 A final clean-source qualification must package and verify the fix normally.
+
+The focused replay also runs the installed consumer's `native-remux` case once
+per trial. It records fixture and module hashes and disables consumer startup
+retries in this diagnostic lane. Private module replacements are recorded in
+each consumer receipt and cannot qualify a release archive.

@@ -18,23 +18,26 @@ const runtime=await installLiveRuntime(archive);
 const out=`results/ass-archive-replay/${family}-${Date.now()}`;await mkdir(out,{recursive:true});
 const report={nodeVersion:process.version,platform:process.platform,scope:'Retained-archive diagnostic only; not release qualification',archiveSHA256:runtime.archiveSHA256,sourceCommit:runtime.manifest.sourceCommit,harnessCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),family,rounds,runtimeOverlays:[],checks:[],passed:false};
 try{
- report.fixtures=Object.fromEntries(await Promise.all(['build/optimization-fixtures/gain.mp4','build/optimization-fixtures/long-pcm.mkv','results/optimization-integration/reference/web/edge.mkv','fixtures/qualification.ass'].map(async file=>[file,hash(await readFile(file))])));
+ report.fixtures=Object.fromEntries(await Promise.all(['build/optimization-fixtures/gain.mp4','build/optimization-fixtures/long-pcm.mkv','results/optimization-integration/reference/web/edge.mkv','fixtures/qualification.ass','fixtures/example.mp4','build/fixtures/tracks.mkv','build/routing-completion/fixtures/vp9-opus.mkv'].map(async file=>[file,hash(await readFile(file))])));
  assert.equal(runtime.manifest.sourceCommit,process.env.REPLAY_SOURCE_COMMIT,'Replay source mismatch');
  if(process.env.REPLAY_CONTROLLER_OVERLAY==='1'){
-  const file='web/worker-remux-controller.js',target=runtime.runtimeRoot+'/'+file;
-  const original=await readFile(target),overlay=await readFile(new URL('../'+file,import.meta.url));
-  assert.notEqual(hash(original),hash(overlay),'Controller overlay must differ from retained runtime');
-  report.runtimeOverlays.push({file,originalSHA256:hash(original),overlaySHA256:hash(overlay)});
+  for(const file of ['web/worker-remux-controller.js','web/native-mse-worker.js']){
+   const target=runtime.runtimeRoot+'/'+file,original=await readFile(target),overlay=await readFile(new URL('../'+file,import.meta.url));
+   if(hash(original)===hash(overlay))continue;
+   report.runtimeOverlays.push({file,originalSHA256:hash(original),overlaySHA256:hash(overlay)});
+   await writeFile(target,overlay);
+  }
+  assert.ok(report.runtimeOverlays.length,'MSE overlay must differ from retained runtime');
   report.scope='Retained archive with recorded runtime overlay; diagnostic only, not release qualification';
-  await writeFile(target,overlay);
  }
 
  const env={...process.env,DEMUXE_RUNTIME_ROOT:runtime.runtimeRoot,DEMUXE_TRACE_WORKER_RELEASE:'1'};
  for(const key of ['ONLY','CASES','PROFILE','LIVE_NEGATIVE_CONTROL','DEMUXE_WEBKIT_TEST_MODULE'])delete env[key];
- const scripts=[...Array(rounds).fill('tests/native-ass.mjs'),'tests/native-ass-selection-regressions.mjs','tests/native-ass-style-regressions.mjs'];
+ const scripts=[...Array.from({length:rounds},()=>['tests/native-ass.mjs','tests/beta-consumer.mjs']).flat(),'tests/native-ass-selection-regressions.mjs','tests/native-ass-style-regressions.mjs'];
  for(const [iteration,script]of scripts.entries()){
   const row={iteration,script,harnessSHA256:hash(await readFile(script)),passed:false};report.checks.push(row);
-  const run=spawnSync(process.execPath,[script],{env,encoding:'utf8',timeout:5*60*1000,maxBuffer:30*1024*1024});
+  const trialEnv=script==='tests/beta-consumer.mjs'?{...env,CASES:'native-remux',DEMUXE_DIAGNOSTIC_NO_RETRY:'1',...(report.runtimeOverlays.length?{DEMUXE_DIAGNOSTIC_MSE_WORKER:runtime.runtimeRoot+'/web/native-mse-worker.js'}:{})}:env;
+  const run=spawnSync(process.execPath,[script],{env:trialEnv,encoding:'utf8',timeout:5*60*1000,maxBuffer:30*1024*1024});
   row.exitCode=run.status;row.error=run.error?String(run.error):undefined;row.passed=run.status===0;
   row.log=iteration+'-'+script.split('/').at(-1)+'.log';await writeFile(out+'/'+row.log,(run.stdout??'')+(run.stderr??''));
   await writeFile(out+'/result.json',JSON.stringify(report,null,2)+'\n');console.log(script,row.passed?'PASS':'FAIL');

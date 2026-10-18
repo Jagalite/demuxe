@@ -29,7 +29,7 @@ on:
         type: string
         default: ''
       replay_ass_overlay:
-        description: Diagnostic only - overlay the reviewed worker controller on a private installed copy
+        description: Diagnostic only - overlay reviewed MSE modules on a private installed copy
         type: boolean
         default: false
       replay_ass_rounds:
@@ -134,7 +134,7 @@ jobs:
           github-token: ${{ github.token }}
       - name: Prepare the maintained release fixture recipes
         run: python3 scripts/prepare-release-fixtures.py
-      - name: Replay all three ASS suites on verified retained bytes
+      - name: Replay ASS and native-remux consumer suites on verified retained bytes
         run: |
           BETA_ARCHIVE="$RUNNER_TEMP/ass-replay/demuxe-$(node -p 'require("./package.json").version').tgz"
           export BETA_ARCHIVE
@@ -145,6 +145,7 @@ jobs:
           name: ass-replay-${{ matrix.browser }}
           path: |
             results/ass-archive-replay/
+            results/beta/
             results/optimization-completion/
             results/optimization-ass-fixes/
             build/release-fixture-recipes.json

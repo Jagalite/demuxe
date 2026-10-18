@@ -106,6 +106,7 @@ for paths,script,expected in [(args.consumer,'tests/beta-consumer.mjs',consumer_
  families=set()
  for file in paths:
   data=json.loads(file.read_text());families.add(data['family'])
+  if data.get('runtimeOverlay'):raise SystemExit('Diagnostic runtime overlay cannot qualify a release: '+str(file))
   if data['archiveSHA256']!=runtime_hash:raise SystemExit('Test used different archive: '+str(file))
   if not data['passed']or not all(c.get('passed')for c in data['cases'])or {c['name']for c in data['cases']}!=expected:raise SystemExit('Incomplete/failed test suite: '+str(file))
   if data['testHarnessSHA256']!=source['files'].get('demuxe/'+script):raise SystemExit('Test harness differs from tagged source: '+str(file))
