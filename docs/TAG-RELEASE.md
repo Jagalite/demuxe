@@ -195,15 +195,14 @@ window/iframe ownership, self-close/parent termination and same-element source r
 lifetime behavior without FFmpeg, decoded media or production player state; a
 passing probe alone does not resolve a failing playback teardown.
 
-The Chrome lane also drives twenty remux/ASS replacement sequences per document-retirement mode through a
+The Chrome lane also drives twenty remux/ASS replacement sequences through a
 page-only CDP session, without attaching debuggers to workers. It must observe
-active MSE worker targets before teardown and zero worker targets within five
-seconds afterward. It compares normal parent termination/iframe removal with a diagnostic-only
-cooperative control that suppresses both operations, retains the frame until context disposal,
-and requires every worker shutdown acknowledgement. All retirement work counts within the
-same five-second deadline. Earlier delay and navigation controls still leaked workers.
-This control is retained alongside the
-Playwright failures and cannot replace the release qualification gate.
+active worker-owned MSE before teardown and zero worker targets within five seconds
+afterward. The deadline and zero-worker requirement are unchanged. Historical
+iframe delay, navigation and cooperative-closure comparisons remain in their failed
+receipts; they did not resolve the leak. The current controller constructs its worker
+in the video element's owning document realm and allocates no disposable iframe.
+This independent CDP check cannot replace the full release qualification gate.
 
 When the CDP control fails its original five-second target deadline, it also records
 remaining targets after page garbage collection as a post-failure diagnostic.
@@ -211,4 +210,4 @@ This observation cannot change the failed trial into a pass or qualify a release
 
 Retained-archive overlays also record `web/native-remux-player.js` when testing
 SourceBuffer retirement. The installed-consumer diagnostic copies and records the same
-remux module alongside the native MSE worker; the release verifier rejects these overlays.
+remux module and controller alongside the native MSE worker; the release verifier rejects these overlays.

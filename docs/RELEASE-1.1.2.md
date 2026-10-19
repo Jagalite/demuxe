@@ -6,6 +6,11 @@ Package versions and internal Demuxe peer pins advance together.
 
 Changes since 1.1.1:
 
+- Construct native MSE workers in the video element's owning document realm.
+  This removes the disposable iframe associated with retained workers after
+  repeated playback and source replacement. Worker-owned MSE and off-thread
+  remux/source I/O remain enabled.
+
 - Recover file selection after an unsupported media open: choosing another file
   starts it immediately and clears the stale playground error.
 
