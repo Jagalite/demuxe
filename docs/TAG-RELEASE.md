@@ -211,3 +211,8 @@ This observation cannot change the failed trial into a pass or qualify a release
 Retained-archive overlays also record `web/native-remux-player.js` when testing
 SourceBuffer retirement. The installed-consumer diagnostic copies and records the same
 remux module and controller alongside the native MSE worker; the release verifier rejects these overlays.
+
+The standalone CDP diagnostic accepts `MSE_CDP_OWNER=worker|window` and records
+the expected and observed owner. Both modes must observe active transport workers
+and retire all targets within the same deadline. The retained replay explicitly
+pins the expected owner; changing this expectation requires a declared release-path change.
