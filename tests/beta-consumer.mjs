@@ -12,7 +12,7 @@ for(const [name,expected]of Object.entries(manifest.files)){const b=await readFi
 const result={testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex'),typecheck:true,family,consumerRoot:root,archiveSHA256:createHash('sha256').update(await readFile(archive)).digest('hex'),manifest,cases:[]};
 if(process.env.DEMUXE_DIAGNOSTIC_MSE_WORKER){
  result.runtimeOverlay={scope:'Private-copy diagnostic only; not release qualification',files:[]};
- for(const file of ['web/native-mse-worker.js','web/native-remux-player.js','web/worker-remux-controller.js']){
+ for(const file of ['web/native-mse-worker.js','web/native-remux-player.js']){
   const original=await readFile(path.join(assetRoot,file)),overlay=await readFile(path.join(path.dirname(process.env.DEMUXE_DIAGNOSTIC_MSE_WORKER),path.basename(file)));
   const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   result.runtimeOverlay.files.push({file,originalSHA256:hash(original),overlaySHA256:hash(overlay)});

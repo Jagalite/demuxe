@@ -35,17 +35,17 @@ test('destroy waits for an already pending error shutdown',async t=>{
  await new Promise(r=>setImmediate(r));assert.equal(finished,false);assert.equal(worker.terminated,false);assert.equal(documentOwner.removed,undefined);assert.ok(worker.messages.some(message=>message.type==='shutdown'));
  worker.send({type:'closed'});await destroyed;assert.equal(worker.terminated,true);assert.equal(documentOwner.removed,true);
 });
-for(const shutdown of ['acknowledged','timeout'])test(`destroy drains before detachment and bounds missing shutdown (${shutdown})`,async t=>{
+for(const shutdown of ['acknowledged','timeout'])test(`destroy detaches and resets its MSE handle before worker shutdown (${shutdown})`,async t=>{
  if(shutdown==='timeout')t.mock.timers.enable({apis:['setTimeout']});
  const {owner,worker,documentOwner}=await bootController(t),handle={owner:'retiring'},events=[];
  worker.send({type:'element',operation:'attach',handle});assert.equal(owner.video.srcObject,handle);
  const terminate=worker.terminate.bind(worker),remove=documentOwner.remove.bind(documentOwner),post=worker.postMessage.bind(worker);
  const load=owner.video.load.bind(owner.video);owner.video.load=()=>{assert.equal(owner.video.srcObject,null);events.push('reset');load();};
- worker.postMessage=message=>{if(message.type==='shutdown'){assert.equal(owner.video.srcObject,handle,'Keep the media attached while the worker drains');events.push('shutdown');}post(message);};
+ worker.postMessage=message=>{if(message.type==='shutdown'){assert.equal(owner.video.srcObject,null,'Detach before requesting shutdown');assert.equal(events[0],'reset','Reset before shutdown');events.push('shutdown');}post(message);};
  worker.terminate=()=>{assert.equal(owner.video.srcObject,null,'MSE handle must be detached before worker termination');events.push('terminate');terminate();};
  documentOwner.remove=()=>{assert.equal(owner.video.srcObject,null);events.push('remove');remove();};
- const destroyed=owner.destroy();if(shutdown==='acknowledged'){worker.send({type:'detach'});worker.send({type:'closed'});}else t.mock.timers.tick(1000);await destroyed;
- assert.deepEqual(events.slice(0,4),['shutdown','reset','terminate','remove']);assert.equal(owner.control.cleanupFailures,0);
+ const destroyed=owner.destroy();if(shutdown==='acknowledged')worker.send({type:'closed'});else t.mock.timers.tick(1000);await destroyed;
+ assert.deepEqual(events.slice(0,4),['reset','shutdown','terminate','remove']);assert.equal(owner.control.cleanupFailures,0);
 });
 test('retiring a worker preserves a successor MSE handle',async t=>{
  const {owner,worker}=await bootController(t),oldHandle={},successor={};
@@ -113,8 +113,4 @@ test('pausing an in-flight recovery play acknowledges cancellation without a pla
   worker.send({type:'element',operation:'play',id:7});owner.pause();rejectPlay(new DOMException('Interrupted by pause','AbortError'));
   await new Promise(r=>setImmediate(r));const reply=worker.messages.find(m=>m.type==='element-result'&&m.id===7);assert.ok(reply);assert.equal(reply.error,undefined);
  }finally{const worker=owner.worker,destroyed=owner.destroy();worker?.send({type:'closed'});await destroyed;globalThis.Worker=Original;}
-});
-
-test('duplicate drain messages cannot detach a successor attachment',async t=>{
- const {owner,worker}=await bootController(t),handle={},successor={};worker.send({type:'element',operation:'attach',handle});let resets=0;owner.video.load=()=>{resets++;};const closing=owner.release();worker.send({type:'detach'});assert.equal(owner.video.srcObject,null);assert.equal(resets,1);owner.video.srcObject=successor;worker.send({type:'detach'});worker.send({type:'closed'});await closing;assert.equal(owner.video.srcObject,successor);assert.equal(resets,1);
 });

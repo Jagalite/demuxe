@@ -212,8 +212,3 @@ This observation cannot change the failed trial into a pass or qualify a release
 Retained-archive overlays also record `web/native-remux-player.js` when testing
 SourceBuffer retirement. The installed-consumer diagnostic copies and records the same
 remux module alongside the native MSE worker; the release verifier rejects these overlays.
-
-Shutdown now drains the worker-owned remux resources while the media attachment is
-still live, then asks the parent to detach/reset only its owned handle, waits for
-sourceclose and acknowledges closure. The parent retains the one-second forced
-cleanup fallback; duplicate detach requests cannot affect successor attachments.
