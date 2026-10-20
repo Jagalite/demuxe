@@ -82,6 +82,15 @@ try{
   await page.keyboard.press('Escape');
   await page.evaluate(()=>{viewer.controlsMode='auto';});
  });
+ await check('Classic chrome uses measured reveal and hide fades without instantly hiding its children',async()=>{
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.evaluate(()=>{viewer.layout='classic';viewer.controlsMode='desktop';viewer.revealControls();});
+  assert.equal(await page.evaluate(()=>getComputedStyle($('controls')).transitionDuration),'0.25s');
+  await page.evaluate(()=>viewer.hideControls());
+  assert.equal(await page.evaluate(()=>getComputedStyle($('controls')).transitionDuration),'0.1s');
+  assert.equal(await page.evaluate(()=>getComputedStyle($('play')).opacity),'1');
+  await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>{viewer.controlsMode='auto';viewer.revealControls();});
+ });
  await check('studio frames the stage and keeps controls usable during idle playback',async()=>{
   await page.locator('#viewer #settings-toggle').click();
   await page.locator('#viewer #layout-select').selectOption('studio');
@@ -102,15 +111,15 @@ try{
   }
   await page.evaluate(()=>{viewer.style.maxWidth='400px';viewer.update(core.state);});
  });
- await check('cinema idle seeking reveals timing only; keyboard focus reveals chrome',async()=>{
+ await check('cinema keyboard seeking reveals full chrome and preserves keyboard access',async()=>{
   await page.evaluate(async()=>{viewer.layout='cinema';viewer.theme='demuxe';await core.seek(2);$('stage').focus();});
   const stage=page.locator('#viewer #stage');
   await stage.dispatchEvent('pointermove',{pointerType:'mouse'});
   await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');
   assert.equal(await page.evaluate(()=>$('shell').classList.contains('idle')),true);
   await page.keyboard.press('ArrowRight');
-  await page.waitForFunction(()=>!core.state.pendingOperation&&$('shell').classList.contains('seek-preview'));
-  assert.equal(await page.evaluate(()=>getComputedStyle($('utility-actions')).opacity==='0'&&getComputedStyle($('controls')).opacity==='1'),true);
+  await page.waitForFunction(()=>!core.state.pendingOperation&&!$('shell').classList.contains('idle'));
+  assert.equal(await page.evaluate(()=>getComputedStyle($('utility-actions')).opacity==='1'&&getComputedStyle($('controls')).opacity==='1'),true);
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(()=>$('shell').classList.contains('idle')),false);
  });

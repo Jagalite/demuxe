@@ -30,7 +30,7 @@ export function applyLayout(root:ShadowRoot, layout:PlayerLayout, hasSource=fals
   if(layout==='classic'&&!compact){
     row.prepend(transport,node('volume-control'),groupTimes());
     row.insertBefore(node('queue-navigation'),node('control-spacer'));
-    row.append(actions);
+    if(hasSource)row.append(actions);else node('topbar').append(actions);
   }else if(framedLayouts.has(layout)){
     row.prepend(transport,groupTimes(),node('volume-control'));
     if(layout==='deck')controls.insertBefore(transport,node('timeline'));
@@ -83,6 +83,13 @@ export const presentationStyles = `
 
 /* Classic follows the familiar video-site overlay: timeline, then a single control row.
    Compact controls keep their centered transport and generous touch targets. */
+/* Measured desktop YouTube chrome: 250ms reveal, 100ms dismissal, no stagger. */
+.shell[data-layout=classic] :is(.topbar,.controls,.transport){translate:none;scale:1;transition:opacity 250ms cubic-bezier(0,0,.2,1)}
+.shell[data-layout=classic].idle :is(.topbar,.controls,.transport){transition:opacity 100ms cubic-bezier(.4,0,1,1)}
+.shell[data-layout=classic].idle :is(.topbar .icon-button,.transport .icon-button,.controls .timeline,.controls .times){opacity:1}
+.shell[data-layout=classic][data-compact=false] .controls .transport{opacity:1}
+.shell[data-layout=classic] :is(.topbar .icon-button,.transport .icon-button,.controls .timeline,.controls .times){translate:none;scale:1;transition-delay:0ms;transition-duration:0ms}
+@media(prefers-reduced-motion:reduce){.shell[data-layout=classic] :is(.topbar,.controls,.transport){transition:none}}
 .shell[data-layout=classic]{border:0;font-family:Arial,Helvetica,sans-serif}
 .shell[data-layout=classic] .controls{padding:28px 12px 4px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;--demuxe-foreground:#fff;--demuxe-muted-foreground:#ddd}
 .shell[data-layout=classic] .timeline{--demuxe-accent:#f03;height:20px;min-height:20px;--timeline-thumb-size:12px}
