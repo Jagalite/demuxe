@@ -74,6 +74,14 @@ try{
    await page.locator('#viewer').screenshot({path:`${out}/${layout}-${theme}-${width}.png`});
   }
  });
+ await check('Classic desktop uses bottom transport and anchors settings above it',async()=>{
+  await page.evaluate(()=>{viewer.style.maxWidth='1050px';viewer.layout='classic';viewer.controlsMode='desktop';viewer.revealControls();});
+  await page.locator('#viewer #settings-toggle').click();
+  await page.waitForFunction(()=>!$('settings').hidden&&$('settings').getBoundingClientRect().width>0);
+  assert.deepEqual(await page.evaluate(()=>{const rect=id=>$(id).getBoundingClientRect();return {transport:$('transport').parentElement.id,actions:$('utility-actions').parentElement.id,playBelowTimeline:rect('play').top>=rect('timeline').bottom,menuAboveControls:rect('settings').bottom<=rect('timeline').top,paired:$('time').parentElement===$('duration').parentElement,hiddenSeek:getComputedStyle($('back')).display==='none'&&getComputedStyle($('forward')).display==='none'};}),{transport:'control-row',actions:'control-row',playBelowTimeline:true,menuAboveControls:true,paired:true,hiddenSeek:true});
+  await page.keyboard.press('Escape');
+  await page.evaluate(()=>{viewer.controlsMode='auto';});
+ });
  await check('studio frames the stage and keeps controls usable during idle playback',async()=>{
   await page.locator('#viewer #settings-toggle').click();
   await page.locator('#viewer #layout-select').selectOption('studio');
@@ -185,7 +193,7 @@ try{
   assert.deepEqual(await page.evaluate(()=>{const options=[...$('theme-select').options].map(o=>({value:o.value,label:o.textContent.trim()}));const applied=options.map(({value})=>{viewer.theme=value;const cs=getComputedStyle(viewer);return {attribute:viewer.getAttribute('theme'),palette:cs.getPropertyValue('--demuxe-background').trim()+cs.getPropertyValue('--demuxe-accent').trim(),overlay:getComputedStyle($('stage'),'::after').content};});viewer.theme='demuxe';return {themes:options.map(o=>o.value),labelled:options.every(o=>o.label.length>0),reflected:applied.every((a,i)=>a.attribute===options[i].value),palettes:new Set(applied.map(a=>a.palette)).size,overlays:applied.map(a=>a.overlay)};}),{themes:['demuxe','light','oled','contrast','paper','terminal'],labelled:true,reflected:true,palettes:6,overlays:Array(6).fill('none')});
  });
  await check('mobile Classic recomposes its row in reading order and desktop restores it',async()=>{
-  assert.deepEqual(await page.evaluate(()=>{const row=()=>[...$('control-row').children].map(node=>node.id==='time-display'?`time-display(${[...node.children].map(child=>child.id)})`:node.id).join(' ');viewer.layout='classic';viewer.controlsMode='mobile';const mobile=row();viewer.controlsMode='desktop';const desktop=row();viewer.layout='cinema';const cinema=row();viewer.layout='classic';viewer.controlsMode='auto';return {mobile,desktop,cinema,stray:!!viewer.shadowRoot.querySelector('#control-row > #time-display')&&viewer.controlsMode==='auto'&&!matchMedia('(max-width:600px), (pointer:coarse) and (max-width:960px)').matches};}),{mobile:'time-display(time,duration) queue-navigation control-spacer volume-control',desktop:'time volume-control queue-navigation control-spacer duration',cinema:'transport time-display(time,duration) volume-control control-spacer utility-actions queue-navigation',stray:false});
+  assert.deepEqual(await page.evaluate(()=>{const row=()=>[...$('control-row').children].map(node=>node.id==='time-display'?`time-display(${[...node.children].map(child=>child.id)})`:node.id).join(' ');viewer.layout='classic';viewer.controlsMode='mobile';const mobile=row();viewer.controlsMode='desktop';const desktop=row();viewer.layout='cinema';const cinema=row();viewer.layout='classic';viewer.controlsMode='auto';return {mobile,desktop,cinema,grouped:!!viewer.shadowRoot.querySelector('#control-row > #time-display')&&viewer.controlsMode==='auto'&&!matchMedia('(max-width:600px), (pointer:coarse) and (max-width:960px)').matches};}),{mobile:'time-display(time,duration) queue-navigation control-spacer volume-control',desktop:'transport volume-control time-display(time,duration) queue-navigation control-spacer utility-actions',cinema:'transport time-display(time,duration) volume-control control-spacer utility-actions queue-navigation',grouped:true});
  });
  await check('moved players keep responsive composition and themes keep persistent chrome, focus and waiting visible',async()=>{
   const narrow=await browser.newContext({viewport:{width:1200,height:1000},reducedMotion:'reduce'});

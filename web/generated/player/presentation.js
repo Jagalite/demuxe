@@ -10,7 +10,7 @@ export const playerDocks = ['off', 'corner'];
 const framedLayouts = new Set(['cinema', 'studio', 'deck']);
 const headerActionLayouts = new Set(['studio']);
 /** Recompose existing controls. The stage, media host, panels and listeners survive. */
-/** compact: mobile controls are active, so Classic groups its times as the framed layouts do. */
+/** compact: retain centered transport for touch; desktop Classic uses the bottom row. */
 export function applyLayout(root, layout, hasSource = false, compact = false) {
     const node = (id) => root.getElementById(id);
     const shell = node('shell'), composition = `${layout}:${hasSource}:${compact}`;
@@ -29,7 +29,12 @@ export function applyLayout(root, layout, hasSource = false, compact = false) {
         times.append(node('time'), node('duration'));
         return times;
     };
-    if (framedLayouts.has(layout)) {
+    if (layout === 'classic' && !compact) {
+        row.prepend(transport, node('volume-control'), groupTimes());
+        row.insertBefore(node('queue-navigation'), node('control-spacer'));
+        row.append(actions);
+    }
+    else if (framedLayouts.has(layout)) {
         row.prepend(transport, groupTimes(), node('volume-control'));
         if (layout === 'deck')
             controls.insertBefore(transport, node('timeline'));
@@ -55,6 +60,7 @@ export function applyLayout(root, layout, hasSource = false, compact = false) {
             times?.remove();
         }
     }
+    shell.dataset.compact = String(compact);
     shell.dataset.layout = layout;
     shell.dataset.composition = composition;
     if (focus?.isConnected && root.activeElement !== focus)
@@ -84,8 +90,53 @@ export const presentationStyles = `
 .shell:not([data-layout=classic]) .controls .utility-actions{gap:0}
 .shell:not([data-layout=classic]) .player-title{font-weight:500;letter-spacing:.015em}
 
-/* Classic: each floating transport glyph sits on a soft disc. It vanishes into dark footage and stays legible over bright footage. */
-.shell[data-layout=classic] .transport .icon-button,.shell[data-layout=classic] .transport .icon-button:hover{background:radial-gradient(closest-side,var(--demuxe-scrim-background) 58%,color-mix(in srgb,var(--demuxe-scrim-background) 40%,transparent) 80%,transparent)}
+/* Classic follows the familiar video-site overlay: timeline, then a single control row.
+   Compact controls keep their centered transport and generous touch targets. */
+.shell[data-layout=classic]{border:0;font-family:Arial,Helvetica,sans-serif}
+.shell[data-layout=classic] .controls{padding:28px 12px 4px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;--demuxe-foreground:#fff;--demuxe-muted-foreground:#ddd}
+.shell[data-layout=classic] .timeline{--demuxe-accent:#f03;height:20px;min-height:20px;--timeline-thumb-size:12px}
+.shell[data-layout=classic] .timeline::-webkit-slider-runnable-track{background:linear-gradient(to right,#f03 var(--progress),transparent var(--progress)),var(--buffered,linear-gradient(transparent,transparent)),#ffffff38}
+.shell[data-layout=classic] .timeline::-moz-range-track{background:var(--buffered,linear-gradient(transparent,transparent)),#ffffff38}
+.shell[data-layout=classic] .timeline::-moz-range-progress{background:#f03}
+.shell[data-layout=classic][data-compact=false] .timeline::-webkit-slider-thumb{scale:0;transition:scale var(--t-quick)}
+.shell[data-layout=classic][data-compact=false] .timeline::-moz-range-thumb{scale:0;transition:scale var(--t-quick)}
+.shell[data-layout=classic][data-compact=false] .timeline:is(:hover,:focus-visible,:active)::-webkit-slider-thumb{scale:1;box-shadow:none}
+.shell[data-layout=classic][data-compact=false] .timeline:is(:hover,:focus-visible,:active)::-moz-range-thumb{scale:1;box-shadow:none}
+.shell[data-layout=classic] .time{font:13px/1.5 Arial,Helvetica,sans-serif;letter-spacing:0}
+.shell[data-layout=classic] .time-display{gap:4px}
+.shell[data-layout=classic] .time-display #duration::before{margin-right:4px}
+.shell[data-layout=classic] .topbar{background:linear-gradient(#0009,transparent);color:#fff}
+.shell[data-layout=classic] .player-title{font-size:18px;text-shadow:0 1px 2px #0008}
+.shell[data-layout=classic][data-compact=false] .controls .times{gap:8px;min-height:44px}
+.shell[data-layout=classic][data-compact=false] .transport{position:static;transform:none;translate:none;scale:1;gap:0;flex:none;padding:0;background:none;box-shadow:none}
+.shell[data-layout=classic][data-compact=false] .transport #back,.shell[data-layout=classic][data-compact=false] .transport #forward{display:none}
+.shell[data-layout=classic][data-compact=false] .icon-button{width:40px;height:44px;min-width:40px;min-height:44px;flex-basis:40px;border-radius:4px;padding:8px}
+.shell[data-layout=classic][data-compact=false] .transport .play{background:transparent}
+.shell[data-layout=classic][data-compact=false] .transport .play svg{width:28px;height:28px}
+.shell[data-layout=classic][data-compact=false] .icon-button svg{filter:drop-shadow(0 1px 2px #0006)}
+.shell[data-layout=classic][data-compact=false] .icon-button:hover{background:#ffffff15;transform:none}
+.shell[data-layout=classic][data-compact=false] .utility-actions{gap:0}
+.shell[data-layout=classic][data-compact=false] #mute svg path:first-child{fill:currentColor;stroke-width:0}
+.shell[data-layout=classic][data-compact=false] #fullscreen svg{stroke-width:2.5}
+.shell[data-layout=classic][data-compact=false] .controls .icon-button{position:relative}
+.shell[data-layout=classic][data-compact=false] .controls .icon-button:is(:hover,:focus-visible)::after{content:attr(aria-label);position:absolute;bottom:72px;right:0;width:max-content;max-width:220px;padding:6px 9px;border-radius:4px;background:#222e;color:#fff;font:500 12px/1.4 Arial,Helvetica,sans-serif;pointer-events:none}
+.shell[data-layout=classic][data-compact=false] .transport .icon-button::after,.shell[data-layout=classic][data-compact=false] #mute::after{left:0;right:auto}
+.shell[data-layout=classic][data-compact=false] .volume{width:52px}
+.shell[data-layout=classic][data-compact=false] .settings{top:auto;bottom:76px;right:12px;max-height:min(360px,calc(100% - 88px));transform-origin:bottom right;--menu-offset:6px}
+.shell[data-layout=classic][data-compact=false] .settings .track-setting{display:flex;padding:0;gap:12px}
+.shell[data-layout=classic][data-compact=false] .settings .track-setting>span{font-size:13px;color:var(--demuxe-foreground)}
+.shell[data-layout=classic][data-compact=false] .settings .track-setting select{width:auto;max-width:65%;text-align:right;background:transparent;padding:8px}
+.shell[data-layout=classic][data-compact=true] .transport .icon-button{background:#0006;border-radius:50%}
+@container player (max-width:600px){
+ .shell[data-layout=classic][data-compact=false] .controls .times{gap:2px}
+ .shell[data-layout=classic][data-compact=false] .utility-actions #diagnostics-toggle{display:none}
+ .shell[data-layout=classic][data-compact=false] .volume{width:36px}
+ .shell[data-layout=classic] .player-title{font-size:14px}
+}
+@media(forced-colors:active){
+ .shell[data-layout=classic] .controls{background:Canvas;color:CanvasText;--demuxe-foreground:CanvasText;--demuxe-muted-foreground:CanvasText}
+ .shell[data-layout=classic] .timeline{appearance:auto}
+}
 
 /* Cinema: broad, unboxed bottom strip with centered transport. */
 .shell[data-layout=cinema] .topbar{padding:16px 24px 36px}
