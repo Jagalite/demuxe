@@ -634,7 +634,7 @@ export class DemuxePlayerElement extends Base {
     this.$('shell').onclick=event=>{if(event.timeStamp-this.suppressStageClick<700&&event.composedPath().includes(this.$('stage'))&&this.isScreenPress(event)){this.suppressStageClick=-Infinity;return;}if(!this.isScreenPress(event)||!this.core?.state.sourceId||!this.controls)return;if(this.stagePointerType!=='touch'){this.$('stage').focus({preventScroll:true});this.run(this.core.state.playbackIntent==='play'?this.pause():this.playFromControls());}else if(this.controlState.stageWasIdle){this.$('stage').focus({preventScroll:true});this.revealControls();}else this.hideControls(true);};
     for(const id of ['controls','transport','utility-actions']){
       this.$(id).addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'){this.mouseInside=true;this.revealControls();}});
-      this.$(id).addEventListener('pointerleave',event=>{if(event.pointerType==='mouse'){this.revealControls();}});
+      this.$(id).addEventListener('pointerleave',event=>{if(event.pointerType==='mouse'&&!this.controlState.idle){this.revealControls();}});
     }
     this.$('format').onchange=()=>this.updateUtilities();
     this.$('remote').onsubmit=event=>{event.preventDefault();if(!this.showSourceControls)return;const format=(this.$('format') as HTMLSelectElement).value as 'file'|'hls'|'dash';this.openFromControls({url:this.input('url').value,format,...(format!=='file'?{streaming:{live:this.input('live').checked}}:{})});};

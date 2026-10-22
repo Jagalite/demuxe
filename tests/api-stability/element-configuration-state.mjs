@@ -8,7 +8,7 @@ const watchdogs={nativeProgress:true,hybridDecoder:true,decoderOutput:true,selec
 const initial=()=>initialElementConfiguration(watchdogs),step=transitionElementConfiguration;
 
 test('element numeric configuration rejects invalid values without changing prior accepted settings',()=>{
- let state=initial();assert.equal(state.seekStep,10);assert.equal(state.autoHideDelay,2800);
+ let state=initial();assert.equal(state.seekStep,10);assert.equal(state.autoHideDelay,3000);
  for(const value of [0,-1,NaN,Infinity]){const result=step(state,{type:'seek-step',value});assert.equal(result.error.code,'INVALID_ARGUMENT');assert.equal(result.state,state);}
  state=step(state,{type:'seek-step',value:2.5}).state;assert.equal(state.seekStep,2.5);
  for(const value of [-1,NaN,Infinity,2147483648])assert.equal(step(state,{type:'auto-hide-delay',value}).state,state);

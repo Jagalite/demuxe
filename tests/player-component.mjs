@@ -370,6 +370,15 @@ await check('mouse exit hides controls only while playing without stealing outsi
  await v.evaluate(el=>el.shadowRoot.activeElement?.blur());
  await v.dispatchEvent('pointerleave',{pointerType:'touch'});assert.equal(await idle(),false);
 });
+await check('late hover exits cannot reopen hidden controls',async()=>{
+ const v=page.locator('demuxe-player').first();
+ await page.evaluate(async()=>{await a.pause();a.revealControls();a.hideControls(true);});
+ for(const id of ['controls','transport','utility-actions']){
+  await v.locator('#'+id).dispatchEvent('pointerleave',{pointerType:'mouse'});
+  assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),true);
+ }
+ await page.evaluate(()=>a.revealControls());
+});
 await check('touch stage taps toggle chrome without toggling playback',async()=>{
  const v=page.locator('demuxe-player').first();await page.evaluate(()=>{a.pause();a.revealControls();});
  for(const hidden of [true,false]){await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),hidden);assert.equal(await page.evaluate(()=>a.player.state.playbackIntent),'pause');}

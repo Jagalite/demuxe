@@ -1170,7 +1170,7 @@ export class DemuxePlayerElement extends Base {
                 this.mouseInside = true;
                 this.revealControls();
             } });
-            this.$(id).addEventListener('pointerleave', event => { if (event.pointerType === 'mouse') {
+            this.$(id).addEventListener('pointerleave', event => { if (event.pointerType === 'mouse' && !this.controlState.idle) {
                 this.revealControls();
             } });
         }
