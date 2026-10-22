@@ -13,7 +13,7 @@ test('autoplay completion retains keyboard focused timeline and volume controls'
   element.queueState=transitionElementQueue(initialElementQueue(),{type:'append',names:['movie'],terminal:false}).state;
   element.queueResources=new Map([[element.queueState.items[0].id,{source:'movie',options:{}}]]);
   element.controlState=initialElementControls();
-  const shadow={activeElement:{id:target,matches:selector=>selector===':focus-visible'}};
+  const shadow={activeElement:{id:target,matches:selector=>selector.startsWith(':focus-visible')}};
   Object.defineProperty(element,'shadowRoot',{value:shadow});Object.defineProperty(element,'isConnected',{value:true});
   element.$=id=>({focus:()=>shadow.activeElement={id,matches:()=>false}});
   element.renderVisibility=()=>{};element.renderQueue=()=>{};element.advanceQueue=()=>{};element.openSource=async()=>{};
@@ -102,4 +102,16 @@ test('announcements and errors are immutable snapshots; cancellation does not re
  assert.equal(step(state,{type:'clear-error'}).state.failure,undefined);
  const first=step(state,{type:'announce',text:'Ready'});assert.equal(first.changed,true);assert.equal(step(first.state,{type:'announce',text:'Ready'}).changed,false);
  assert.equal(original.announcement,'');assert.equal(original.failure,undefined);
+});
+
+test('rapid control seeks accumulate targets while a preceding seek is pending',async()=>{
+ const element=Object.create(DemuxePlayerElement.prototype),targets=[],completions=[];
+ element.core={state:{sourceId:1,currentTime:5,seekable:[{start:0,end:100}],pendingOperation:null}};
+ element.seek=target=>{targets.push(target);element.core.state.pendingOperation={kind:'seeking'};return new Promise(resolve=>completions.push(resolve));};
+ element.run=promise=>promise;
+ element.skip(10);element.skip(10);element.skip(-10);
+ assert.deepEqual(targets,[15,25,15]);
+ completions[0]();await Promise.resolve();assert.equal(element.controlSeek.target,15);
+ completions[1]();completions[2]();await Promise.resolve();assert.equal(element.controlSeek,undefined);
+ element.core.state.pendingOperation={kind:'opening'};element.skip(10);assert.equal(targets.length,3);
 });

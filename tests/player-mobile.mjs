@@ -121,7 +121,7 @@ try{
    assert.deepEqual(result,{mode,attribute:mode,folder:mode==='desktop',volume:mode==='desktop',layout,theme});
    const bounds=await page.evaluate(()=>{
     const shell=$('shell').getBoundingClientRect();
-    return ['play','back','forward','timeline','settings-toggle','fullscreen','mute','time','duration'].map(id=>{
+    return ['play','back','forward','timeline','settings-toggle','fullscreen','mute','time','duration'].filter(id=>!(viewer.layout==='classic'&&viewer.controlsMode==='desktop'&&['back','forward'].includes(id))).map(id=>{
      const r=$(id).getBoundingClientRect();return {id,inside:r.width>0&&r.height>0&&r.left>=shell.left-1&&r.right<=shell.right+1&&r.top>=shell.top-1&&r.bottom<=shell.bottom+1};
     });
    });

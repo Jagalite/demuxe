@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { copyData } from './data.js';
 export function initialElementConfiguration(watchdogs) {
-    return copyData({ sourceControls: true, diagnosticsControl: true, fileDrop: true, seekStep: 10, autoHideDelay: 2800, trackPolicy: {}, watchdogs, labels: {}, audioPlayback: 'auto', preview: undefined, configuredAsset: null, reflectionDepth: 0 });
+    return copyData({ sourceControls: true, diagnosticsControl: true, fileDrop: true, seekStep: 10, autoHideDelay: 3000, trackPolicy: {}, watchdogs, labels: {}, audioPlayback: 'auto', preview: undefined, configuredAsset: null, reflectionDepth: 0 });
 }
 export function transitionElementConfiguration(state, command) {
     const invalid = (message, code = 'INVALID_ARGUMENT') => Object.freeze({ state, error: Object.freeze({ code, message }) });

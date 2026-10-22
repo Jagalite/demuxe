@@ -138,10 +138,11 @@ These options are JavaScript properties, not HTML boolean attributes.
 controls both seek buttons, their default accessible labels/numerals, and J/L.
 Arrow keys retain their five-second steps. Explicit localized `labels.back` and
 `labels.forward` override the default labels; keep them consistent with your step.
-`controlsAutoHideDelay` defaults to 2800 milliseconds; zero disables inactivity
+`controlsAutoHideDelay` defaults to 3000 milliseconds; zero disables inactivity
 hiding, and positive values up to 2147483647 set the delay. Changing it restarts
-the timer. Playing with the play button/shortcut still hides controls immediately;
-screen taps still toggle visibility. Invalid numeric property values throw
+the timer. Playing with the play button/shortcut starts the inactivity timer. Desktop video
+clicks toggle playback; touch taps toggle control visibility. Hovering controls,
+open menus, scrubbing, and keyboard focus on a control prevent automatic hiding. Invalid numeric property values throw
 `INVALID_ARGUMENT`.
 
 For entirely custom controls, import `Player` from `demuxe` and build your own
