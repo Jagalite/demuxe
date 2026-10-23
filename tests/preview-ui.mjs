@@ -12,7 +12,11 @@ try{
  const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
  await page.waitForFunction(()=>{const root=element.shadowRoot,image=root.querySelector('#thumbnail-preview img');return !image.hidden&&image.complete&&image.naturalWidth>0&&/≈/.test(root.querySelector('#thumbnail-time').textContent);});
  if(process.env.SCREENSHOT)await page.screenshot({path:process.env.SCREENSHOT});
- assert.match(await panel.innerText(),/≈/);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
+ const previewLabels=await panel.evaluate(panel=>{
+  const target=panel.querySelector('#thumbnail-target'),represented=panel.querySelector('#thumbnail-time');
+  return {approximation:getComputedStyle(represented).display==='none'?getComputedStyle(target,'::before').content:represented.textContent,timeBelowImage:target.getBoundingClientRect().top>=panel.querySelector('img').getBoundingClientRect().bottom};
+ });
+ assert.match(previewLabels.approximation,/≈/);assert.equal(previewLabels.timeBelowImage,true);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
  const cachedURL=await panel.locator('img').getAttribute('src');
  await page.mouse.move(box.x+box.width*.41,box.y+box.height/2);await page.waitForFunction(()=>element.player.preview.diagnostics.hits>0);
  assert.equal(await panel.locator('img').getAttribute('src'),cachedURL);
@@ -83,6 +87,25 @@ try{
  await page.mouse.move(box.x+box.width*.9,box.y+box.height/2);await page.mouse.move(box.x,box.y-150);assert.equal(await page.evaluate(()=>lateSignal.aborted),true);await page.evaluate(()=>finishPreview());
  await page.waitForFunction(()=>!element.player.preview.diagnostics.active&&!element.player.preview.diagnostics.pending);assert.equal(await page.evaluate(()=>lateCalls),1);
  await page.evaluate(()=>remove());await panel.waitFor({state:'hidden'});
+ // Short and scaled embeds must keep the image painted inside the player,
+ // centred on the hover position until its actual width reaches an edge.
+ const originalStyle=await page.evaluate(()=>element.getAttribute('style'));
+ const originalMode=await page.evaluate(()=>element.controlsMode);
+ try{
+  for(const [width,scale] of [[400,1],[900,.5]]){
+   await page.evaluate(({width,scale})=>{element.controlsMode='desktop';element.style.width=`${width}px`;element.style.transform=`scale(${scale})`;element.style.transformOrigin='top left';},{width,scale});
+   const bar=await timeline.boundingBox();
+   for(const fraction of [.001,.5,.999]){
+    const x=bar.x+bar.width*fraction;await page.mouse.move(x,bar.y+bar.height/2);
+    await page.waitForFunction(()=>{const r=element.shadowRoot,i=r.querySelector('#thumbnail-image');return !r.querySelector('#thumbnail-preview').hidden&&!i.hidden&&i.complete&&i.naturalWidth>0;});
+    const bounds=await panel.evaluate(panel=>{const shell=panel.getRootNode().getElementById('shell').getBoundingClientRect(),image=panel.querySelector('img').getBoundingClientRect();return {left:image.left,right:image.right,top:image.top,width:image.width,shellLeft:shell.left,shellRight:shell.right,shellTop:shell.top};});
+    assert.ok(bounds.top>=bounds.shellTop-.5&&bounds.left>=bounds.shellLeft-.5&&bounds.right<=bounds.shellRight+.5,JSON.stringify({width,scale,fraction,bounds}));
+    const center=Math.max(bounds.shellLeft+bounds.width/2,Math.min(bounds.shellRight-bounds.width/2,x));
+    assert.ok(Math.abs((bounds.left+bounds.right)/2-center)<1,JSON.stringify({width,scale,fraction,bounds,center}));
+   }
+   await page.mouse.move(0,0);
+  }
+ }finally{await page.evaluate(({style,mode})=>{if(style===null)element.removeAttribute('style');else element.setAttribute('style',style);element.controlsMode=mode;},{style:originalStyle,mode:originalMode});}
  // Source replacement and destruction release visible preview URLs.
  await page.mouse.move(box.x+box.width*.3,box.y+box.height/2);await panel.waitFor({state:'visible'});
  await page.evaluate(()=>element.close());await panel.waitFor({state:'hidden'});assert.equal(await panel.locator('img').getAttribute('src'),null);

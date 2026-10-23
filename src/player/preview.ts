@@ -16,6 +16,13 @@ export class ScrubberPreview {
   private displayedURL?:{url:string;release:()=>void};
   private settleTimer?:ReturnType<typeof setTimeout>;
   private touchPointer?:number;
+  private syncTimeLabels(){
+    if(!this.targetLabel)return;
+    const represented=this.label.textContent??'',approximate=represented.startsWith('≈ ');
+    const same=represented.replace(/^≈ /,'')===this.targetLabel.textContent;
+    this.label.toggleAttribute('data-redundant',same);
+    this.targetLabel.toggleAttribute('data-approximate',same&&approximate);
+  }
   private cancelSettle(){const handle=this.settleTimer;this.settleTimer=undefined;if(handle!==undefined)clearTimeout(handle);}
   private transition(command:ScrubberCommand){const result=transitionScrubber(this.control,command);this.control=result.state;return result;}
   private identity<T extends object>(map:WeakMap<T,number>,value:T){let id=map.get(value);if(id===undefined){id=this.transition({type:'allocate'}).id!;map.set(value,id);}return id;}
@@ -45,9 +52,10 @@ export class ScrubberPreview {
     const rect=this.timeline.getBoundingClientRect(),parent=this.panel.parentElement!.getBoundingClientRect();
     const style=getComputedStyle(this.timeline),scale=rect.width/parseFloat(style.width);
     const thumbWidth=parseFloat(style.getPropertyValue('--timeline-thumb-size'))*scale;
-    const pointer=scrubberPointer({touch:event.pointerType==='touch',dragging:event.pointerId===this.touchPointer,disabled:false,left:rect.left,width:rect.width,thumbWidth,step:Number(this.timeline.step),min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width});
+    const previewWidth=parseFloat(getComputedStyle(this.panel).width)*scale;
+    const pointer=scrubberPointer({touch:event.pointerType==='touch',dragging:event.pointerId===this.touchPointer,disabled:false,left:rect.left,width:rect.width,thumbWidth,step:Number(this.timeline.step),min:Number(this.timeline.min),max:Number(this.timeline.max),x:event.clientX,parentLeft:parent.left,parentWidth:parent.width,previewWidth});
     if(pointer.time===undefined)return;
-    this.panel.style.left=`${pointer.left}px`;
+    this.panel.style.left=`${pointer.left!/scale}px`;
     if(this.targetLabel)this.targetLabel.textContent=formatTime(pointer.time);
     this.intentApi=api;
     const hover=this.transition({type:'hover',target:{owner:this.identity(this.ownerIds,api),time:pointer.time}});if(hover.id===undefined)return;
@@ -63,6 +71,7 @@ export class ScrubberPreview {
       if(this.control.terminal||this.control.hover!==id)clearTimeout(handle);else this.settleTimer=handle;
     }
     if(hover.placeholder){this.image.hidden=true;this.label.textContent=`${formatTime(pointer.time)} · …`;this.panel.hidden=false;}
+    this.syncTimeLabels();
     void this.sample(api,pointer.time,hover.id).catch(()=>{});
   };
   constructor(private timeline:HTMLInputElement,private panel:HTMLElement,private image:HTMLImageElement,private label:HTMLElement,private api:()=>PlayerPreview|undefined,private targetLabel?:HTMLElement){
@@ -149,6 +158,7 @@ export class ScrubberPreview {
       }
       if(!current()||!this.transition({type:'presented',id}).accepted)return;
       this.label.textContent=`${frame.temporalAccuracy==='approximate'?'≈ ':''}${formatTime(frame.actualTime??frame.time)}`;
+      this.syncTimeLabels();
       if(current())this.panel.hidden=false;
     }catch{this.applyClear(this.transition({type:'presentation-failed',id}));}
     finally{
