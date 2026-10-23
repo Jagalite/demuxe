@@ -361,8 +361,9 @@ self.onmessage = async ({data}) => {
       // Let child termination and queued cleanup run before closing their owner.
       await new Promise(resolve=>setTimeout(resolve,50));
       if(cleanupFailure)throw cleanupFailure;
-      post({type:'destroyed',decoderStats});
+      // Request scope closure before the parent can react to our acknowledgement.
       self.close();
+      post({type:'destroyed',decoderStats});
     }
   } catch (error) {post({type:'error',id:data.id,message:String(error.stack || error)});}finally{if(sourceLease!==undefined&&sourceLease!==null)control=finishLegacySource(control,sourceLease);}
 };

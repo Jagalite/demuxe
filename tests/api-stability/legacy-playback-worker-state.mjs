@@ -48,6 +48,11 @@ for(const file of ['software-full-engine-worker.js','filter-retained-engine-work
   const w=shell();w.run('let destroyed=0,terminated=0;closeIO=async()=>{throw Error("I/O close failed")};engine._web_destroy=()=>destroyed++;engine.PThread={runningWorkers:[],terminateAllThreads(){terminated++;}};setTimeout=callback=>{callback();return 1;};');
   await w.context.self.onmessage({data:{type:'destroy'}});assert.equal(w.run('destroyed'),1);assert.equal(w.run('terminated'),1);assert.ok(w.messages.some(m=>m.type==='error'&&m.message.includes('I/O close failed')));
  });
+ test(file+' shutdown requests scope closure before acknowledging a parent that terminates immediately',async()=>{
+  const w=shell();w.run('let scopeClosed=false,terminated=false;closeIO=async()=>{};engine._web_destroy=()=>{};engine.PThread={runningWorkers:[],terminateAllThreads(){}};setTimeout=callback=>{callback();return 1;};self.close=()=>{scopeClosed=true;};const originalPost=self.postMessage;self.postMessage=message=>{if(message.type==="destroyed"){if(!scopeClosed)throw Error("Acknowledged before scope closure");terminated=true;}originalPost(message);};');
+  await w.context.self.onmessage({data:{type:'destroy'}});
+  assert.equal(w.run('scopeClosed'),true);assert.equal(w.run('terminated'),true);assert.ok(w.messages.some(m=>m.type==='destroyed'));
+ });
  test(file+' command admission rejects overflow before native submission and rollback releases slots',()=>{
   const w=shell();w.run('for(let i=0;i<128;i++)internalCommand(["set","pause","yes"],()=>{});');assert.equal(w.commands.length,128);assert.throws(()=>w.run('internalCommand(["x"],()=>{})'),/capacity/);assert.equal(w.commands.length,128);
   w.run('control=finishLegacyCommand(control,control.commands[0].id);engine.ccall=()=>{throw Error("native submission failed")};');const count=w.run('control.commands.length');assert.throws(()=>w.run('internalCommand(["x"],()=>{})'),/native submission/);assert.equal(w.run('control.commands.length'),count);
