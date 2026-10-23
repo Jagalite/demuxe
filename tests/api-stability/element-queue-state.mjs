@@ -77,3 +77,18 @@ test('queue shell rejects autoplay getter reentry without overwriting the replac
  await assert.rejects(element.activateQueue(0,()=>{element.resetQueue();element.appendQueue([{source:'two',name:'two',options:{}}]);return true;}),error=>error.code==='ABORTED');
  assert.deepEqual(element.queueState.items.map(item=>item.name),['two']);assert.equal(element.queueState.operation,null);assert.equal(plays,0);
 });
+
+
+test('new files recover a settled failed selection without skipping to old queued entries',()=>{
+ const first=start(append(initialElementQueue(),['broken','old-next']).state,0);
+ assert.equal(append(first.state,['pending']).activate,undefined);
+ const failed=step(first.state,{type:'settled',operation:first.operation,failed:true}).state;
+ const recovery=append(failed,['new-first','new-second']);assert.equal(recovery.activate,2);
+ const next=start(recovery.state,recovery.activate);assert.equal(next.state.failed,false);
+ const ready=settled(opened(next.state,next.operation,55).state,next.operation).state;
+ assert.equal(append(ready,['later']).activate,undefined);
+ assert.equal(step(next.state,{type:'settled',operation:first.operation,failed:true}).accepted,false);
+ const autoplayFailure=step(opened(next.state,next.operation,55).state,{type:'settled',operation:next.operation,failed:true}).state;
+ assert.equal(append(autoplayFailure,['later']).activate,undefined);
+ assert.equal(step(failed,{type:'reset'}).state.failed,false);
+});

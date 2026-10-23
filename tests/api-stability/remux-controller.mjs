@@ -54,7 +54,7 @@ test('old open settlement cannot clear a replacement operation or publish succes
  const a=adapter(t),p=await a.ready();a.blocked.add('open');const first=p.open({file:{}}),rejected=assert.rejects(first,{name:'AbortError'});await tick();const old=a.last('open');const second=p.open({file:{}});await tick();const current=a.last('open');old.worker.emit({type:'reply',id:old.id,value:'old'});await rejected;assert.equal(p.starting,true);current.worker.emit({type:'reply',id:current.id,value:'new'});assert.equal(await second,'new');assert.equal(p.starting,false);
 });
 test('concurrent opens share boot and only the latest may install its fallback',async t=>{
- const a=adapter(t),p=a.controller;a.blocked.add('boot');const first=p.open({file:{}}),rejected=assert.rejects(first,{name:'AbortError'}),second=p.open({file:{}});const boot=a.last('boot');boot.worker.emit({type:'reply',id:boot.id,error:'Worker MSE unavailable'});await rejected;assert.deepEqual(await second,{local:true});assert.equal(a.workers.length,1);assert.equal(a.fallbacks,1);assert.equal(a.frames[0].removed,1);
+ const a=adapter(t),p=a.controller;a.blocked.add('boot');const first=p.open({file:{}}),rejected=assert.rejects(first,{name:'AbortError'}),second=p.open({file:{}});const boot=a.last('boot');boot.worker.emit({type:'reply',id:boot.id,error:'Worker MSE unavailable'});await rejected;assert.deepEqual(await second,{local:true});assert.equal(a.workers.length,1);assert.equal(a.fallbacks,1);assert.equal(a.frames.length,0);
 });
 test('source failures preserve a created SourceBuffer and only negotiation failure selects fallback',async t=>{
  for(const created of [false,true]){
@@ -63,15 +63,13 @@ test('source failures preserve a created SourceBuffer and only negotiation failu
  }
 });
 test('release publishes one completion before synchronous shutdown reentry and keeps replacement handles',async t=>{
- const a=adapter(t),p=await a.ready();a.autoClose=false;let nested;a.onPost=message=>{if(message.type==='shutdown')nested=p.release();};const first=p.release();assert.equal(first,nested);assert.equal(p.release(),first);assert.equal(p.worker,undefined);await p.open({file:{}});const replacement=p.worker;a.workers[0].emit({type:'closed'});await first;assert.equal(p.worker,replacement);assert.equal(replacement.terminated,0);assert.equal(a.frames[0].removed,1);assert.equal(a.frames[1].removed,0);
+ const a=adapter(t),p=await a.ready();a.autoClose=false;let nested;a.onPost=message=>{if(message.type==='shutdown')nested=p.release();};const first=p.release();assert.equal(first,nested);assert.equal(p.release(),first);assert.equal(p.worker,undefined);await p.open({file:{}});const replacement=p.worker;a.workers[0].emit({type:'closed'});await first;assert.equal(p.worker,replacement);assert.equal(replacement.terminated,0);assert.equal(a.frames.length,0);
 });
 test('destroy publishes its promise before cleanup and retires pending requests before late replies',async t=>{
- const a=adapter(t),p=await a.ready();a.blocked.add('seek');const seeking=p.seek(4),rejected=assert.rejects(seeking,{name:'AbortError'});const request=a.last('seek');let nested;a.onPost=message=>{if(message.type==='shutdown')nested=p.destroy();};const destruction=p.destroy();assert.equal(nested,destruction);await destruction;await rejected;request.worker.emit({type:'reply',id:request.id,value:true});assert.equal(p.pending.size,0);assert.equal(p.control.requests.length,0);assert.equal(a.workers[0].terminated,1);assert.equal(a.frames[0].removed,1);
+ const a=adapter(t),p=await a.ready();a.blocked.add('seek');const seeking=p.seek(4),rejected=assert.rejects(seeking,{name:'AbortError'});const request=a.last('seek');let nested;a.onPost=message=>{if(message.type==='shutdown')nested=p.destroy();};const destruction=p.destroy();assert.equal(nested,destruction);await destruction;await rejected;request.worker.emit({type:'reply',id:request.id,value:true});assert.equal(p.pending.size,0);assert.equal(p.control.requests.length,0);assert.equal(a.workers[0].terminated,1);assert.equal(a.frames.length,0);
 });
-test('destroy during iframe insertion or worker construction prevents late allocation publication',async t=>{
- for(const step of ['frame','append','create']){
-  const a=adapter(t),p=a.controller;if(step==='frame')a.onFrame=()=>void p.destroy();else if(step==='append')a.onAppend=()=>void p.destroy();else a.onCreate=()=>void p.destroy();await assert.rejects(p.open({file:{}}),{name:'AbortError'});await p.destroy();assert.equal(a.fallbacks,0);assert.equal(a.frames[0].removed,1);assert.equal(p.worker,undefined);if(step==='create')assert.equal(a.workers[0].terminated,1);
- }
+test('destroy during worker construction prevents late allocation publication',async t=>{
+ const a=adapter(t),p=a.controller;a.onCreate=()=>void p.destroy();await assert.rejects(p.open({file:{}}),{name:'AbortError'});await p.destroy();assert.equal(a.fallbacks,0);assert.equal(a.frames.length,0);assert.equal(p.worker,undefined);assert.equal(a.workers[0].terminated,1);
 });
 test('destroy during fallback acquisition waits for the retired local owner and never opens it',async t=>{
  const a=adapter(t),p=a.controller;a.blocked.add('boot');let destruction,finish,opened=0,cleaned=0;
@@ -91,7 +89,7 @@ test('request deadlines reschedule early wakeups and ignore late replies',async 
  const a=adapter(t),p=await a.ready();a.blocked.add('setBuffering');a.now=10;const setting=p.setBuffering({forwardSeconds:9}),rejected=assert.rejects(setting,/timed out/),request=a.last('setBuffering'),timer=[...a.timers.keys()][0];a.now=30009;a.fire(timer);assert.equal(p.pending.size,1);a.now=30010;a.fire([...a.timers.keys()][0]);await rejected;request.worker.emit({type:'reply',id:request.id,value:true});assert.equal(p.options.buffering,undefined);assert.equal(p.pending.size,0);
 });
 test('release attempts all resources and records cleanup failure without orphaning callers',async t=>{
- const a=adapter(t),p=await a.ready(),worker=a.workers[0],frame=a.frames[0];worker.removeEventListener=()=>{throw Error('listener removal failed');};worker.terminate=()=>{worker.terminated++;throw Error('terminate failed');};frame.remove=()=>{frame.removed++;throw Error('frame cleanup failed');};await p.release();assert.equal(worker.terminated,1);assert.equal(frame.removed,1);assert.equal(p.control.cleanupFailures,3);assert.equal(p.releases.size,1);
+ const a=adapter(t),p=await a.ready(),worker=a.workers[0];worker.removeEventListener=()=>{throw Error('listener removal failed');};worker.terminate=()=>{worker.terminated++;throw Error('terminate failed');};await p.release();assert.equal(worker.terminated,1);assert.equal(a.frames.length,0);assert.equal(p.control.cleanupFailures,2);assert.equal(p.releases.size,1);
 });
 test('detached worker capacity releases only after physical cleanup acknowledgment',async t=>{
  const a=adapter(t),p=a.controller;a.autoClose=false;

@@ -26,6 +26,9 @@ player.addEventListener('modechange',event=>event.detail.currentTime);
 // @ts-expect-error unsupported seek policy
 player.seek(2,{policy:'discard'});
 declare const element:DemuxePlayerElement,media:DemuxeMediaElement;
+element.labels={step:'Stage'};
+const startupStepLabel:string=element.labels.step;
+void startupStepLabel;
 element.open(new Blob());element.close();element.destroy();media.bind(runtime);media.dispose();
 const presentation:PlayerPresentation=player.presentation;presentation.setMediaSessionEnabled(false);
 void [api,PreviewController,registerMediaElement,registerVideojsTech,ProviderAcquisition,parseProviderDeployment,audioRepairRecipe];

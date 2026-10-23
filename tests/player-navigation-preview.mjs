@@ -33,6 +33,7 @@ try{
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   try{
    await page.goto(origin+'/examples/player-element.html');
+   await page.waitForFunction(()=>!!customElements.get('demuxe-player'));
    await page.evaluate(async mediaURL=>{
     window.element=document.querySelector('demuxe-player');await element.ready;
     element.controls=true;element.controlsAutoHideDelay=0;
@@ -55,8 +56,16 @@ try{
  }
  const timeline=page=>page.locator('demuxe-player').first().locator('#timeline');
  const previewVisible=page=>page.waitForFunction(()=>{
-  const root=element.shadowRoot,image=root.getElementById('thumbnail-image');
-  return !root.getElementById('thumbnail-preview').hidden&&!image.hidden&&image.naturalWidth>0&&!!image.getAttribute('src');
+  const root=element.shadowRoot,image=root.getElementById('thumbnail-image'),panel=root.getElementById('thumbnail-preview');
+  if(panel.hidden||image.hidden||!image.naturalWidth||!image.checkVisibility({checkOpacity:true,checkVisibilityCSS:true}))return false;
+  // A loaded image can still be display:none or clipped by an ancestor. Probe
+  // its painted area with hit testing; restore the normal noninteractive UI.
+  const rect=image.getBoundingClientRect(),previous=image.style.pointerEvents;
+  if(rect.width<2||rect.height<2)return false;
+  try{
+   image.style.pointerEvents='auto';
+   return [rect.top+1,(rect.top+rect.bottom)/2,rect.bottom-1].every(y=>root.elementFromPoint(rect.left+rect.width/2,y)===image);
+  }finally{image.style.pointerEvents=previous;}
  });
  async function point(page,fraction){
   return timeline(page).evaluate((input,fraction)=>{
@@ -144,7 +153,16 @@ try{
   assert.equal(await page.evaluate(()=>element.shadowRoot.getElementById('thumbnail-preview').hidden),true);
   return {replacementIsNewSource:true,providerRequests:1,lateResultRejected:true};
  });
- await check('trusted touch shows thumbnails and performs only the final seek',async page=>{
+ await check('Terminal thumbnails remain painted above the controls in every layout',async page=>{
+  await installPreview(page);await page.evaluate(()=>{element.theme='terminal';});
+  for(const layout of ['classic','cinema','rail','studio','focus','deck']){
+   await page.evaluate(layout=>{element.layout=layout;},layout);
+   const at=await point(page,.5);await page.mouse.move(at.x,at.y);await previewVisible(page);
+  }
+  return {layouts:6,paintedImage:true};
+ });
+ await check('trusted phone touch shows thumbnails and performs only the final seek',async page=>{
+  await page.setViewportSize({width:390,height:844});
   await installPreview(page);await page.evaluate(()=>element.player.setPlaybackRange({start:120,end:180}));
   await page.waitForFunction(()=>!element.player.state.pendingOperation);await page.evaluate(()=>{seekRequests.length=0;});
   const session=await page.context().newCDPSession(page);

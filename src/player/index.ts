@@ -27,7 +27,7 @@ import {applyLayout, isPlayerLayout, playerLayouts, type PlayerLayout, presentat
 import {isPlayerTheme, playerThemes, themeStyles, type PlayerTheme} from './themes.js';
 export type {PlayerLayout, PlayerTheme} from './presentation.js';
 const Base = (typeof HTMLElement==='undefined'?class {}:HTMLElement) as typeof HTMLElement;
-export const defaultLabels = Object.freeze({...advancedLabels,appearance:'Appearance',controlsMode:'Controls',controlsAuto:'Auto',controlsMobile:'Mobile',controlsDesktop:'Desktop',layout:'Layout',theme:'Theme',classic:'Classic',cinema:'Cinema',rail:'Rail',studio:'Studio',focus:'Focus',deck:'Deck',demuxeTheme:'Demuxe',lightTheme:'Light',oledTheme:'OLED',contrastTheme:'High contrast',paperTheme:'Paper',terminalTheme:'Terminal',previews:'Timeline thumbnails',previewStrategy:'Thumbnail strategy',previewDemuxe:'Demuxe · broad coverage, local detail',previewAdaptive:'Adaptive · nearby every 5s',previewGaussian:'Gaussian · dense near hover',previewDirectional:'Directional · follows movement',previewUniform:'Evenly spaced · 48 samples',previewInterval:'Whole video · every 5s',previewOnDemand:'On hover only',previewCustom:'Custom',previewHelp:'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',recovering:'Retrying stream…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen',expandPlayer:'Expand player',exitExpandedPlayer:'Exit expanded view',noFullscreen:'Fullscreen and browser expansion are unavailable here.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
+export const defaultLabels = Object.freeze({...advancedLabels,appearance:'Appearance',controlsMode:'Controls',controlsAuto:'Auto',controlsMobile:'Mobile',controlsDesktop:'Desktop',layout:'Layout',theme:'Theme',classic:'Classic',cinema:'Cinema',rail:'Rail',studio:'Studio',focus:'Focus',deck:'Deck',demuxeTheme:'Demuxe',lightTheme:'Light',oledTheme:'OLED',contrastTheme:'High contrast',paperTheme:'Paper',terminalTheme:'Terminal',previews:'Timeline thumbnails',previewStrategy:'Thumbnail strategy',previewDemuxe:'Demuxe · broad coverage, local detail',previewAdaptive:'Adaptive · nearby every 5s',previewGaussian:'Gaussian · dense near hover',previewDirectional:'Directional · follows movement',previewUniform:'Evenly spaced · 48 samples',previewInterval:'Whole video · every 5s',previewOnDemand:'On hover only',previewCustom:'Custom',previewHelp:'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.',diagnostics:'Session diagnostics',moreOptions:'More options',back:'Seek backward 10 seconds',forward:'Seek forward 10 seconds',play:'Play',pause:'Pause',mute:'Mute',unmute:'Unmute',seek:'Playback position',volume:'Volume',settings:'Playback settings',closeSettings:'Close settings',speed:'Playback speed',audio:'Audio',subtitles:'Subtitles',automatic:'Automatic',off:'Off',fullscreen:'Fullscreen',exitFullscreen:'Exit fullscreen',open:'Open media',addSubtitle:'Add subtitles',empty:'Something good to watch?',drop:'Open a video or audio file from your device.',loading:'Opening media…',step:'Step',reading:'Reading media…',inspecting:'Inspecting media…',switching:'Updating playback…',seeking:'Seeking…',buffering:'Buffering…',recovering:'Retrying stream…',live:'LIVE',unknown:'Unknown duration',retry:'Retry',resume:'Press Play to continue',shortcuts:'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · < >: speed · 0–9 / Home / End: position · F: fullscreen',expandPlayer:'Expand player',exitExpandedPlayer:'Exit expanded view',noFullscreen:'Fullscreen and browser expansion are unavailable here.',noWindow:'Live playback · seek window unavailable',openURL:'Open URL',closeMedia:'Close media',url:'Media URL',format:'Source format',streamLive:'Live stream',addFiles:'Add files',queue:'Queue',clearQueue:'Clear queue',previous:'Previous file',next:'Next file',remove:'Remove',unnamed:'Unnamed media',mediaFile:'Media file',noMedia:'No media loaded',loadedMedia:'Media loaded',subtitleFile:'Subtitle file'});
 export type PlayerLabels = Partial<Record<keyof typeof defaultLabels,string>>;
 export type PlayerTitleMode = 'auto' | 'custom' | 'source' | 'none';
 
@@ -96,7 +96,13 @@ export class DemuxePlayerElement extends Base {
   private control(command:ElementControlsCommand){const decision=transitionElementControls(this.controlState,command);this.controlState=decision.state;return decision;}
   private get menuTrigger(){return this.controlState.menuTrigger;}
   private get dragging(){return this.controlState.dragging;}
-  private get openingStage(){return this.controlState.openingStage;}
+  private get openingStage(){
+    const stage=this.controlState.openingStage,labels=this.labels;
+    if(stage===null)return '';
+    return stage==='reading'||stage==='inspecting'
+      ? `${labels.step} 1/2 · ${labels[stage]}`
+      : `${labels.step} 2/2 · Starting ${{native:'Native',hybrid:'Hybrid',software:'Software'}[stage]} playback…`;
+  }
   private get lastFailure(){return this.controlState.failure;}
   private queueState=initialElementQueue();
   private queueResources=new Map<number,QueueItem>();
@@ -121,6 +127,7 @@ export class DemuxePlayerElement extends Base {
     if(start.error==='destroyed')throw new PlayerError('ABORTED','Player element is destroyed');
     if(!start.accepted)return;
     const operation=start.operation!,item=this.queueResources.get(start.itemId!)!;this.renderQueue();
+    let failed=false;
     try {
       await this.openSource(item.source,options??item.options);
       if(this.queueState.operation!==operation)throw new PlayerError('ABORTED','Queue selection superseded');
@@ -129,14 +136,15 @@ export class DemuxePlayerElement extends Base {
       if(!opened.accepted)throw new PlayerError('ABORTED','Queue selection superseded');
       if(opened.play){
         const core=this.core;await core?.play();
-        if(this.queueState.operation===operation&&core===this.core&&core?.state.playbackIntent==='play'&&!this.controlState.menuOpen&&!this.dragging&&!this.controlFacts().focusVisible&&this.controlsAutoHideDelay>0)this.hideControls();
+        if(this.queueState.operation===operation&&core===this.core&&core?.state.playbackIntent==='play'&&!this.controlState.menuOpen&&!this.dragging&&!this.controlFacts().focusVisible&&this.controlsAutoHideDelay>0)this.revealControls();
       }
     }catch(error){
+      failed=playerError(error).code!=='ABORTED';
       // A removed item must not survive as the core's rollback source.
       if(queueClosesRollback(this.queueState,operation,closePreviousOnFailure))await this.core?.close();
       throw error;
     }finally{
-      const settled=transitionElementQueue(this.queueState,{type:'settled',operation});this.queueState=settled.state;
+      const settled=transitionElementQueue(this.queueState,{type:'settled',operation,failed});this.queueState=settled.state;
       if(settled.accepted){this.renderQueue();queueMicrotask(()=>this.advanceQueue());}
     }
   }
@@ -283,14 +291,16 @@ export class DemuxePlayerElement extends Base {
     if(pointer!==undefined&&input.hasPointerCapture(pointer))input.releasePointerCapture(pointer);
     this.revealControls();
   }
-  private controlFacts(){return {playing:this.core?.state.status==='playing',pending:!!this.core?.state.pendingOperation,connected:this.isConnected,focusVisible:!!this.shadowRoot?.activeElement?.matches(':focus-visible')};}
+  private controlFacts(){return {playing:this.core?.state.status==='playing',pending:!!this.core?.state.pendingOperation,connected:this.isConnected,focusVisible:!!this.shadowRoot?.activeElement?.matches(':focus-visible:not(#stage)')||!!(this.mouseInside&&this.shadowRoot?.querySelector('#controls:hover,#transport:hover,#utility-actions:hover'))};}
   private renderVisibility(){this.$('shell').classList.toggle('idle',this.controlState.idle);this.$('shell').classList.toggle('seek-preview',this.controlState.seekPreview);}
   private revealControls=()=>{const result=this.control({type:'reveal',playing:this.core?.state.status==='playing',delay:this.controlsAutoHideDelay});this.renderVisibility();clearTimeout(this.seekPreviewTimer);clearTimeout(this.hideTimer);if(result.hideAfter!==undefined)this.hideTimer=setTimeout(()=>{if(this.control({type:'hide-elapsed',...this.controlFacts()}).accepted)this.hideControls();},result.hideAfter);};
-  private async playFromControls(){const core=this.core;await this.play();if(core===this.core&&core?.state.playbackIntent==='play'&&!this.controlState.menuOpen)this.hideControls(true);}
+  private async playFromControls(){const core=this.core;await this.play();if(core===this.core&&core?.state.playbackIntent==='play')this.revealControls();}
   private hideControls(focusStage=false){if(focusStage||this.shadowRoot?.activeElement)this.$('stage').focus({preventScroll:true});clearTimeout(this.hideTimer);clearTimeout(this.seekPreviewTimer);this.control({type:'hide'});this.renderVisibility();}
   private dismissMenu=(event:PointerEvent)=>{const path=event.composedPath();if(this.controlState.menuOpen&&!['settings','settings-toggle','open-menu'].some(id=>path.includes(this.$(id))))this.settings(false,false);};
   private isScreenPress(event:Event){return !event.composedPath().some(node=>node instanceof Element&&node.matches('button,input,select,textarea,a,summary,[contenteditable],[role="button"],#settings,#error,#diagnostics-overlay'));}
   private resizeObserver?:ResizeObserver;
+  private mouseInside=false;
+  private stagePointerType='mouse';
   private stageTaps:StageTaps={};
   private lastStageTouch=-Infinity;
   private suppressStageClick=-Infinity;
@@ -347,9 +357,9 @@ export class DemuxePlayerElement extends Base {
       try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.previewOptions??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);const expansion=this.viewportExpansion!,element=this;core.presentation.setViewportExpansionAdapter({get available(){return element.controls&&expansion.available;},get active(){return expansion.active;},open(){element.settings(false,false);expansion.open();element.revealControls();},close:focus=>expansion.close(focus),subscribe:listener=>expansion.subscribe(listener)});this.view({type:'reset-owner'});
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
-          if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?this.labels.reading:this.labels.inspecting});this.update(core.state);}
+          if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?'reading':'inspecting'});this.update(core.state);}
           if(type==='preparationchange')this.update(core.state);
-          if(type==='modechange'&&detail.phase==='loading'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:`Starting ${{native:'Native',hybrid:'Hybrid',software:'Software'}[detail.mode as 'native'|'hybrid'|'software']} playback…`});this.update(core.state);}
+          if(type==='modechange'&&detail.phase==='loading'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.mode as 'native'|'hybrid'|'software'});this.update(core.state);}
           if(type==='error')this.showError(detail);
           if(type==='ended')queueMicrotask(()=>{if(this.core===core)this.advanceQueue();});
           this.dispatchEvent(new CustomEvent(type,{detail}));
@@ -498,7 +508,7 @@ export class DemuxePlayerElement extends Base {
     (this.$('speed') as HTMLSelectElement).value=String(state.playbackRate);
     const buffering=state.status==='buffering'&&state.playbackIntent==='play'&&!pending;this.setHidden('buffering-indicator',!buffering);this.$('shell').classList.toggle('buffering',buffering);this.bufferedProgress(state);
     const opening=state.pendingOperation?.kind==='opening';
-    this.control({type:'opening',operation:opening?state.pendingOperation!.id:null,initialStage:this.labels.inspecting});
+    this.control({type:'opening',operation:opening?state.pendingOperation!.id:null,initialStage:'inspecting'});
     const activityView=elementActivity(state,this.core?.preparationProgress??[],this.openingStage,labels),{activity,pill}=activityView;
     this.setHidden('busy',!pill||seeking||buffering&&state.streaming?.recovery?.status!=='retrying');this.text('busy',pill);
     // Preparation status shares the toolbar's alignment and responsive padding.
@@ -540,8 +550,15 @@ export class DemuxePlayerElement extends Base {
     this.$('timeline').style.setProperty('--buffered',layers.join(',')||'linear-gradient(transparent,transparent)');
   }
   private timelineProgress(){const input=this.input('timeline'),min=Number(input.min),max=Number(input.max);input.style.setProperty('--progress',`${max>min?Math.max(0,Math.min(100,(Number(input.value)-min)/(max-min)*100)):0}%`);}
-  private seekFromControls(time:number){const state=this.core?.state;const target=state&&!state.pendingOperation?resolveSeekTarget(time,state.seekable,state.currentTime,state.playbackRange):null;return target===null?Promise.resolve():this.seek(target);}
-  private skip(delta:number){const state=this.core?.state;if(state)this.run(this.seekFromControls(state.currentTime+delta));}
+  private controlSeek?:{source:number;target:number};
+  private seekFromControls(time:number){
+    const state=this.core?.state,available=state&&(!state.pendingOperation||state.pendingOperation.kind==='seeking');
+    const target=available?resolveSeekTarget(time,state.seekable,this.controlSeek?.source===state.sourceId&&state.pendingOperation?.kind==='seeking'?this.controlSeek.target:state.currentTime,state.playbackRange):null;
+    if(target===null||!state)return Promise.resolve();
+    const request={source:state.sourceId!,target};this.controlSeek=request;
+    return this.seek(target).finally(()=>{if(this.controlSeek===request)this.controlSeek=undefined;});
+  }
+  private skip(delta:number){const state=this.core?.state;if(state)this.run(this.seekFromControls((this.controlSeek?.source===state.sourceId&&state.pendingOperation?.kind==='seeking'?this.controlSeek.target:state.currentTime)+delta));}
   private trackOptions(id:string,list:readonly MediaTrack[],policy?:TrackTypePolicy){
     const select=this.$(id) as HTMLSelectElement,projection=elementTrackOptions(list,policy,this.labels);select.replaceChildren();
     for(const option of projection.options)select.add(new Option(option.label,option.id));
@@ -616,11 +633,15 @@ export class DemuxePlayerElement extends Base {
   private renderShell(){this.shadowRoot!.innerHTML=`<style>${styles}${themeStyles}${presentationStyles}${advancedSettingsStyles}${mobileStyles}${viewportStyles}</style>${playerShell()}`;
     this.advanced=new AdvancedSettings(this.shadowRoot!,()=>this.core,work=>this.runSettings(work));
     this.updatePresentation();this.labelControls();this.updateTitle();this.updateUtilities();this.$('controls').hidden=!this.controls;this.$('topbar').hidden=!this.controls;
-    this.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')this.revealControls();});this.addEventListener('pointerdown',event=>{this.suppressStageClick=-Infinity;if(!event.composedPath().includes(this.$('stage'))||!this.isScreenPress(event))this.stageTaps={};if(this.isScreenPress(event))this.control({type:'screen-press'});else this.revealControls();});this.addEventListener('focusin',this.revealControls);this.addEventListener('focusout',()=>{if(!this.controlState.idle)this.revealControls();});
-    this.addEventListener('pointerleave',event=>{if(!this.control({type:'pointer-leave',mouse:event.pointerType==='mouse',terminal:this.terminal,controls:this.controls,hasSource:!!this.core?.state.sourceId,...this.controlFacts()}).accepted)return;this.hideControls();});
+    this.addEventListener('pointermove',event=>{if(event.pointerType!=='touch'){this.mouseInside=true;this.revealControls();}});this.addEventListener('pointerdown',event=>{this.suppressStageClick=-Infinity;if(!event.composedPath().includes(this.$('stage'))||!this.isScreenPress(event))this.stageTaps={};if(this.isScreenPress(event)){this.stagePointerType=event.pointerType;if(event.pointerType==='touch')this.mouseInside=false;this.control({type:'screen-press'});}else this.revealControls();});this.addEventListener('focusin',this.revealControls);this.addEventListener('focusout',()=>{if(!this.controlState.idle)this.revealControls();});
+    this.addEventListener('pointerleave',event=>{this.mouseInside=false;if(!this.control({type:'pointer-leave',mouse:event.pointerType==='mouse',terminal:this.terminal,controls:this.controls,hasSource:!!this.core?.state.sourceId,...this.controlFacts()}).accepted)return;this.hideControls();});
     this.$('source-actions').addEventListener('click',event=>{if(this.showSourceControls&&event.composedPath().some(node=>node instanceof HTMLButtonElement)){this.settings(false,false);this.$('stage').focus({preventScroll:true});}});
     this.$('open-menu').onclick=()=>this.settings(!this.controlState.menuOpen||this.menuTrigger!=='open-menu',true,'open-menu');
-    this.$('shell').onclick=event=>{if(event.timeStamp-this.suppressStageClick<700&&event.composedPath().includes(this.$('stage'))&&this.isScreenPress(event)){this.suppressStageClick=-Infinity;return;}if(!this.isScreenPress(event)||!this.core?.state.sourceId||!this.controls)return;if(this.controlState.stageWasIdle){this.$('stage').focus({preventScroll:true});this.revealControls();}else this.hideControls(true);};
+    this.$('shell').onclick=event=>{if(event.timeStamp-this.suppressStageClick<700&&event.composedPath().includes(this.$('stage'))&&this.isScreenPress(event)){this.suppressStageClick=-Infinity;return;}if(!this.isScreenPress(event)||!this.core?.state.sourceId||!this.controls)return;if(this.stagePointerType!=='touch'){this.$('stage').focus({preventScroll:true});this.run(this.core.state.playbackIntent==='play'?this.pause():this.playFromControls());}else if(this.controlState.stageWasIdle){this.$('stage').focus({preventScroll:true});this.revealControls();}else this.hideControls(true);};
+    for(const id of ['controls','transport','utility-actions']){
+      this.$(id).addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'){this.mouseInside=true;this.revealControls();}});
+      this.$(id).addEventListener('pointerleave',event=>{if(event.pointerType==='mouse'&&!this.controlState.idle){this.revealControls();}});
+    }
     this.$('format').onchange=()=>this.updateUtilities();
     this.$('remote').onsubmit=event=>{event.preventDefault();if(!this.showSourceControls)return;const format=(this.$('format') as HTMLSelectElement).value as 'file'|'hls'|'dash';this.openFromControls({url:this.input('url').value,format,...(format!=='file'?{streaming:{live:this.input('live').checked}}:{})});};
     this.addEventListener('dragover',event=>{if(this.allowFileDrop&&event.dataTransfer?.types.includes('Files'))event.preventDefault();});this.addEventListener('drop',event=>{if(!this.allowFileDrop||!event.dataTransfer?.files.length)return;event.preventDefault();this.addFiles(Array.from(event.dataTransfer.files));});
@@ -672,7 +693,7 @@ export class DemuxePlayerElement extends Base {
       if(event.pointerType!=='touch')return;
       this.lastStageTouch=event.timeStamp;
       const state=this.core?.state,rect=stage.getBoundingClientRect(),fraction=(event.clientX-rect.left)/rect.width;
-      const eligible=event.isPrimary&&this.controls&&!this.terminal&&!this.controlState.menuOpen&&this.isScreenPress(event)&&!!state?.sourceId&&!!state.seekable?.length&&!state.pendingOperation;
+      const eligible=event.isPrimary&&this.controls&&!this.terminal&&!this.controlState.menuOpen&&this.isScreenPress(event)&&!!state?.sourceId&&!!state.seekable?.length&&(!state.pendingOperation||state.pendingOperation.kind==='seeking');
       const result=transitionStageTaps(this.stageTaps,{type:type==='pointerdown'?'down':type==='pointermove'?'move':'up',eligible,tap:{id:event.pointerId,x:event.clientX,y:event.clientY,at:event.timeStamp,side:fraction<1/3?-1:fraction>2/3?1:0,source:state?.sourceId??0}});
       this.stageTaps=result.state;
       if(result.seek){this.suppressStageClick=event.timeStamp;this.skip(result.seek*this.seekStep);this.revealControls();this.announce(`${result.seek<0?'−':'+'}${formatTime(this.seekStep)}`,false);}
@@ -693,17 +714,17 @@ export class DemuxePlayerElement extends Base {
       const topbar=event.composedPath().includes(this.$('utility-actions')),key=shortcut(event,topbar);
       if(topbar&&key===' ')event.preventDefault();
       if(event.repeat&&!this.controlState.menuOpen&&[' ','k','m','f'].includes(key??'')){event.preventDefault();return;}
-      if(!['arrowleft','arrowright','j','l','home','end','0','1','2','3','4','5','6','7','8','9'].includes(key??'')||!this.controlState.idle)this.revealControls();
+      this.revealControls();
       if(event.key==='Escape'&&this.controlState.menuOpen){event.preventDefault();this.settings(false);return;}
       if(event.key==='Escape'&&this.viewportExpansion?.active){event.preventDefault();this.viewportExpansion.close();return;}
       if(this.controlState.menuOpen)return;const p=this.core;if(!key||!p)return;
       let action:Promise<unknown>|undefined;const state=p.state;
-      const seek=(time:number)=>{if(state.playbackIntent==='play'&&!this.dragging)this.hideControls();return this.seekFromControls(time);};
+      const seek=(time:number)=>this.seekFromControls(time);
       if(key==='f'){event.preventDefault();this.fullscreen();return;}
       if(key==='?' ){event.preventDefault();this.settings(true);return;}
       if(key==='m')action=p.setMuted(!state.muted);
       if(key==='arrowup'||key==='arrowdown')action=p.setVolume(Math.max(0,Math.min(1,state.volume+(key==='arrowup'?.05:-.05))));
-      if(key==='['||key===']')action=p.setPlaybackRate(Math.max(.5,Math.min(2,state.playbackRate+(key===']'?.25:-.25))));
+      if(['[',']','<','>'].includes(key))action=p.setPlaybackRate(Math.max(.5,Math.min(2,state.playbackRate+(key===']'||key==='>'?.25:-.25))));
       if(!state.pendingOperation&&state.sourceId){if(key==='c'&&!state.trackPolicy.subtitles?.locked&&(!state.subtitlesVisible||state.trackPolicy.subtitles?.allowOff!==false))action=p.subtitleVisible(!state.subtitlesVisible);const bounds=seekBounds(state.seekable,state.playbackRange);if(bounds){const {start,end}=bounds;if(key==='home')action=seek(start);if(key==='end')action=seek(Math.max(start,end-.1));if(/^[0-9]$/.test(key))action=seek(start+(end-start)*Number(key)/10);}
       if(key===' '||key==='k')action=state.playbackIntent==='play'?this.pause():this.playFromControls();const delta=key==='arrowleft'?-5:key==='arrowright'?5:key==='j'?-this.seekStep:key==='l'?this.seekStep:0;const window=state.seekable;if(delta&&window?.length)action=seek(state.currentTime+delta);}
       if(action){event.preventDefault();this.run(action);}

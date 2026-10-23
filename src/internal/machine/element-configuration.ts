@@ -19,7 +19,7 @@ export type ElementConfigurationCommand=
  | Readonly<{type:'reflection';enter:boolean}>;
 export type ElementConfigurationDecision=Readonly<{state:ElementConfiguration;error?:Readonly<{code:'INVALID_ARGUMENT'|'ABORTED';message:string}>}>;
 export function initialElementConfiguration(watchdogs:WatchdogPolicy):ElementConfiguration {
- return copyData({sourceControls:true,diagnosticsControl:true,fileDrop:true,seekStep:10,autoHideDelay:2800,trackPolicy:{},watchdogs,labels:{},audioPlayback:'auto',preview:undefined,configuredAsset:null,reflectionDepth:0});
+ return copyData({sourceControls:true,diagnosticsControl:true,fileDrop:true,seekStep:10,autoHideDelay:3000,trackPolicy:{},watchdogs,labels:{},audioPlayback:'auto',preview:undefined,configuredAsset:null,reflectionDepth:0});
 }
 export function transitionElementConfiguration(state:ElementConfiguration,command:ElementConfigurationCommand):ElementConfigurationDecision {
  const invalid=(message:string,code:'INVALID_ARGUMENT'|'ABORTED'='INVALID_ARGUMENT')=>Object.freeze({state,error:Object.freeze({code,message})});

@@ -55,7 +55,7 @@ await check('unnamed and opaque sources do not expose a generated or stale title
    finally{await a.close();URL.revokeObjectURL(url);}
  });assert.deepEqual(data,{buffer:'',blob:''});
 });
-await check('autoplay hides transport immediately after opening while paused loads and opt-out stay visible',async()=>{
+await check('autoplay starts with visible controls while paused loads and opt-out stay visible',async()=>{
  const data=await page.evaluate(async()=>{
    const bytes=await(await fetch('/fixtures/example.mp4')).arrayBuffer(),states=[];
    try{
@@ -69,9 +69,9 @@ await check('autoplay hides transport immediately after opening while paused loa
        await a.close();
      }
      return states;
-   }finally{a.autoplay=false;a.controlsAutoHideDelay=2800;a.muted=false;await a.close();}
+   }finally{a.autoplay=false;a.controlsAutoHideDelay=3000;a.muted=false;await a.close();}
  });
- assert.deepEqual(data,[{playing:true,idle:true},{playing:false,idle:false},{playing:true,idle:false},{playing:true,idle:false}]);
+ assert.deepEqual(data,[{playing:true,idle:false},{playing:false,idle:false},{playing:true,idle:false},{playing:true,idle:false}]);
 });
 await check('autoplay completion preserves an active timeline drag',async()=>{
  const data=await page.evaluate(async()=>{
@@ -249,13 +249,14 @@ await check('source replacement and operations release an interrupted scrub',asy
  assert.equal(data.operation.dragging,false);assert.ok(Math.abs(data.operation.slider-2)<.1);
 });
 await check('custom seek step changes actual seeking, labels and numerals',async()=>{
+ await page.evaluate(()=>{a.controlsMode='mobile';});
  await page.evaluate(async()=>{await a.open(location.origin+'/fixtures/example.mp4');a.seekStep=2.5;});
  const v=page.locator('demuxe-player').first();
  assert.equal(await v.locator('#forward').getAttribute('aria-label'),'Seek forward 2.5 seconds');
  assert.equal(await v.locator('#back text').textContent(),'2.5');
  await v.locator('#forward').click();await page.waitForFunction(()=>!a.player.state.pendingOperation&&Math.abs(a.player.state.currentTime-2.5)<.2);
  await v.locator('#back').click();await page.waitForFunction(()=>!a.player.state.pendingOperation&&a.player.state.currentTime<.2);
- await page.evaluate(()=>{a.seekStep=10;});
+ await page.evaluate(()=>{a.seekStep=10;a.controlsMode='auto';});
 });
 await check('live seek and label updates preserve the active menu and its accessible name',async()=>{
  const v=page.locator('demuxe-player').first();
@@ -292,12 +293,13 @@ await check('configuration updates cannot revive a terminally destroyed player',
  assert.ok(data.states.every(Boolean));assert.equal(data.code,'ABORTED');assert.equal(data.core,false);assert.ok(data.hidden);
 });
 await check('custom auto-hide delay and zero opt-out apply live',async()=>{
+ await page.mouse.move(0,0);
  await page.evaluate(async()=>{a.controlsAutoHideDelay=180;await a.play();a.shadowRoot.activeElement?.blur();a.dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse'}));});
  await page.waitForFunction(()=>a.shadowRoot.getElementById('shell').classList.contains('idle'),null,{timeout:1500});
  await page.evaluate(()=>{a.controlsAutoHideDelay=0;});
  await page.waitForTimeout(350);
  assert.equal(await page.evaluate(()=>a.shadowRoot.getElementById('shell').classList.contains('idle')),false);
- await page.evaluate(async()=>{await a.pause();a.controlsAutoHideDelay=2800;await a.close();});
+ await page.evaluate(async()=>{await a.pause();a.controlsAutoHideDelay=3000;await a.close();});
 });
 await check('stable parts, light theme and long titles preserve embedded layout',async()=>{
  const data=await page.evaluate(()=>{
@@ -307,7 +309,7 @@ await check('stable parts, light theme and long titles preserve embedded layout'
    const $=id=>a.shadowRoot.getElementById(id);$('settings-toggle').click();
    const style=getComputedStyle($('settings')),stage=getComputedStyle($('stage'));
    const title=$('title').getBoundingClientRect(),folder=$('diagnostics-toggle').getBoundingClientRect();
-   const result={parts,background:style.backgroundColor,color:style.color,stage:stage.backgroundColor,bounded:title.right<=folder.left,overflow:a.scrollWidth>a.clientWidth};
+   const result={parts,background:style.backgroundColor,color:style.color,stage:stage.backgroundColor,bounded:title.right<=$('shell').getBoundingClientRect().right,overflow:a.scrollWidth>a.clientWidth};
    $('settings-close').click();a.title='';a.removeAttribute('style');return result;
  });
  for(const part of ['container','stage','controls','settings','error','status','title','topbar','transport','timeline','volume'])assert.ok(data.parts.includes(part),part);
@@ -337,14 +339,14 @@ await check('pointer Play and Pause keep immediate shortcuts scoped to the activ
  assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement?.id),'play');
  await page.evaluate(time=>a.seek(time),initialTime);
 });
-await check('hidden controls retain shortcuts and button focus allows playback keys',async()=>{
- // Start the control measurement with fresh media rather than a prior seek/switch.
- await freshPlaybackFixture();
- const v=page.locator('demuxe-player').first();await v.locator('#stage').click({position:{x:30,y:100}});assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));
- await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await page.evaluate(()=>b.player.state.status),'paused');
- await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('m');await page.waitForFunction(()=>a.player.state.muted);await page.keyboard.press('m');await page.waitForFunction(()=>!a.player.state.muted);
- await page.evaluate(()=>a.pause());await v.locator('#stage').click({position:{x:30,y:100}});await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing');await page.waitForTimeout(3100);assert.equal(await page.evaluate(()=>a.player.state.status),'playing','The auto-hide fixture must still be playing before the pause shortcut');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),JSON.stringify(await v.evaluate(el=>({status:el.player.state.status,focus:el.shadowRoot.activeElement?.id,visible:el.shadowRoot.activeElement?.matches(':focus-visible')}))));assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('Space');await page.waitForFunction(()=>a.player.state.status==='paused');
- await v.locator('#open-menu').click();await v.locator('#url').fill('https://example.com/');await page.keyboard.type('km');assert.equal(await v.locator('#url').inputValue(),'https://example.com/km');assert.equal(await page.evaluate(()=>a.player.state.status),'paused');await page.keyboard.press('Escape');
+await check('desktop stage clicks toggle playback and keyboard controls remain scoped',async()=>{
+ await freshPlaybackFixture();const v=page.locator('demuxe-player').first();
+ await v.locator('#stage').click({position:{x:30,y:100}});await page.waitForFunction(()=>a.player.state.status==='playing');
+ assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+ await v.locator('#stage').click({position:{x:30,y:100}});await page.waitForFunction(()=>a.player.state.status==='paused');
+ await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');
+ assert.equal(await page.evaluate(()=>b.player.state.status),'paused');
+ await v.locator('#open-menu').click();await v.locator('#url').fill('https://example.com/');await page.keyboard.type('km');assert.equal(await v.locator('#url').inputValue(),'https://example.com/km');await page.keyboard.press('Escape');
 });
 await check('mouse exit hides controls only while playing without stealing outside focus',async()=>{
  // Start the control measurement with fresh media rather than a prior seek/switch.
@@ -368,25 +370,36 @@ await check('mouse exit hides controls only while playing without stealing outsi
  await v.evaluate(el=>el.shadowRoot.activeElement?.blur());
  await v.dispatchEvent('pointerleave',{pointerType:'touch'});assert.equal(await idle(),false);
 });
-await check('paused screen and gaps between transport buttons toggle the UI',async()=>{
- const v=page.locator('demuxe-player').first();await page.evaluate(()=>a.pause());await v.dispatchEvent('pointermove',{pointerType:'mouse'});
- const transport=await v.locator('#transport').boundingBox(),back=await v.locator('#back').boundingBox(),play=await v.locator('#play').boundingBox();await page.mouse.click((back.x+back.width+play.x)/2,transport.y+transport.height/2);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.waitForTimeout(350);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');assert.equal(await page.evaluate(()=>a.player.state.status),'paused');
- await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
- await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.keyboard.press('Tab');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+await check('late hover exits cannot reopen hidden controls',async()=>{
+ const v=page.locator('demuxe-player').first();
+ await page.evaluate(async()=>{await a.pause();a.revealControls();a.hideControls(true);});
+ for(const id of ['controls','transport','utility-actions']){
+  await v.locator('#'+id).dispatchEvent('pointerleave',{pointerType:'mouse'});
+  assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),true);
+ }
+ await page.evaluate(()=>a.revealControls());
 });
-await check('Play hides controls immediately for click, K and Space',async()=>{
- const v=page.locator('demuxe-player').first();for(const key of [null,'k','Space']){await v.locator('#stage').focus();await v.dispatchEvent('pointermove',{pointerType:'mouse'});if(key)await page.keyboard.press(key);else await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing'&&a.shadowRoot.getElementById('shell').classList.contains('idle'),{},{timeout:1500});await page.waitForTimeout(350);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);}
+await check('touch stage taps toggle chrome without toggling playback',async()=>{
+ const v=page.locator('demuxe-player').first();await page.evaluate(()=>{a.pause();a.revealControls();});
+ for(const hidden of [true,false]){await v.locator('#stage').dispatchEvent('pointerdown',{pointerType:'touch'});await v.locator('#stage').dispatchEvent('click');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),hidden);assert.equal(await page.evaluate(()=>a.player.state.playbackIntent),'pause');}
 });
-await check('late playback updates and held play keys do not reopen controls',async()=>{
- const v=page.locator('demuxe-player').first();await v.locator('#stage').focus();await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing'&&a.shadowRoot.getElementById('shell').classList.contains('idle'));
- // Inject notification orderings at the component boundary; the backend keeps playing.
- await v.evaluate(el=>{const state=el.player.state;el.update({...state,status:'buffering'});el.update({...state,status:'playing'});});assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));
- await v.locator('#stage').dispatchEvent('keydown',{key:'k',repeat:true,bubbles:true,composed:true});assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')));await page.waitForTimeout(400);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+await check('Play uses the three-second timer, control hover holds chrome, and departure restarts it',async()=>{
+ await freshPlaybackFixture();const v=page.locator('demuxe-player').first();assert.equal(await v.evaluate(el=>el.controlsAutoHideDelay),3000);
+ await v.locator('#play').click();await page.waitForFunction(()=>a.player.state.status==='playing');
+ await page.waitForTimeout(3200);assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false,'hovered Play retains controls');
+ const box=await v.locator('#stage').boundingBox();await page.mouse.move(box.x+30,box.y+100);
+ await page.waitForTimeout(2500);assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('shell').classList.contains('idle'),{},{timeout:1500});
+ await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
 });
-await check('hidden seeking briefly reveals only the timeline without a pill',async()=>{
- const v=page.locator('demuxe-player').first();await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#stage').click({position:{x:30,y:100}});
- for(const key of ['ArrowRight','ArrowLeft']){await page.keyboard.press(key);await page.waitForFunction(()=>a.player.state.pendingOperation===null);await page.waitForTimeout(300);assert.ok(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')&&el.classList.contains('seek-preview')),JSON.stringify(await v.evaluate(el=>({classes:el.shadowRoot.getElementById('shell').className,status:el.player.state.status,time:el.player.state.currentTime,focus:el.shadowRoot.activeElement?.id}))));await v.locator('#busy').waitFor({state:'hidden',timeout:1000});assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'1');assert.equal(await v.locator('.row').evaluate(el=>getComputedStyle(el).visibility),'hidden');assert.equal(await v.locator('#transport').evaluate(el=>getComputedStyle(el).opacity),'0');assert.match(await v.locator('#time').textContent(),/\d+:\d{2}/);}
- await page.waitForFunction(()=>!a.shadowRoot.getElementById('shell').classList.contains('seek-preview'));await page.waitForTimeout(300);assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).opacity),'0');
+await check('keyboard play and seek reveal full chrome; held play keys do not toggle again',async()=>{
+ await freshPlaybackFixture();const v=page.locator('demuxe-player').first();await v.locator('#stage').focus();await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='playing');
+ assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+ await v.locator('#stage').dispatchEvent('keydown',{key:'k',repeat:true,bubbles:true,composed:true});assert.equal(await page.evaluate(()=>a.player.state.playbackIntent),'play');
+ await page.waitForFunction(()=>a.shadowRoot.getElementById('shell').classList.contains('idle'));
+ await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>!a.player.state.pendingOperation);assert.equal(await v.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);
+ await page.keyboard.press('k');await page.waitForFunction(()=>a.player.state.status==='paused');
+ await page.keyboard.press('>');await page.waitForFunction(()=>a.player.state.playbackRate===1.25);await page.keyboard.press('<');await page.waitForFunction(()=>a.player.state.playbackRate===1);
 });
 await check('buffering indicator and truthful disjoint timeline ranges',async()=>{
  const v=page.locator('demuxe-player').first();await v.evaluate(el=>{const state=el.player.state;el.update({...state,status:'buffering',playbackIntent:'play',pendingOperation:null,seekable:[{start:10,end:110}],buffered:[{start:10,end:30},{start:60,end:80}]});el.shadowRoot.getElementById('shell').classList.add('idle');});
@@ -396,6 +409,19 @@ await check('buffering indicator and truthful disjoint timeline ranges',async()=
  const cached=await v.locator('#timeline').evaluate(el=>el.style.getPropertyValue('--buffered'));assert.ok(cached.includes('0% 15%'));assert.ok(cached.includes('95% 100%'));assert.ok(cached.includes('45%'));
  await v.evaluate(el=>el.update({...el.player.state,buffered:null,cached:[]}));await v.locator('#buffering-indicator').waitFor({state:'hidden'});assert.equal(await v.locator('#timeline').evaluate(el=>el.style.getPropertyValue('--buffered')),'linear-gradient(transparent,transparent)');
  await v.evaluate(el=>el.update({...el.player.state,status:'buffering',playbackIntent:'play',pendingOperation:{id:999,kind:'seeking'}}));await v.locator('#buffering-indicator').waitFor({state:'hidden'});await v.locator('#busy').waitFor({state:'hidden'});await v.evaluate(el=>el.update(el.player.state));
+});
+await check('slower speed shortcuts clamp at the supported minimum without errors',async()=>{
+ const v=page.locator('demuxe-player').first(),beforeErrors=errors.length;
+ await page.evaluate(()=>a.setPlaybackRate(.75));await v.locator('#stage').focus();
+ for(const key of ['<','<','[','[']){
+  await page.keyboard.press(key);
+  // Drain the core command queue before observing the rate and selector.
+  await page.evaluate(()=>a.setMuted(a.player.state.muted));
+  assert.equal(await page.evaluate(()=>a.player.state.playbackRate),.5);
+  assert.equal(await v.locator('#speed').inputValue(),'0.5');
+ }
+ assert.deepEqual(errors.slice(beforeErrors),[]);
+ await page.evaluate(()=>a.setPlaybackRate(1));
 });
 await check('volume, rate, subtitle and percentage shortcuts use public state',async()=>{const first=page.locator('demuxe-player').first();await first.locator('#stage').focus();await page.keyboard.press('ArrowDown');await page.waitForFunction(()=>a.player.state.volume===.95);await page.keyboard.press('m');await page.waitForFunction(()=>a.player.state.muted);await page.keyboard.press('m');await page.waitForFunction(()=>!a.player.state.muted);await page.keyboard.press(']');await page.waitForFunction(()=>a.player.state.playbackRate===1.25);await page.keyboard.press('c');await page.waitForFunction(()=>!a.player.state.subtitlesVisible);await page.keyboard.press('c');await page.waitForFunction(()=>a.player.state.subtitlesVisible);await page.keyboard.press('5');await page.waitForFunction(()=>a.player.state.pendingOperation===null&&a.player.state.currentTime>5);await page.keyboard.press('Home');await page.waitForFunction(()=>a.player.state.pendingOperation===null&&a.player.state.currentTime<.15);});
 await check('timeline previews locally and commits once',async()=>{const d=await page.evaluate(async()=>{let count=0;a.addEventListener('seeking',()=>count++);const input=a.shadowRoot.getElementById('timeline');const before=a.player.state.currentTime;for(const n of [1,2,3]){input.value=String(n);input.dispatchEvent(new Event('input'));}const during=a.player.state.currentTime;input.dispatchEvent(new Event('change'));await new Promise(r=>a.addEventListener('seeked',r,{once:true}));return {count,before,during,time:a.player.state.currentTime};});assert.equal(d.before,d.during);assert.equal(d.count,1);assert.ok(Math.abs(d.time-3)<.15);});
@@ -418,7 +444,7 @@ await check('overlay controls, URL opening, idle reveal and close stay in the co
  await viewer.evaluate(async el=>{await new Promise(resolve=>requestAnimationFrame(resolve));await Promise.all(el.shadowRoot.getElementById('shell').getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})));});
  const bounds=await viewer.evaluate(el=>{const r=id=>{const b=el.shadowRoot.getElementById(id).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right};};return {stage:r('stage'),controls:r('controls'),top:r('topbar')};});assert.ok(bounds.controls.bottom<=bounds.stage.bottom+1&&bounds.controls.top>=bounds.stage.top,JSON.stringify(bounds));assert.ok(bounds.top.top>=bounds.stage.top,JSON.stringify(bounds));
  await page.screenshot({path:out+'/overlay-desktop.png',fullPage:true});
- await page.evaluate(()=>player.pause());await viewer.locator('#play').click();await page.evaluate(()=>{document.querySelector('demuxe-player').shadowRoot.activeElement?.blur();});await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));
+ await page.evaluate(()=>player.pause());await viewer.locator('#play').click();await page.evaluate(()=>{document.querySelector('demuxe-player').shadowRoot.activeElement?.blur();});await viewer.locator('#stage').hover({position:{x:15,y:90}});await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));
  await viewer.dispatchEvent('pointermove');assert.equal(await viewer.locator('#shell').evaluate(el=>el.classList.contains('idle')),false);await page.evaluate(()=>player.pause());
  await page.setViewportSize({width:390,height:844});await viewer.locator('#stage').hover({position:{x:15,y:90}});await viewer.locator('#settings-toggle').click();
  const menu=await viewer.locator('#settings').boundingBox(),viewport=page.viewportSize();
@@ -443,32 +469,32 @@ await check('outside clicks dismiss menus and screen taps toggle controls',async
  try{
  await stage.hover({position:{x:30,y:100}}); // Start menu checks after autoplay has finished hiding controls.
  await v.locator('#settings-toggle').click();await v.locator('#speed').selectOption('1.25');assert.ok(await menu.isVisible());await page.locator('h1').evaluate(el=>el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true})));await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(false);
- await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(true);assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));assert.equal(await v.locator('#controls').evaluate(el=>getComputedStyle(el).pointerEvents),'none');
- await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('pointermove',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
- await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');assert.ok(await shell.evaluate(el=>el.classList.contains('idle')));await stage.focus();await page.keyboard.press('Tab');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
+ await v.locator('#open-menu').click();await stage.click({position:{x:30,y:100}});await menu.waitFor({state:'hidden',timeout:1000});await assertDismissed(true);assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);assert.equal(await page.evaluate(()=>player.state.playbackIntent),'pause');
+ await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('pointermove',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),true);
+ await stage.dispatchEvent('pointerdown',{pointerType:'touch'});await stage.dispatchEvent('click');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);await stage.focus();await page.keyboard.press('Tab');assert.equal(await shell.evaluate(el=>el.classList.contains('idle')),false);
  }finally{await page.evaluate(()=>{window.stopMenuDismissals?.();delete window.stopMenuDismissals;});}
 });
-await check('Center transport and bounded ten-second seeks',async()=>{
- await page.setViewportSize({width:1280,height:900});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
- await page.evaluate(()=>player.pause());const v=page.locator('demuxe-player');await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click({trial:true});
- const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox();assert.ok(Math.abs(play.x+play.width/2-stage.x-stage.width/2)<2&&Math.abs(play.y+play.height/2-stage.y-stage.height/2)<2);assert.ok(play.width>=80);
+await check('Mobile center transport and bounded ten-second seeks',async()=>{
+ await page.setViewportSize({width:390,height:844});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#settings-toggle').click();await page.locator('demuxe-player').locator('#settings-source').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);
+ await page.evaluate(()=>{document.querySelector('demuxe-player').controlsMode='mobile';return player.pause();});const v=page.locator('demuxe-player');await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click({trial:true});
+ const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox();assert.ok(Math.abs(play.x+play.width/2-stage.x-stage.width/2)<2&&Math.abs(play.y+play.height/2-stage.y-stage.height/2)<2);assert.ok(play.width>=56);
  await page.evaluate(()=>player.seek(3));await v.getByRole('button',{name:'Seek forward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime>10);assert.ok(await page.evaluate(()=>player.state.currentTime<=player.state.duration));
  await v.getByRole('button',{name:'Seek backward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime<3);await v.getByRole('button',{name:'Seek backward 10 seconds',exact:true}).click();await page.waitForFunction(()=>player.state.pendingOperation===null&&player.state.currentTime<.2);
  await v.locator('#settings-toggle').click();assert.ok(await v.locator('#playback-options').isVisible());await v.locator('#source-options').waitFor({state:'hidden',timeout:1000});await v.locator('#speed').selectOption('1.25');await page.waitForFunction(()=>player.state.playbackRate===1.25);await page.screenshot({path:out+'/halo-desktop-menu.png',fullPage:true});await page.keyboard.press('Escape');
- await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/halo-mobile.png',fullPage:true});await page.evaluate(()=>player.pause());await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));await v.dispatchEvent('pointermove');await page.evaluate(()=>player.pause());
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/halo-mobile.png',fullPage:true});await page.evaluate(()=>player.pause());await v.dispatchEvent('pointermove',{pointerType:'mouse'});await v.locator('#play').click();await v.locator('#stage').hover({position:{x:15,y:90}});await page.waitForFunction(()=>document.querySelector('demuxe-player').shadowRoot.getElementById('shell').classList.contains('idle'));await v.dispatchEvent('pointermove');await page.evaluate(()=>player.pause());
 });
 await check('overlay scales to its embed width independently of the viewport',async()=>{
  await page.setViewportSize({width:1400,height:1000});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);await page.evaluate(()=>player.pause());await page.emulateMedia({reducedMotion:'reduce'});const v=page.locator('demuxe-player');await v.dispatchEvent('pointermove');const sizes=[];
- for(const width of [1200,720,360]){await v.evaluate((el,w)=>el.style.width=w+'px',width);const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox(),transport=await v.locator('#transport').boundingBox(),timeline=await v.locator('#timeline').boundingBox();sizes.push(play.width);assert.ok(transport.width<stage.width*.6);assert.ok(transport.y+transport.height<timeline.y);await v.locator('#settings-toggle').click();const menu=await v.locator('#settings').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.y+menu.height<=stage.y+stage.height);await page.keyboard.press('Escape');}
- assert.ok(sizes[0]>sizes[1]&&sizes[1]>sizes[2],`Play button widths: ${sizes.join(', ')}`);await page.screenshot({path:out+'/compact-embed-wide-viewport.png',fullPage:true});await v.evaluate(el=>el.style.removeProperty('width'));await page.emulateMedia({reducedMotion:'no-preference'});
+ for(const width of [1200,720,360]){await v.evaluate((el,w)=>el.style.width=w+'px',width);const stage=await v.locator('#stage').boundingBox(),play=await v.locator('#play').boundingBox(),transport=await v.locator('#transport').boundingBox(),timeline=await v.locator('#timeline').boundingBox();sizes.push(play.width);assert.ok(transport.width<stage.width*.6);assert.ok(transport.y>=timeline.y+timeline.height-1);await v.locator('#settings-toggle').click();const menu=await v.locator('#settings').boundingBox();assert.ok(menu.x>=stage.x&&menu.y>=stage.y&&menu.y+menu.height<=stage.y+stage.height);await page.keyboard.press('Escape');}
+ assert.deepEqual(sizes,[40,40,40],'desktop Classic keeps consistent button targets across embed widths');await page.screenshot({path:out+'/compact-embed-wide-viewport.png',fullPage:true});await v.evaluate(el=>el.style.removeProperty('width'));await page.emulateMedia({reducedMotion:'no-preference'});
 });
 await check('height-limited video fills and centers within the player width',async()=>{
  await page.setViewportSize({width:1400,height:600});await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&!player.state.pendingOperation);
- const v=page.locator('demuxe-player');for(const mode of ['native','software','hybrid']){await page.evaluate(m=>player.setMode(m),mode);const rects=await v.evaluate(el=>{const s=el.shadowRoot;return ['#shell','#stage','#surface','.demuxe-player','video,canvas'].map(selector=>{const r=s.querySelector(selector).getBoundingClientRect();return {x:r.x,width:r.width};});});for(const r of rects.slice(1)){assert.ok(Math.abs(r.width-(rects[0].width-2))<2,mode+' fills available width');assert.ok(Math.abs(r.x+r.width/2-rects[0].x-rects[0].width/2)<1,mode+' centered');}}
+ const v=page.locator('demuxe-player');for(const mode of ['native','software','hybrid']){await page.evaluate(m=>player.setMode(m),mode);const rects=await v.evaluate(el=>{const s=el.shadowRoot;return ['#shell','#stage','#surface','.demuxe-player','video,canvas'].map(selector=>{const r=s.querySelector(selector).getBoundingClientRect();return {x:r.x,width:r.width};});});for(const r of rects.slice(1)){assert.ok(Math.abs(r.width-rects[0].width)<2,mode+' fills available width');assert.ok(Math.abs(r.x+r.width/2-rects[0].x-rects[0].width/2)<1,mode+' centered');}}
  await page.screenshot({path:out+'/height-limited-centered.png',fullPage:true});
 });
 await check('Space on top-right icons controls playback without activating icons',async()=>{
- await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);await page.evaluate(()=>player.pause());const v=page.locator('demuxe-player');await v.locator('#fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('demuxe-player'));
+ await page.goto(origin+'/');await page.waitForFunction(()=>window.player);await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);await page.evaluate(()=>{document.querySelector('demuxe-player').controlsMode='mobile';return player.pause();});const v=page.locator('demuxe-player');await v.locator('#fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('demuxe-player'));
  for(const id of ['fullscreen','settings-toggle','open-menu']){await v.locator('#'+id).focus();await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');assert.ok(await page.evaluate(()=>!!document.fullscreenElement));await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');assert.ok(await page.evaluate(()=>!!document.fullscreenElement));}
  await page.evaluate(()=>document.exitFullscreen());await v.locator('#settings-toggle').focus();await page.keyboard.press('Enter');assert.ok(await v.locator('#settings').isVisible());await page.keyboard.press('Escape');
 });
@@ -476,6 +502,27 @@ await check('file and URL selection leave Space focused on playback',async()=>{
  for(const source of ['file','url']){await page.goto(origin+'/');await page.waitForFunction(()=>window.player);const v=page.locator('demuxe-player');if(source==='file'){const chooser=page.waitForEvent('filechooser');await v.locator('#open').click();await(await chooser).setFiles('fixtures/example.mp4');}else{await v.locator('#open-menu').click();await v.locator('#url').fill(origin+'/fixtures/example.mp4');await v.locator('#url-submit').click();}await page.waitForFunction(()=>player.state.sourceId&&player.state.pendingOperation===null);assert.equal(await v.evaluate(el=>el.shadowRoot.activeElement.id),'stage');await page.evaluate(()=>player.pause());await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='playing');await v.locator('#settings').waitFor({state:'hidden',timeout:1000});await page.keyboard.press('Space');await page.waitForFunction(()=>player.state.status==='paused');}
 });
 await check('migrated playground uses the shipped component and core',async()=>{await page.goto(origin+'/');await page.waitForFunction(()=>window.player);assert.ok(await page.evaluate(()=>document.querySelector('demuxe-player').player===window.player));await page.locator('demuxe-player').locator('#open-menu').click();await page.getByRole('button',{name:'Try an example'}).click();await page.waitForFunction(()=>player.state.sourceId!==null&&player.state.pendingOperation===null);assert.equal(await page.getByRole('button',{name:'Developer settings',exact:true}).count(),0);assert.equal(await page.evaluate(()=>player.state.automaticSelection),true);await page.evaluate(()=>player.pause());await page.getByRole('button',{name:'Play',exact:true}).click();await page.waitForFunction(()=>player.state.status==='playing');await page.locator('demuxe-player').evaluate(el=>el.close());await page.waitForFunction(()=>player.state.status==='idle');});
+await check('a newly chosen file recovers after an unsupported-format open without reloading',async()=>{
+ await page.goto(origin+'/');await page.waitForFunction(()=>window.player);
+ const v=page.locator('demuxe-player');
+ await v.evaluate(el=>{el.autoplay=false;});
+ // Use the real routing failure, rather than rejecting an injected open method.
+ await v.locator('#file').setInputFiles({name:'unsupported.bin',mimeType:'application/octet-stream',buffer:Buffer.from('Not a media container')});
+ await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player');return !el.queueOperation&&!el.player.state.pendingOperation&&!el.shadowRoot.getElementById('error').hidden;});
+ assert.match(await v.locator('#error-text').textContent(),/No playback route satisfied|unrecognized file format/i);
+ await page.evaluate(()=>{window.recoveryCore=player;});
+ await v.locator('#file').setInputFiles('fixtures/example.mp4');
+ await page.waitForFunction(()=>{const el=document.querySelector('demuxe-player');return !el.queueOperation&&!el.player.state.pendingOperation&&el.player.state.status==='paused'&&el.shadowRoot.getElementById('error').hidden;});
+ assert.ok(await page.evaluate(()=>player===recoveryCore&&player.state.sourceId!==null));
+ assert.equal(await v.locator('#queue-count').textContent(),'2 / 2');
+ assert.equal(await page.evaluate(()=>document.getElementById('status').textContent),'');
+ // Once recovery succeeds, more files append without interrupting playback.
+ const recovered=await page.evaluate(()=>player.state.sourceId);
+ await v.locator('#file').setInputFiles('fixtures/example.mp4');
+ assert.equal(await page.evaluate(()=>player.state.sourceId),recovered);
+ assert.equal(await v.locator('#queue-count').textContent(),'2 / 3');
+ await v.evaluate(el=>el.close());
+});
 await check('multiple selected files form one ordered queue and reuse the same core',async()=>{
  await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{

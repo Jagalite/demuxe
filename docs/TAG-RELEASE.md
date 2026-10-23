@@ -77,6 +77,58 @@ stable release as latest; prerelease package versions remain GitHub prereleases.
 Tag updates/deletions do not deploy. A manual workflow dispatch rebuilds Pages
 for an existing tag without creating a release or staging npm.
 
+## Qualify an unpublished candidate
+
+Before dispatching a full build, install the locked dependencies and run the
+browser receipt preflight:
+
+```sh
+npm ci --ignore-scripts
+node --test tests/release-browser-contracts.test.mjs
+```
+
+This checks the installed Playwright pin and rejects incomplete or failed
+browser receipts. The API case minimum is shared with the normal API gate, so
+adding a case does not require updating a second exact count. Both PR CI and
+the release build run this preflight before expensive compilation.
+
+On macOS, a retained candidate archive can exercise the complete Apple WebKit
+wrapper before another full build:
+
+```sh
+npx playwright install webkit
+node tests/api-stability/fixtures.mjs
+BETA_ARCHIVE=/absolute/path/to/demuxe-1.1.2.tgz node tests/webkit-release.mjs
+```
+
+The archive must match the checked-out source revision. The wrapper records
+archive and harness hashes; checks against a retained archive do not qualify
+changed runtime bytes. Publication still requires the complete candidate run.
+
+
+The manual workflow also accepts `qualify_only=true` and a full `source_ref`
+commit SHA. This runs the same clean engine builds, provider gates, exact-archive
+consumer/catalogue/API checks and macOS WebKit qualification used by a tag
+release. It creates the proposed matching version tag only inside the Linux
+build checkout. It does not push that tag, deploy Pages, create a GitHub Release
+or stage npm. The `qualified-release`, `pages-build-evidence` and
+`webkit-macos-release-evidence` artifacts retain the candidate and receipts.
+
+```sh
+gh workflow run pages.yml --ref release/1.1.2 \
+  -f tag=v1.1.2 -f source_ref=<full-reviewed-commit-sha> -f qualify_only=true
+```
+
+Candidate runs report a separate **Release candidate qualification** commit
+status, which stays pending until providers, archive checks and Apple WebKit
+finish. Ordinary PR checks passing does not complete this status.
+
+Review the entire run, including providers and Apple WebKit, before approving
+publication. Preserve the downloaded archives and their hashes. After approval,
+the public tag must point to the same commit, and manual publication must use
+these exact qualified assets rather than rebuilding them. A candidate run that
+has pending or failed gates is not qualified.
+
 ## Repository setup
 
 Use GitHub Actions for Pages. Permit release tags in the `github-pages` and
@@ -110,3 +162,57 @@ preparation run is separate from browser qualification. The full clean Linux
 engine build and tag-to-deployment run must still pass in Actions; local guard
 tests do not establish that end-to-end result. No release or npm version is
 created by those local tests.
+
+## Replay an ASS browser failure without rebuilding
+
+For a retained `unqualified-runtime-debug` artifact, dispatch the existing
+workflow with `replay_ass_run=<repository-run-id>`,
+`replay_ass_sha256=<runtime-tgz-sha256>` and `source_ref=<archive-source-commit>`.
+Keep `qualify_only=false` and supply the matching version tag. The replay skips
+provider/native builds, runs the three ASS suites in Chrome and Firefox, and
+retains failed-case worker retirement traces and responsiveness probes. The main ASS suite runs three independent times; selection and style run once.
+Every result is retained, and any failure fails the replay. Archive bytes and source identity
+must match the supplied values before browser tests run.
+
+The separate **ASS archive replay** commit status describes diagnostics only.
+It cannot satisfy **Release candidate qualification**, publish assets or stage
+npm. A complete qualification remains necessary after resolving the failure.
+
+For a reviewed controller change, `replay_ass_overlay=true` replaces only
+the changed controller and native MSE worker modules in a private installed copy after verifying the
+original archive. The receipt records original and replacement module hashes;
+the archive itself is unchanged, and this diagnostic does not qualify the
+modified runtime. `replay_ass_rounds` accepts 1–10 independent main-suite trials.
+A final clean-source qualification must package and verify the fix normally.
+
+The focused replay also runs the installed consumer's `native-remux` case once
+per trial. It records fixture and module hashes and disables consumer startup
+retries in this diagnostic lane. Private module replacements are recorded in
+each consumer receipt and cannot qualify a release archive.
+
+The Chrome replay also records eighty minimal MediaSource worker lifetimes across
+window/iframe ownership, self-close/parent termination and same-element source replacement. This isolates browser
+lifetime behavior without FFmpeg, decoded media or production player state; a
+passing probe alone does not resolve a failing playback teardown.
+
+The Chrome lane also drives twenty remux/ASS replacement sequences through a
+page-only CDP session, without attaching debuggers to workers. It must observe
+active worker-owned MSE before teardown and zero worker targets within five seconds
+afterward. The deadline and zero-worker requirement are unchanged. Historical
+iframe delay, navigation and cooperative-closure comparisons remain in their failed
+receipts; they did not resolve the leak. The current controller constructs its worker
+in the video element's owning document realm and allocates no disposable iframe.
+This independent CDP check cannot replace the full release qualification gate.
+
+When the CDP control fails its original five-second target deadline, it also records
+remaining targets after page garbage collection as a post-failure diagnostic.
+This observation cannot change the failed trial into a pass or qualify a release.
+
+Retained-archive overlays also record `web/native-remux-player.js` when testing
+SourceBuffer retirement. The installed-consumer diagnostic copies and records the same
+remux module and controller alongside the native MSE worker; the release verifier rejects these overlays.
+
+The standalone CDP diagnostic accepts `MSE_CDP_OWNER=worker|window` and records
+the expected and observed owner. Both modes must observe active transport workers
+and retire all targets within the same deadline. The retained replay explicitly
+pins the expected owner; changing this expectation requires a declared release-path change.

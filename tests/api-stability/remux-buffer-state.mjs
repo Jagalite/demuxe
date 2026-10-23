@@ -64,8 +64,8 @@ test('varied append/remove/replacement histories retain immutable snapshots and 
 function shell(t,lanes=2){
  const video={paused:true,currentTime:1,pause(){},removeAttribute(){},load(){}},player=new RemuxPlayer(video,{mseOwner:'window',runtime:'jspi'});clearInterval(player.timer);t.after(()=>player.destroy());
  const begin=()=>{player.transitionLifecycle({type:'open'});const restart=player.transitionLifecycle({type:'restart',target:0,duration:30});player.transitionLifecycle({type:'begin',restartId:restart.restartId});player.setBusy(false);};begin();
- const buffers=Array.from({length:lanes},()=>{const handlers=new Set(),all=[];return {updating:false,buffered:{length:1,start:()=>1,end:()=>6},calls:[],handlers,all,addEventListener(type,handler){if(type==='updateend'){handlers.add(handler);all.push(handler);}},removeEventListener(type,handler){handlers.delete(handler);},appendBuffer(buffer){this.calls.push(buffer);this.updating=true;},remove(){this.updating=true;},finish(){this.updating=false;for(const handler of [...handlers])handler();}};});
- player.sbs=buffers;player.sb=buffers[0];player.media={readyState:'open'};player.pumps=0;player.pump=()=>player.pumps++;return {player,buffers,begin};
+ const buffers=Array.from({length:lanes},()=>{const handlers=new Set(),all=[];return {updating:false,buffered:{length:1,start:()=>1,end:()=>6},calls:[],handlers,all,addEventListener(type,handler){if(type==='updateend'){handlers.add(handler);all.push(handler);}},removeEventListener(type,handler){handlers.delete(handler);},appendBuffer(buffer){this.calls.push(buffer);this.updating=true;},remove(){this.updating=true;},abort(){this.updating=false;},finish(){this.updating=false;for(const handler of [...handlers])handler();}};});
+ player.sbs=buffers;player.sb=buffers[0];player.media={readyState:'open',removeSourceBuffer(){}};player.pumps=0;player.pump=()=>player.pumps++;return {player,buffers,begin};
 }
 test('actual append admits all lanes before a synchronous first-lane completion',t=>{
  const {player:p,buffers}=shell(t);buffers[0].appendBuffer=function(buffer){this.calls.push(buffer);this.finish();};p.append([new ArrayBuffer(3),new ArrayBuffer(5)],true);

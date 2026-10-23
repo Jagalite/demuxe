@@ -74,7 +74,7 @@ export declare const defaultLabels: Readonly<{
     unknown: "Unknown duration";
     retry: "Retry";
     resume: "Press Play to continue";
-    shortcuts: "K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · [ ]: speed · 0–9 / Home / End: position · F: fullscreen";
+    shortcuts: "K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · < >: speed · 0–9 / Home / End: position · F: fullscreen";
     expandPlayer: "Expand player";
     exitExpandedPlayer: "Exit expanded view";
     noFullscreen: "Fullscreen and browser expansion are unavailable here.";
@@ -254,6 +254,8 @@ export declare class DemuxePlayerElement extends Base {
     private dismissMenu;
     private isScreenPress;
     private resizeObserver?;
+    private mouseInside;
+    private stagePointerType;
     private stageTaps;
     private lastStageTouch;
     private suppressStageClick;
@@ -325,6 +327,7 @@ export declare class DemuxePlayerElement extends Base {
     private bufferedKey;
     private bufferedProgress;
     private timelineProgress;
+    private controlSeek?;
     private seekFromControls;
     private skip;
     private trackOptions;

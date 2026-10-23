@@ -32,7 +32,7 @@ for engine,folder,stem in [(a.adaptation_build,'engine-adaptation','remux')]:
 env={**os.environ,'BETA_ARCHIVE':str(archive),'DEMUXE_RUNTIME_ROOT':str(out/'installed/package'),
      'ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/long-pcm.mkv'),
      'AUTOMATIC_ADAPTATION_FIXTURE':str(root/'build/optimization-fixtures/automatic-release.mkv')}
-for name in ['BROWSER','CASES','PROFILE','REPRO_UNQUALIFIED','SEEKS_ONLY','COMBINATION','REMOTE','ENGINE_BUILD','RUNTIME','DEMUXE_TEST_ASSET_ROOT']:env.pop(name,None)
+for name in ['BROWSER','CASES','PROFILE','REPRO_UNQUALIFIED','SEEKS_ONLY','COMBINATION','REMOTE','ENGINE_BUILD','RUNTIME','DEMUXE_TEST_ASSET_ROOT','DEMUXE_DIAGNOSTIC_MSE_WORKER','DEMUXE_DIAGNOSTIC_NO_RETRY']:env.pop(name,None)
 def run(name,command,extra=None):
     item={'name':name,'command':command,'harnesses':{f:digest(root/f) for f in command if (root/f).is_file()},'passed':False}
     if any(f.startswith('tests/') and f.endswith('.mjs') for f in command):item['harnesses']['scripts/serve.mjs']=digest(root/'scripts/serve.mjs')

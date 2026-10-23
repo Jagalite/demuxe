@@ -8,6 +8,7 @@ const browser=await(family==='firefox'?firefox:family==='webkit'?webkit:chromium
 await page.addInitScript(()=>{
  const OriginalWorker=globalThis.Worker,active=new Set();let serial=0;
  window.engineWorkerEvents=[];
+ window.activeEngineWorkerCount=()=>active.size;
  const record=data=>{engineWorkerEvents.push(data);if(engineWorkerEvents.length>100)engineWorkerEvents.shift();};
  globalThis.Worker=class extends OriginalWorker{
   constructor(...args){super(...args);this.traceId=++serial;active.add(this);record({event:'start',worker:this.traceId,active:active.size});this.addEventListener('message',({data})=>{if(data?.type==='log'||data?.type==='error')record({event:data.type,worker:this.traceId,message:data.message,active:active.size});});}
@@ -17,6 +18,18 @@ await page.addInitScript(()=>{
 const result={browser:browser.version(),family,checks:[],hashes:{}};for(const p of ['src/unified-player.ts','src/internal/state.ts','src/types.ts','src/internal/wasm-player.ts','src/internal/native-player.ts','tests/public-api.mjs'])result.hashes[p]=createHash('sha256').update(await readFile(p)).digest('hex');
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 async function check(name,fn){if(process.env.ONLY&&!name.includes(process.env.ONLY))return;try{await fn();result.checks.push({name,passed:true});console.log('PASS',name);}catch(e){result.checks.push({name,passed:false,error:String(e.stack),state:await page.evaluate(()=>window.player?.state).catch(()=>null),workerEvents:await page.evaluate(()=>window.engineWorkerEvents).catch(()=>null)});console.log('FAIL',name,String(e));process.exitCode=1;}await writeFile(out+'/result.json',JSON.stringify(result,null,2));}
+async function waitForWorkerRetirement(timeout=5000){
+ const start=performance.now(),initial=page.workers().length;
+ // terminate() is synchronous from the application's perspective, while the
+ // browser reports worker destruction asynchronously. Keep a bounded physical
+ // retirement check rather than assuming a fixed sleep observes that report.
+ while(page.workers().length){
+  const remaining=timeout-(performance.now()-start);
+  if(remaining<=0)assert.fail('Workers remained after retirement deadline: '+JSON.stringify(page.workers().map(worker=>worker.url())));
+  await new Promise(resolve=>setTimeout(resolve,Math.min(25,remaining)));
+ }
+ return {initial,elapsedMs:performance.now()-start,remaining:page.workers().length};
+}
 async function make(mode){await page.evaluate(()=>window.player?.destroy());await page.evaluate(async mode=>{const {Player}=await import('/web/generated/index.js');window.player=new Player(document.querySelector('#surface'),{mode});window.historyEvents=[];for(const name of ['statechange','sourcechange','play','playing','pause','seeking','seeked','error'])player.addEventListener(name,e=>historyEvents.push({name,detail:e.detail,state:player.state}));},mode);}
 async function open(){await page.evaluate(async()=>player.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'example.mp4')));}
 let suiteCompleted=false;
@@ -103,7 +116,24 @@ await check('canceling Wasm asset initialization preserves the previous session'
 await check('stale backend events cannot overwrite accepted playback',async()=>{await make('native');await open();const d=await page.evaluate(async()=>{const previous=player.current.backend;await player.setMode('hybrid');const before=player.state;previous.properties.set('time-pos',999);previous.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'time-pos',data:999}}));previous.dispatchEvent(new CustomEvent('error',{detail:'late decoder failure'}));await Promise.resolve();return {same:player.state===before,time:player.state.currentTime,error:player.state.error};});assert.ok(d.same);assert.notEqual(d.time,999);assert.equal(d.error,null);});
 await check('unknown duration and live windows remain truthful (adapter injection)',async()=>{await make('hybrid');await open();const d=await page.evaluate(async()=>{const backend=player.current.backend;const notify=()=>backend.dispatchEvent(new CustomEvent('mpv',{detail:{event:'property-change',name:'duration',data:null}}));backend.properties.set('duration',null);backend.properties.delete('demuxer-cache-state');notify();await Promise.resolve();const unknown=player.state;player.source={kind:'remote',options:{url:location.origin+'/live.m3u8',format:'hls',streaming:{live:true}}};backend.properties.set('demuxer-cache-state',{'seekable-ranges':[{start:20,end:40}]});notify();await Promise.resolve();const live=player.state;backend.properties.set('demuxer-cache-state',{'seekable-ranges':[]});notify();await Promise.resolve();return {unknown,live,empty:player.state};});assert.equal(d.unknown.duration,null);assert.equal(d.unknown.seekable,null);assert.equal(d.unknown.buffered,null);assert.equal(d.live.streamType,'live');assert.equal(d.live.duration,null);assert.deepEqual(d.live.seekable,[{start:20,end:40}]);assert.deepEqual(d.empty.seekable,[]);});
 await check('waiting and ended reflect observed playback (native events)',async()=>{await make('native');await open();await page.evaluate(()=>player.play());await page.waitForFunction(()=>player.state.currentTime>.15);await page.evaluate(()=>player.surface.dispatchEvent(new Event('waiting')));await page.waitForFunction(()=>player.state.status==='buffering');await page.evaluate(()=>player.surface.dispatchEvent(new Event('playing')));await page.waitForFunction(()=>player.state.status==='playing');await page.evaluate(async()=>{await player.seek(player.state.duration-.25);await player.play();});await page.waitForFunction(()=>player.state.status==='ended');});
-await check('idempotent destroy settles queue and removes workers',async()=>{const d=await page.evaluate(async()=>{const work=player.seek(1).catch(e=>e.code);const a=player.destroy(),b=player.destroy();await a;const error=await player.play().catch(e=>e.code);return {same:a===b,error,work:await work,status:player.state.status};});assert.ok(d.same);assert.equal(d.error,'ABORTED');assert.equal(d.status,'idle');await page.waitForTimeout(200);assert.equal(page.workers().length,0);});
+await check('idempotent destroy settles queue and removes workers',async()=>{const d=await page.evaluate(async()=>{const work=player.seek(1).catch(e=>e.code);const a=player.destroy(),b=player.destroy();await a;const error=await player.play().catch(e=>e.code);return {same:a===b,error,work:await work,status:player.state.status,activeWorkers:activeEngineWorkerCount()};});assert.ok(d.same);assert.equal(d.error,'ABORTED');assert.equal(d.status,'idle');assert.equal(d.activeWorkers,0,'destroy resolved before terminating page-owned workers');result.workerRetirement=await waitForWorkerRetirement();});
+await check('worker retirement deadline rejects a live worker',async()=>{
+ const started=page.waitForEvent('worker');
+ try{
+  await page.evaluate(async()=>{
+   const url=URL.createObjectURL(new Blob(['postMessage("ready");setInterval(()=>{},1000)'],{type:'text/javascript'}));
+   try{
+    window.retirementProbe=new Worker(url);
+    await new Promise((resolve,reject)=>{retirementProbe.onmessage=resolve;retirementProbe.onerror=reject;});
+   }finally{URL.revokeObjectURL(url);}
+  });
+  await started;
+  await assert.rejects(()=>waitForWorkerRetirement(50),/Workers remained after retirement deadline/);
+ }finally{
+  await page.evaluate(()=>{window.retirementProbe?.terminate();delete window.retirementProbe;});
+  await waitForWorkerRetirement();
+ }
+});
 await check('no uncaught errors',()=>assert.deepEqual(errors,[]));
 suiteCompleted=true;
 }finally{result.passed=false;try{await page.evaluate(()=>window.player?.destroy()).catch(()=>{});try{await browser.close();}finally{server.kill();}result.passed=suiteCompleted&&result.checks.length>0&&result.checks.every(c=>c.passed);}finally{if(!result.passed)process.exitCode=1;await writeFile(out+'/result.json',JSON.stringify(result,null,2)+'\n');}}

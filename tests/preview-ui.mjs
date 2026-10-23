@@ -7,12 +7,16 @@ try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const m=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(m)resolve(m[0]);});});
  browser=await(process.env.BROWSER==='firefox'?firefox:chromium).launch({headless:true,...(process.env.BROWSER==='firefox'?{}:{...(process.env.BROWSER==='chromium'?{}:{channel:'chrome'}),args:['--autoplay-policy=no-user-gesture-required']})});
  const page=await browser.newPage({viewport:{width:1280,height:1000}});await page.goto(origin+'/examples/player-element.html');
- await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'preview.mp4'));await p.seek(1);});
+ await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');const p=await element.ready;await p.open(new File([await(await fetch('/fixtures/example.mp4')).arrayBuffer()],'preview.mp4'));await p.seek(1);window.previewPlaybackTime=p.surface.currentTime;});
  const timeline=page.locator('demuxe-player').first().locator('#timeline'),panel=page.locator('demuxe-player').first().locator('#thumbnail-preview');
  const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
  await page.waitForFunction(()=>{const root=element.shadowRoot,image=root.querySelector('#thumbnail-preview img');return !image.hidden&&image.complete&&image.naturalWidth>0&&/≈/.test(root.querySelector('#thumbnail-time').textContent);});
  if(process.env.SCREENSHOT)await page.screenshot({path:process.env.SCREENSHOT});
- assert.match(await panel.innerText(),/≈/);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
+ const previewLabels=await panel.evaluate(panel=>{
+  const target=panel.querySelector('#thumbnail-target'),represented=panel.querySelector('#thumbnail-time');
+  return {approximation:getComputedStyle(represented).display==='none'?getComputedStyle(target,'::before').content:represented.textContent,timeBelowImage:target.getBoundingClientRect().top>=panel.querySelector('img').getBoundingClientRect().bottom};
+ });
+ assert.match(previewLabels.approximation,/≈/);assert.equal(previewLabels.timeBelowImage,true);assert.equal(await page.evaluate(()=>element.player.surface.currentTime),await page.evaluate(()=>previewPlaybackTime));
  const cachedURL=await panel.locator('img').getAttribute('src');
  await page.mouse.move(box.x+box.width*.41,box.y+box.height/2);await page.waitForFunction(()=>element.player.preview.diagnostics.hits>0);
  assert.equal(await panel.locator('img').getAttribute('src'),cachedURL);
@@ -62,7 +66,7 @@ try{
  await page.waitForFunction(()=>!element.shadowRoot.querySelector('#thumbnail-preview').hidden&&/0:08/.test(element.shadowRoot.querySelector('#thumbnail-time').textContent),null,{timeout:2000});
  await hungCancelled;
  assert.equal(await page.evaluate(()=>element.player.preview.diagnostics.hits),await page.evaluate(()=>hitsBeforeHung+1));
- assert.equal(await page.evaluate(()=>element.player.surface.currentTime),1);
+ assert.equal(await page.evaluate(()=>element.player.surface.currentTime),await page.evaluate(()=>previewPlaybackTime));
  await page.evaluate(()=>{element.shadowRoot.querySelector('#timeline').dispatchEvent(new PointerEvent('pointerleave'));removeHung();});
  await page.unroute('**/preview-hung.png');
  // Revisiting the same cached image while it loads must reuse that download.
@@ -83,8 +87,29 @@ try{
  await page.mouse.move(box.x+box.width*.9,box.y+box.height/2);await page.mouse.move(box.x,box.y-150);assert.equal(await page.evaluate(()=>lateSignal.aborted),true);await page.evaluate(()=>finishPreview());
  await page.waitForFunction(()=>!element.player.preview.diagnostics.active&&!element.player.preview.diagnostics.pending);assert.equal(await page.evaluate(()=>lateCalls),1);
  await page.evaluate(()=>remove());await panel.waitFor({state:'hidden'});
+ // Short and scaled embeds must keep the image painted inside the player,
+ // centred on the hover position until its actual width reaches an edge.
+ const originalStyle=await page.evaluate(()=>element.getAttribute('style'));
+ const originalMode=await page.evaluate(()=>element.controlsMode);
+ try{
+  for(const [width,scale] of [[400,1],[900,.5]]){
+   await page.evaluate(({width,scale})=>{element.controlsMode='desktop';element.style.width=`${width}px`;element.style.transform=`scale(${scale})`;element.style.transformOrigin='top left';},{width,scale});
+   const bar=await timeline.boundingBox();
+   for(const fraction of [.001,.5,.999]){
+    const x=bar.x+bar.width*fraction;await page.mouse.move(x,bar.y+bar.height/2);
+    await page.waitForFunction(()=>{const r=element.shadowRoot,i=r.querySelector('#thumbnail-image');return !r.querySelector('#thumbnail-preview').hidden&&!i.hidden&&i.complete&&i.naturalWidth>0;});
+    const bounds=await panel.evaluate(panel=>{const shell=panel.getRootNode().getElementById('shell').getBoundingClientRect(),image=panel.querySelector('img').getBoundingClientRect();return {left:image.left,right:image.right,top:image.top,width:image.width,shellLeft:shell.left,shellRight:shell.right,shellTop:shell.top};});
+    assert.ok(bounds.top>=bounds.shellTop-.5&&bounds.left>=bounds.shellLeft-.5&&bounds.right<=bounds.shellRight+.5,JSON.stringify({width,scale,fraction,bounds}));
+    const center=Math.max(bounds.shellLeft+bounds.width/2,Math.min(bounds.shellRight-bounds.width/2,x));
+    assert.ok(Math.abs((bounds.left+bounds.right)/2-center)<1,JSON.stringify({width,scale,fraction,bounds,center}));
+   }
+   await page.mouse.move(0,0);
+  }
+ }finally{await page.evaluate(({style,mode})=>{if(style===null)element.removeAttribute('style');else element.setAttribute('style',style);element.controlsMode=mode;},{style:originalStyle,mode:originalMode});}
  // Source replacement and destruction release visible preview URLs.
- await page.mouse.move(box.x+box.width*.3,box.y+box.height/2);await panel.waitFor({state:'visible'});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ const restoredBox=await timeline.boundingBox();
+ await page.mouse.move(restoredBox.x+restoredBox.width*.3,restoredBox.y+restoredBox.height/2);await panel.waitFor({state:'visible'});
  await page.evaluate(()=>element.close());await panel.waitFor({state:'hidden'});assert.equal(await panel.locator('img').getAttribute('src'),null);
  await page.evaluate(()=>element.destroy());console.log('PASS scrubber display, continuous motion, cached image reuse, stalled image recovery, represented-time label, playback isolation, stale cancellation, close/destroy cleanup');
 }finally{await browser?.close();server.kill();}

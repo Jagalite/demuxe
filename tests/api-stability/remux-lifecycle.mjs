@@ -106,3 +106,14 @@ test('actual start aborts reentrant media attachment without retiring replacemen
   }else assert.equal(player.stopped,true);
  }
 });
+
+test('retired SourceBuffers are aborted and removed without touching reentrant successors',async t=>{
+ const {player:p}=shell(t);await p.open({file:{}});const events=[],replacement={updating:true,abort(){events.push('new abort');}};
+ const a={updating:true,abort(){events.push('old abort');p.media={readyState:'open',removeSourceBuffer(){events.push('new remove');}};p.sbs=[replacement];}},b={updating:false};
+ const media={readyState:'open',removeSourceBuffer(sb){events.push(sb===a?'remove a':'remove b');}};p.media=media;p.sbs=[a,b];p.worker={postMessage(){},terminate(){events.push('terminate');}};
+ p.stopWorkers();assert.deepEqual(events,['old abort','remove a','remove b','terminate']);assert.equal(p.sbs[0],replacement);assert.equal(p.stats.cleanupFailures??0,0);p.sbs=[];
+});
+test('SourceBuffer release failures do not prevent other buffers or workers retiring',async t=>{
+ const {player:p}=shell(t);await p.open({file:{}});const events=[];p.media={readyState:'open',removeSourceBuffer(){events.push('remove');}};p.sbs=[{updating:true,abort(){throw Error('abort failed');}},{updating:false}];p.worker={postMessage(){},terminate(){events.push('terminate');}};
+ p.stopWorkers();assert.deepEqual(events,['remove','remove','terminate']);assert.equal(p.stats.cleanupFailures,1);
+});

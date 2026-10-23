@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 export function initialElementQueue() {
-    return Object.freeze({ items: Object.freeze([]), index: -1, revision: 0, nextItem: 1, nextOperation: 1, operation: null, playIntent: undefined, sourceId: null, endedId: null });
+    return Object.freeze({ items: Object.freeze([]), index: -1, revision: 0, nextItem: 1, nextOperation: 1, operation: null, failed: false, playIntent: undefined, sourceId: null, endedId: null });
 }
 function reset(state) {
-    return Object.freeze({ ...state, items: Object.freeze([]), index: -1, revision: state.revision + 1, operation: null, playIntent: undefined, sourceId: null, endedId: null });
+    return Object.freeze({ ...state, items: Object.freeze([]), index: -1, revision: state.revision + 1, operation: null, failed: false, playIntent: undefined, sourceId: null, endedId: null });
 }
 export function transitionElementQueue(state, command) {
     switch (command.type) {
@@ -12,7 +12,7 @@ export function transitionElementQueue(state, command) {
             if (command.terminal || command.names.length === 0)
                 return Object.freeze({ state, accepted: false });
             const added = Object.freeze(command.names.map((name, index) => Object.freeze({ id: state.nextItem + index, name })));
-            return Object.freeze({ state: Object.freeze({ ...state, items: Object.freeze([...state.items, ...added]), nextItem: state.nextItem + added.length, revision: state.revision + 1 }), accepted: true, added, activate: state.items.length === 0 ? 0 : undefined });
+            return Object.freeze({ state: Object.freeze({ ...state, items: Object.freeze([...state.items, ...added]), nextItem: state.nextItem + added.length, revision: state.revision + 1 }), accepted: true, added, activate: state.items.length === 0 ? 0 : state.failed && state.operation === null ? state.items.length : undefined });
         }
         case 'start': {
             if (command.terminal)
@@ -21,14 +21,14 @@ export function transitionElementQueue(state, command) {
             if (!item)
                 return Object.freeze({ state, accepted: false });
             const operation = state.nextOperation;
-            return Object.freeze({ state: Object.freeze({ ...state, index: command.index, operation, nextOperation: operation + 1, playIntent: undefined, sourceId: null, endedId: null }), accepted: true, operation, itemId: item.id });
+            return Object.freeze({ state: Object.freeze({ ...state, index: command.index, operation, failed: false, nextOperation: operation + 1, playIntent: undefined, sourceId: null, endedId: null }), accepted: true, operation, itemId: item.id });
         }
         case 'opened': {
             if (state.operation !== command.operation)
                 return Object.freeze({ state, accepted: false, error: 'superseded' });
             return Object.freeze({ state: Object.freeze({ ...state, sourceId: command.sourceId }), accepted: true, play: state.playIntent ?? command.defaultPlay });
         }
-        case 'settled': return state.operation === command.operation ? Object.freeze({ state: Object.freeze({ ...state, operation: null }), accepted: true }) : Object.freeze({ state, accepted: false });
+        case 'settled': return state.operation === command.operation ? Object.freeze({ state: Object.freeze({ ...state, operation: null, failed: !!command.failed && state.sourceId === null }), accepted: true }) : Object.freeze({ state, accepted: false });
         case 'intent': return Object.freeze({ state: state.operation === null ? state : Object.freeze({ ...state, playIntent: command.play }) });
         case 'remove': {
             if (!command.sourceControls || state.operation !== null || command.pending || command.index < 0 || command.index >= state.items.length)

@@ -52,3 +52,13 @@ export async function closeTestBrowser(browser, family, {timeoutMs = 15000} = {}
   if (!ids?.length) throw Error('No observed Chrome process identities');
   return result;
 }
+
+/** Keep cleanup strict while allowing asynchronous browser worker retirement. */
+export async function waitForPageWorkers(page,{timeoutMs=5000,now=()=>performance.now(),delay=ms=>new Promise(resolve=>setTimeout(resolve,ms))}={}) {
+  const started=now(),initial=page.workers().length;
+  while(page.workers().length){
+    const remaining=timeoutMs-(now()-started);if(remaining<=0)break;
+    await delay(Math.min(25,remaining));
+  }
+  return {initial,elapsedMs:now()-started,remainingWorkerURLs:page.workers().map(worker=>worker.url())};
+}

@@ -10,6 +10,7 @@ export type StageTap = Readonly<{
 export type StageTaps = Readonly<{
     press?: StageTap;
     previous?: StageTap;
+    seeking?: boolean;
 }>;
 export type StageTapCommand = Readonly<{
     type: 'cancel';
@@ -18,7 +19,7 @@ export type StageTapCommand = Readonly<{
     tap: StageTap;
     eligible: boolean;
 }>;
-/** Recognize two short, nearby taps on the same outer third of the same source. */
+/** Recognize double taps, then continue seeking on each tap in the same burst. */
 export declare function transitionStageTaps(state: StageTaps, command: StageTapCommand): Readonly<{
     state: StageTaps;
     seek?: -1 | 1;

@@ -12,7 +12,7 @@ const family=process.env.BROWSER??'chrome';
 assert.ok(['chrome','webkit'].includes(family));
 const out=`results/player-mobile/${family}-${Date.now()}`;
 await mkdir(out,{recursive:true});
-const report={passed:false,family,testBrowserRuntime,scope:process.env.BETA_ARCHIVE?'Installed-archive mobile player checks':'Workspace mobile player checks',testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex')};
+const report={passed:false,family,testBrowserRuntime,scope:process.env.BETA_ARCHIVE?'Installed-archive mobile player checks':'Workspace mobile player checks',layoutChecks:[],testHarnessSHA256:createHash('sha256').update(await readFile(import.meta.filename)).digest('hex')};
 let browser,server,installed;
 try{
  if(process.env.BETA_ARCHIVE){installed=await installLiveRuntime(process.env.BETA_ARCHIVE);report.archiveSHA256=installed.archiveSHA256;report.runtimeFiles=installed.manifest.files;}
@@ -44,9 +44,10 @@ try{
      const a=$(ids[i]).getBoundingClientRect(),b=$(ids[j]).getBoundingClientRect();
      if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)overlaps.push([ids[i],ids[j]]);
     }
-    const stage=$('stage').getBoundingClientRect(),play=$('play').getBoundingClientRect();
-    return {controls,overlaps,centerOffset:Math.abs(play.y+play.height/2-stage.y-stage.height/2),overflow:document.documentElement.scrollWidth>innerWidth};
+    const stage=$('stage').getBoundingClientRect(),play=$('play').getBoundingClientRect(),transport=$('play').parentElement,style=getComputedStyle(transport);
+    return {stage:stage.toJSON(),transport:transport.getBoundingClientRect().toJSON(),position:style.position,top:style.top,gridArea:style.gridArea,controls,overlaps,centerOffset:Math.abs(play.y+play.height/2-stage.y-stage.height/2),overflow:document.documentElement.scrollWidth>innerWidth};
    });
+   report.layoutChecks.push({layout,width,height,...result});
    assert.equal(result.overflow,false,`${layout} ${width}: horizontal page overflow`);
    assert.ok(result.controls.every(control=>control.inside),JSON.stringify({layout,width,result}));
    assert.deepEqual(result.overlaps,[],`${layout} ${width}: overlapping controls`);
@@ -120,11 +121,15 @@ try{
    assert.deepEqual(result,{mode,attribute:mode,folder:mode==='desktop',volume:mode==='desktop',layout,theme});
    const bounds=await page.evaluate(()=>{
     const shell=$('shell').getBoundingClientRect();
-    return ['play','back','forward','timeline','settings-toggle','fullscreen','mute','time','duration'].map(id=>{
+    return ['play','back','forward','timeline','settings-toggle','fullscreen','mute','time','duration'].filter(id=>!(viewer.layout==='classic'&&viewer.controlsMode==='desktop'&&['back','forward'].includes(id))).map(id=>{
      const r=$(id).getBoundingClientRect();return {id,inside:r.width>0&&r.height>0&&r.left>=shell.left-1&&r.right<=shell.right+1&&r.top>=shell.top-1&&r.bottom<=shell.bottom+1};
     });
    });
    assert.ok(bounds.every(control=>control.inside),JSON.stringify({mode,layout,theme,width,height,bounds}));
+   if(mode==='mobile'&&layout==='classic'&&width<height){
+    const offset=await page.evaluate(()=>{const stage=$('stage').getBoundingClientRect(),play=$('play').getBoundingClientRect();return Math.abs(play.y+play.height/2-stage.y-stage.height/2);});
+    assert.ok(offset<2,`explicit mobile portrait transport offset ${offset}`);
+   }
    await page.locator('#viewer #settings-toggle').click();
    assert.equal(await page.evaluate(()=>$('settings').matches(':modal')),mode==='mobile');
    assert.equal(await page.locator('#viewer #settings-source').isVisible(),mode==='mobile');

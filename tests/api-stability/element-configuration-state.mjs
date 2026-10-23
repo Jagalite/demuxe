@@ -8,7 +8,7 @@ const watchdogs={nativeProgress:true,hybridDecoder:true,decoderOutput:true,selec
 const initial=()=>initialElementConfiguration(watchdogs),step=transitionElementConfiguration;
 
 test('element numeric configuration rejects invalid values without changing prior accepted settings',()=>{
- let state=initial();assert.equal(state.seekStep,10);assert.equal(state.autoHideDelay,2800);
+ let state=initial();assert.equal(state.seekStep,10);assert.equal(state.autoHideDelay,3000);
  for(const value of [0,-1,NaN,Infinity]){const result=step(state,{type:'seek-step',value});assert.equal(result.error.code,'INVALID_ARGUMENT');assert.equal(result.state,state);}
  state=step(state,{type:'seek-step',value:2.5}).state;assert.equal(state.seekStep,2.5);
  for(const value of [-1,NaN,Infinity,2147483648])assert.equal(step(state,{type:'auto-hide-delay',value}).state,state);
@@ -41,6 +41,18 @@ test('labels validate known keys, detach values and derive seek labels without m
  assert.deepEqual(elementLabels(defaults,custom),{play:'Go',back:'Seek backward 6 seconds',forward:'Seek forward 6 seconds'});assert.equal(defaults.back,'Back');
  for(const value of [6,'x'.repeat(1025)])assert.equal(step(custom,{type:'labels',entries:[['play',value]],keys:Object.keys(defaults)}).state,custom);
  assert.deepEqual(step(custom,{type:'labels',entries:[],keys:Object.keys(defaults)}).state.labels,{});
+});
+
+test('public startup step label supports customization, validation and reset',async()=>{
+ const {defaultLabels}=await import('../../web/generated/player/index.js');
+ assert.equal(defaultLabels.step,'Step');
+ const command={type:'labels',entries:[['step','Stage']],keys:Object.keys(defaultLabels)};
+ const custom=step(initial(),command).state;
+ assert.equal(elementLabels(defaultLabels,custom).step,'Stage');
+ assert.equal(step(custom,{...command,entries:[['step',12]]}).state,custom);
+ const reset=step(custom,{...command,entries:[]}).state;
+ assert.equal(elementLabels(defaultLabels,reset).step,'Step');
+ assert.equal(defaultLabels.step,'Step');
 });
 
 test('watchdog rejection and nested reflection retain accepted configuration',()=>{
@@ -92,9 +104,11 @@ test('activity projection preserves compile priority, seek labels, idle preparat
  const labels={loading:'Loading',switching:'Switching',seeking:'Seeking',buffering:'Buffering',noWindow:'No window'};
  const state={sourceId:null,pendingOperation:null,status:'idle',streamType:'unknown',seekable:null};
  const progress=[{name:'inspector',status:'ready'},{name:'hybrid',status:'loading'},{name:'software',status:'compiling'}];
- let result=elementActivity(state,progress,'',labels);assert.equal(result.pill,'Compiling Software… · 1/3 ready');assert.equal(result.complete,false);
+ let result=elementActivity(state,progress,'',labels);assert.equal(result.pill,'Compiling Software… · 33% of components ready (1/3)');assert.equal(result.complete,false);
  result=elementActivity({...state,sourceId:1,pendingOperation:{kind:'seeking'}},progress,'',labels);assert.equal(result.pill,'Seeking');
  result=elementActivity({...state,sourceId:1,pendingOperation:{kind:'opening'}},[],'Starting Native',labels);assert.equal(result.activity,'Starting Native');
+ result=elementActivity({...state,sourceId:1,pendingOperation:{kind:'opening'}},progress,'Step 2/2 · Starting Native',labels);assert.match(result.activity,/^Step 2\/2 · Starting Native · Compiling Software/);assert.match(result.description,/33% of components ready/);assert.equal(result.complete,false);
+ result=elementActivity({...state,sourceId:1,pendingOperation:null},progress,'Step 2/2 · Starting Native',labels);assert.equal(result.pill,'');
  result=elementActivity({...state,sourceId:1,streamType:'live'},[],'',labels);assert.equal(result.pill,'');assert.equal(result.announcement,'No window');
 });
 

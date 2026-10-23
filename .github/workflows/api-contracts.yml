@@ -17,6 +17,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: node --test tests/release-browser-contracts.test.mjs tests/head-to-head/browser-exit.test.mjs
+      - run: python3 tests/release-candidate.py
       - name: Check functional core source boundary
         run: node scripts/check-functional-core.mjs
       - run: python3 tests/release-boundaries.py

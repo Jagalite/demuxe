@@ -17,6 +17,7 @@ window.addEventListener('keydown',event=>{
 });
 function playbackSummary(state){
   const opening=state.pendingOperation?.kind==='opening';
+  if(opening||state.status==='idle')$('status').textContent='';
   const engine={native:'Native',hybrid:'Hybrid',software:'Software'}[state.activeMode];
   const media=state.mediaInfo,details=[];
   const components=[];

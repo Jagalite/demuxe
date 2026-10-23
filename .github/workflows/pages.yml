@@ -9,9 +9,33 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing tag to rebuild and deploy
+        description: Existing tag to rebuild, or the proposed tag for qualification only
         required: true
         type: string
+      qualify_only:
+        description: Run all release gates and retain artifacts without publishing or deploying
+        type: boolean
+        default: false
+      source_ref:
+        description: Exact source commit for candidate qualification or retained-archive replay
+        type: string
+        default: ''
+      replay_ass_run:
+        description: Diagnostic only - repository run containing unqualified-runtime-debug (skips all builds/publication)
+        type: string
+        default: ''
+      replay_ass_sha256:
+        description: Expected runtime archive SHA256 for diagnostic replay
+        type: string
+        default: ''
+      replay_ass_overlay:
+        description: Diagnostic only - overlay reviewed MSE modules on a private installed copy
+        type: boolean
+        default: false
+      replay_ass_rounds:
+        description: Independent main ASS trials (1 to 10; every failure is retained)
+        type: number
+        default: 3
 
 permissions:
   contents: read
@@ -21,14 +45,135 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  qualification-pending:
+    if: inputs.qualify_only && !inputs.replay_ass_run
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Show complete candidate qualification on its source commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_COMMIT: ${{ inputs.source_ref }}
+        run: |
+          [[ "$CANDIDATE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$CANDIDATE_COMMIT" \
+            -f state=pending -f context='Release candidate qualification' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -f description='Exact archive and macOS WebKit qualification running'
+
+  qualification-result:
+    if: always() && inputs.qualify_only && !inputs.replay_ass_run
+    needs: [qualification-pending, providers, build, webkit]
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Report all qualification gates together
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_COMMIT: ${{ inputs.source_ref }}
+          PENDING_RESULT: ${{ needs.qualification-pending.result }}
+          PROVIDER_RESULT: ${{ needs.providers.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          WEBKIT_RESULT: ${{ needs.webkit.result }}
+        run: |
+          [[ "$CANDIDATE_COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          qualification_state=failure
+          if [[ "$PENDING_RESULT" == success && "$PROVIDER_RESULT" == success && "$BUILD_RESULT" == success && "$WEBKIT_RESULT" == success ]]; then
+            qualification_state=success
+          fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$CANDIDATE_COMMIT" \
+            -f state="$qualification_state" -f context='Release candidate qualification' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -f description='Complete candidate qualification result'
+
   providers:
-    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    if: (github.event_name == 'workflow_dispatch' || github.event.created == true) && !inputs.replay_ass_run
     uses: ./.github/workflows/ci-providers.yml
     with:
-      source_ref: refs/tags/${{ inputs.tag || github.ref_name }}
+      source_ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', inputs.tag || github.ref_name) }}
+
+  ass-replay:
+    if: github.event_name == 'workflow_dispatch' && inputs.replay_ass_run != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox]
+    env:
+      BROWSER: ${{ matrix.browser }}
+      REPLAY_SOURCE_COMMIT: ${{ inputs.source_ref }}
+      REPLAY_ARCHIVE_SHA256: ${{ inputs.replay_ass_sha256 }}
+      REPLAY_CONTROLLER_OVERLAY: ${{ inputs.replay_ass_overlay && '1' || '' }}
+      REPLAY_ASS_ROUNDS: ${{ inputs.replay_ass_rounds }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install fixture tools and start the release audio clock
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg pulseaudio xvfb fonts-dejavu-core
+          bash scripts/start-ci-audio.sh
+      - uses: actions/download-artifact@v4
+        with:
+          name: unqualified-runtime-debug
+          path: ${{ runner.temp }}/ass-replay
+          run-id: ${{ inputs.replay_ass_run }}
+          github-token: ${{ github.token }}
+      - name: Prepare the maintained release fixture recipes
+        run: python3 scripts/prepare-release-fixtures.py
+      - name: Replay ASS and native-remux consumer suites on verified retained bytes
+        run: |
+          BETA_ARCHIVE="$RUNNER_TEMP/ass-replay/demuxe-$(node -p 'require("./package.json").version').tgz"
+          export BETA_ARCHIVE
+          xvfb-run -a node tests/replay-ass-archive.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ass-replay-${{ matrix.browser }}
+          path: |
+            results/ass-archive-replay/
+            results/mse-worker-retirement/
+            results/mse-cdp-retirement/
+            results/beta/
+            results/optimization-completion/
+            results/optimization-ass-fixes/
+            build/release-fixture-recipes.json
+          if-no-files-found: error
+
+  ass-replay-result:
+    if: always() && inputs.replay_ass_run != ''
+    needs: ass-replay
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Report diagnostic replay result on its harness commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPLAY_RESULT: ${{ needs.ass-replay.result }}
+        run: |
+          replay_state=failure
+          if [[ "$REPLAY_RESULT" == success ]]; then replay_state=success; fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state="$replay_state" -f context='ASS archive replay' \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -f description='Retained-archive ASS diagnostic result; not release qualification'
 
   build:
-    if: github.event_name == 'workflow_dispatch' || github.event.created == true
+    if: (github.event_name == 'workflow_dispatch' || github.event.created == true) && !inputs.replay_ass_run
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
@@ -40,9 +185,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', inputs.tag || github.ref_name) }}
           fetch-depth: 1
           persist-credentials: false
+      - name: Bind the unpublished candidate tag to the exact source commit
+        if: inputs.qualify_only
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.source_ref }}
+        run: python3 scripts/prepare-release-candidate.py --tag "$PAGES_TAG" --commit "$CANDIDATE_COMMIT"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -58,13 +208,16 @@ jobs:
           build/venv/bin/python -m pip install meson==1.7.2 Jinja2==3.1.6 MarkupSafe==3.0.2
           npm ci --ignore-scripts
           npm run prepare:shaka
+      - name: Check release browser contracts before building
+        run: node --test tests/release-browser-contracts.test.mjs tests/head-to-head/browser-exit.test.mjs
       - name: Download and verify the published comparison baseline
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: python3 scripts/tag-release.py baseline
       - name: Check Pages assembly and tag guards
         run: |
           python3 tests/pages-build.py
           python3 tests/tag-release.py
+          python3 tests/release-candidate.py
           node --test tests/head-to-head/completion.test.mjs tests/head-to-head/playback-rate.test.mjs tests/beta-consumer-startup.mjs tests/shaka-package-evidence.test.mjs
           python3 tests/release-boundaries.py
           python3 tests/lgpl-catalogue.py
@@ -116,7 +269,7 @@ jobs:
           set -o pipefail
           bash scripts/build-beta-engines.sh --clean 2>&1 | tee build/clean-build.log
       - name: Build optional preparation engine and tagged release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: python3 scripts/tag-release.py package --tag "$PAGES_TAG"
       - name: Assemble the current player and matching source downloads
         run: python3 scripts/build-pages.py --tag "$PAGES_TAG" --output build/pages-site
@@ -131,15 +284,16 @@ jobs:
           BROWSER: firefox
         run: node tests/pages-demo.mjs
       - name: Generate fixtures and qualify the exact release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: xvfb-run -a python3 scripts/tag-release.py qualify --tag "$PAGES_TAG"
       - name: Qualify the API and mobile player matrix on the installed archive
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         run: |
-          export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          export BETA_ARCHIVE
           node tests/api-stability/archive-matrix.mjs
       - name: Retain qualified release archives
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.qualify_only
         uses: actions/upload-artifact@v4
         with:
           name: qualified-release
@@ -175,8 +329,12 @@ jobs:
             results/public-api/
             results/player-component/
             results/player-menu-review/
+            results/player-mobile/
+            results/worker-tree-containment/
+            results/optimization-completion/
+            results/optimization-ass-fixes/
       - name: Retain unqualified runtime for failed release diagnosis
-        if: failure() && github.event_name == 'push'
+        if: failure() && (github.event_name == 'push' || inputs.qualify_only)
         uses: actions/upload-artifact@v4
         with:
           name: unqualified-runtime-debug
@@ -185,18 +343,19 @@ jobs:
           compression-level: 0
           retention-days: 1
       - uses: actions/upload-pages-artifact@v3
+        if: '!inputs.qualify_only'
         with:
           path: build/pages-site
 
   webkit:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || inputs.qualify_only
     needs: build
     runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ github.ref_name }}
+          ref: ${{ inputs.qualify_only && inputs.source_ref || format('refs/tags/{0}', github.ref_name) }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -213,7 +372,8 @@ jobs:
         run: node tests/api-stability/fixtures.mjs
       - name: Qualify Apple WebKit against the exact installed release archive
         run: |
-          export BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          BETA_ARCHIVE="$PWD/build/release/demuxe-$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version').tgz"
+          export BETA_ARCHIVE
           node tests/webkit-release.mjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -227,7 +387,7 @@ jobs:
       group: github-pages
       cancel-in-progress: false
     needs: [build, webkit]
-    if: always() && needs.build.result == 'success' && (github.event_name != 'push' || needs.webkit.result == 'success')
+    if: always() && !inputs.qualify_only && needs.build.result == 'success' && (github.event_name != 'push' || needs.webkit.result == 'success')
     runs-on: ubuntu-24.04
     permissions:
       pages: write

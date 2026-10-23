@@ -31,11 +31,10 @@ export class WorkerRemuxController {
   const admission=this.transition({type:'boot'});if(!admission.accepted)return Promise.reject(aborted());const id=admission.owner;
   let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});this.booting={owner:id,promise};
   try{
-   // A disposable document owns the entire worker tree. Publish its identity
-   // before insertion and construction, both of which can invoke host callbacks.
-   const frame=document.createElement('iframe');if(!remuxOwnerCurrent(this.control,id)){frame.remove();throw aborted();}this.workerOwner=frame;this.resourceOwner=id;
-   frame.hidden=true;frame.setAttribute('aria-hidden','true');this.assertOwner(id);document.body.append(frame);this.assertOwner(id);
-   const worker=runtimeWorker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'},frame.contentWindow.Worker);
+   // Keep the Worker and its HTMLMediaElement in the controlling document's
+   // realm. An iframe-created Worker can outlive termination after MSE reuse.
+   this.resourceOwner=id;
+   const worker=runtimeWorker(new URL('./native-mse-worker.js',import.meta.url),{type:'module'},this.video.ownerDocument?.defaultView?.Worker??globalThis.Worker);
    if(!remuxOwnerCurrent(this.control,id)){worker.terminate();throw aborted();}this.worker=worker;
    worker.onmessage=({data})=>{
     if(!remuxOwnerCurrent(this.control,id)||this.worker!==worker)return;
@@ -46,7 +45,7 @@ export class WorkerRemuxController {
     }else if(data.type==='state')this.accept(data.state,id);
     else if(data.type==='element'){
      try{
-      if(data.operation==='attach')this.video.srcObject=data.handle;
+      if(data.operation==='attach'){this.workerMediaHandle=data.handle;this.video.srcObject=data.handle;}
       else if(data.operation==='reset'){this.video.pause();this.assertOwner(id);this.video.srcObject=null;this.assertOwner(id);this.video.removeAttribute('src');this.assertOwner(id);this.video.load();}
       else if(data.operation==='seek')this.video.currentTime=data.value;
       else if(data.operation==='pause')this.video.pause();
@@ -153,11 +152,13 @@ export class WorkerRemuxController {
   if(id===undefined)return Promise.resolve();
   if(this.releases.has(id))return this.releases.get(id);
   if(this.resourceOwner!==id){this.transition({type:'released',owner:id});return Promise.resolve();}
-  const worker=this.worker,frame=this.workerOwner,timer=this.timer;
-  this.worker=this.workerOwner=this.resourceOwner=this.timer=undefined;this.refreshSource=undefined;if(this.booting?.owner===id)this.booting=undefined;
-  let resolve;const promise=new Promise(yes=>{resolve=yes;});this.releases.set(id,promise);const cleanup=action=>{try{action();}catch{this.transition({type:'cleanup-failed'});}};cleanup(()=>clearInterval(timer));
+  const worker=this.worker,timer=this.timer,mediaHandle=this.workerMediaHandle;
+  this.worker=this.resourceOwner=this.timer=this.workerMediaHandle=undefined;this.refreshSource=undefined;if(this.booting?.owner===id)this.booting=undefined;
+  let resolve;const promise=new Promise(yes=>{resolve=yes;});this.releases.set(id,promise);const failures=this.control.cleanupFailures;const cleanup=action=>{try{action();}catch{this.transition({type:'cleanup-failed'});}};cleanup(()=>clearInterval(timer));
+  // Reset this owner's media pipeline while its worker can still process shutdown.
+  cleanup(()=>{if(mediaHandle!==undefined&&this.video.srcObject===mediaHandle){this.video.srcObject=null;if(this.video.srcObject===null)this.video.load();}});
   let timeout,finished=false;
-  const finish=()=>{if(finished)return;finished=true;cleanup(()=>clearTimeout(timeout));cleanup(()=>worker?.removeEventListener('message',closed));const failures=this.control.cleanupFailures;cleanup(()=>worker?.terminate());cleanup(()=>frame?.remove());if(this.control.cleanupFailures===failures){this.transition({type:'released',owner:id});this.releases.delete(id);}resolve();};
+  const finish=()=>{if(finished)return;finished=true;cleanup(()=>clearTimeout(timeout));cleanup(()=>worker?.removeEventListener('message',closed));cleanup(()=>worker?.terminate());if(this.control.cleanupFailures===failures){this.transition({type:'released',owner:id});this.releases.delete(id);}resolve();};
   const closed=({data})=>{if(data.type==='closed')finish();};
   try{if(!worker){finish();return promise;}worker.addEventListener('message',closed);timeout=setTimeout(finish,1000);worker.postMessage({type:'shutdown'});}catch{finish();}
   return promise;

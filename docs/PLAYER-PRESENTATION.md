@@ -3,6 +3,14 @@
 
 ## Behavioral inventory and migration map
 
+Classic uses a 3000ms inactivity delay, a 250ms opacity reveal, and a 100ms
+opacity dismissal without movement or stagger. On 2026-10-20, desktop YouTube
+(`aqz-KE-bpKQ`, signed-out watch page, 1280×800 viewport) entered its autohide
+state after 3029, 3014, and 3018ms in three mouse-movement trials. The fade
+values came from its computed control styles. This is desktop evidence;
+native mobile app timing has not been measured. Touch double taps start a
+seek burst; subsequent nearby taps continue it until a one-second gap.
+
 Inventory taken from `src/player/index.ts`, `interaction.ts`, `preview.ts`, `styles.ts`, the playground, and component tests before changing presentation. Every row applies to all built-in layouts unless stated otherwise.
 
 | Existing behavior | Owner after refactor |
@@ -10,9 +18,9 @@ Inventory taken from `src/player/index.ts`, `interaction.ts`, `preview.ts`, `sty
 | One owned Player per connected element; ready promise; explicit registration; SSR-safe import; reconnect/destroy race protection; event forwarding | Element controller, unchanged; layout never touches the media host |
 | Canonical immutable state, actions, capabilities, pending operations, routing, track policy | Core Player / public contracts; independent of all UI imports |
 | `controls` hides chrome; absent source hides transport/timeline; poster and file opener while empty | Shared controller + component nodes |
-| Pointer movement reveals; mouse leave hides during uncomplicated playback; screen click/touch toggles chrome rather than playback; double-click stage fullscreen | Shared interaction controller |
-| Play button immediately hides chrome; playing timeout defaults 2800ms; zero disables timeout; menus, drag, pending operation and visible keyboard focus prevent timeout | Shared visibility controller |
-| Hidden-control seek briefly exposes timeline and time only for 800ms; focus/Tab reveals controls; pause/end/error reveal according to existing state transition rules | Shared visibility controller and layout visibility rules |
+| Pointer movement reveals; mouse leave hides during uncomplicated playback; desktop video click toggles playback; touch tap toggles chrome; double-click stage fullscreen | Shared interaction controller |
+| Play starts the inactivity timer; playing timeout defaults 3000ms; zero disables timeout; control hover, menus, drag, pending operation and visible keyboard control focus prevent timeout | Shared visibility controller |
+| Keyboard seeking reveals full controls and restarts the inactivity timer; focus/Tab reveals controls; pause/end/error reveal according to existing state transition rules | Shared visibility controller and layout visibility rules |
 | Play icon follows intent, not transient buffering state; play/seek disabled for pending operations; buffering spinner independent of chrome | Transport, loading indicator, controller |
 | Opening inspector/read/backend startup phases; preparation loading/compiling counts distinct from playback readiness; completed preparation pill while empty | Loading indicator, canonical events |
 | Errors, retryable-only Retry, autoplay-blocked Play, ignored aborts; last source retry; polite deduplicated announcements | Error and status overlays |
