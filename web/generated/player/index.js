@@ -22,7 +22,7 @@ import { applyLayout, isPlayerLayout, playerLayouts, presentationStyles } from '
 import { isPlayerTheme, playerThemes, themeStyles } from './themes.js';
 const Base = (typeof HTMLElement === 'undefined' ? class {
 } : HTMLElement);
-export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', controlsMode: 'Controls', controlsAuto: 'Auto', controlsMobile: 'Mobile', controlsDesktop: 'Desktop', layout: 'Layout', theme: 'Theme', classic: 'Classic', cinema: 'Cinema', rail: 'Rail', studio: 'Studio', focus: 'Focus', deck: 'Deck', demuxeTheme: 'Demuxe', lightTheme: 'Light', oledTheme: 'OLED', contrastTheme: 'High contrast', paperTheme: 'Paper', terminalTheme: 'Terminal', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', recovering: 'Retrying stream…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · < >: speed · 0–9 / Home / End: position · F: fullscreen', expandPlayer: 'Expand player', exitExpandedPlayer: 'Exit expanded view', noFullscreen: 'Fullscreen and browser expansion are unavailable here.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
+export const defaultLabels = Object.freeze({ ...advancedLabels, appearance: 'Appearance', controlsMode: 'Controls', controlsAuto: 'Auto', controlsMobile: 'Mobile', controlsDesktop: 'Desktop', layout: 'Layout', theme: 'Theme', classic: 'Classic', cinema: 'Cinema', rail: 'Rail', studio: 'Studio', focus: 'Focus', deck: 'Deck', demuxeTheme: 'Demuxe', lightTheme: 'Light', oledTheme: 'OLED', contrastTheme: 'High contrast', paperTheme: 'Paper', terminalTheme: 'Terminal', previews: 'Timeline thumbnails', previewStrategy: 'Thumbnail strategy', previewDemuxe: 'Demuxe · broad coverage, local detail', previewAdaptive: 'Adaptive · nearby every 5s', previewGaussian: 'Gaussian · dense near hover', previewDirectional: 'Directional · follows movement', previewUniform: 'Evenly spaced · 48 samples', previewInterval: 'Whole video · every 5s', previewOnDemand: 'On hover only', previewCustom: 'Custom', previewHelp: 'Thumbnails prepare in the background. Nearby prepared frames appear immediately; new positions may take a moment.', diagnostics: 'Session diagnostics', moreOptions: 'More options', back: 'Seek backward 10 seconds', forward: 'Seek forward 10 seconds', play: 'Play', pause: 'Pause', mute: 'Mute', unmute: 'Unmute', seek: 'Playback position', volume: 'Volume', settings: 'Playback settings', closeSettings: 'Close settings', speed: 'Playback speed', audio: 'Audio', subtitles: 'Subtitles', automatic: 'Automatic', off: 'Off', fullscreen: 'Fullscreen', exitFullscreen: 'Exit fullscreen', open: 'Open media', addSubtitle: 'Add subtitles', empty: 'Something good to watch?', drop: 'Open a video or audio file from your device.', loading: 'Opening media…', step: 'Step', reading: 'Reading media…', inspecting: 'Inspecting media…', switching: 'Updating playback…', seeking: 'Seeking…', buffering: 'Buffering…', recovering: 'Retrying stream…', live: 'LIVE', unknown: 'Unknown duration', retry: 'Retry', resume: 'Press Play to continue', shortcuts: 'K / Space: play · ← → / J L: seek · ↑ ↓: volume · M: mute · C: subtitles · < >: speed · 0–9 / Home / End: position · F: fullscreen', expandPlayer: 'Expand player', exitExpandedPlayer: 'Exit expanded view', noFullscreen: 'Fullscreen and browser expansion are unavailable here.', noWindow: 'Live playback · seek window unavailable', openURL: 'Open URL', closeMedia: 'Close media', url: 'Media URL', format: 'Source format', streamLive: 'Live stream', addFiles: 'Add files', queue: 'Queue', clearQueue: 'Clear queue', previous: 'Previous file', next: 'Next file', remove: 'Remove', unnamed: 'Unnamed media', mediaFile: 'Media file', noMedia: 'No media loaded', loadedMedia: 'Media loaded', subtitleFile: 'Subtitle file' });
 // Never display opaque URL payloads, origins, credentials, queries or fragments.
 function sourceTitle(source) {
     if (typeof File !== 'undefined' && source instanceof File)
@@ -105,7 +105,14 @@ export class DemuxePlayerElement extends Base {
     control(command) { const decision = transitionElementControls(this.controlState, command); this.controlState = decision.state; return decision; }
     get menuTrigger() { return this.controlState.menuTrigger; }
     get dragging() { return this.controlState.dragging; }
-    get openingStage() { return this.controlState.openingStage; }
+    get openingStage() {
+        const stage = this.controlState.openingStage, labels = this.labels;
+        if (stage === null)
+            return '';
+        return stage === 'reading' || stage === 'inspecting'
+            ? `${labels.step} 1/2 · ${labels[stage]}`
+            : `${labels.step} 2/2 · Starting ${{ native: 'Native', hybrid: 'Hybrid', software: 'Software' }[stage]} playback…`;
+    }
     get lastFailure() { return this.controlState.failure; }
     queueState = initialElementQueue();
     queueResources = new Map();
@@ -503,13 +510,13 @@ export class DemuxePlayerElement extends Base {
                             return;
                         const detail = event.detail;
                         if (type === 'inspectionchange' && core.state.pendingOperation?.kind === 'opening') {
-                            this.control({ type: 'opening-stage', stage: detail.phase === 'reading' ? this.labels.reading : this.labels.inspecting });
+                            this.control({ type: 'opening-stage', stage: detail.phase === 'reading' ? 'reading' : 'inspecting' });
                             this.update(core.state);
                         }
                         if (type === 'preparationchange')
                             this.update(core.state);
                         if (type === 'modechange' && detail.phase === 'loading' && core.state.pendingOperation?.kind === 'opening') {
-                            this.control({ type: 'opening-stage', stage: `Starting ${{ native: 'Native', hybrid: 'Hybrid', software: 'Software' }[detail.mode]} playback…` });
+                            this.control({ type: 'opening-stage', stage: detail.mode });
                             this.update(core.state);
                         }
                         if (type === 'error')
@@ -881,7 +888,7 @@ export class DemuxePlayerElement extends Base {
         this.$('shell').classList.toggle('buffering', buffering);
         this.bufferedProgress(state);
         const opening = state.pendingOperation?.kind === 'opening';
-        this.control({ type: 'opening', operation: opening ? state.pendingOperation.id : null, initialStage: this.labels.inspecting });
+        this.control({ type: 'opening', operation: opening ? state.pendingOperation.id : null, initialStage: 'inspecting' });
         const activityView = elementActivity(state, this.core?.preparationProgress ?? [], this.openingStage, labels), { activity, pill } = activityView;
         this.setHidden('busy', !pill || seeking || buffering && state.streaming?.recovery?.status !== 'retrying');
         this.text('busy', pill);
