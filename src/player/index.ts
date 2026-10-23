@@ -96,7 +96,13 @@ export class DemuxePlayerElement extends Base {
   private control(command:ElementControlsCommand){const decision=transitionElementControls(this.controlState,command);this.controlState=decision.state;return decision;}
   private get menuTrigger(){return this.controlState.menuTrigger;}
   private get dragging(){return this.controlState.dragging;}
-  private get openingStage(){return this.controlState.openingStage;}
+  private get openingStage(){
+    const stage=this.controlState.openingStage,labels=this.labels;
+    if(stage===null)return '';
+    return stage==='reading'||stage==='inspecting'
+      ? `${labels.step} 1/2 · ${labels[stage]}`
+      : `${labels.step} 2/2 · Starting ${{native:'Native',hybrid:'Hybrid',software:'Software'}[stage]} playback…`;
+  }
   private get lastFailure(){return this.controlState.failure;}
   private queueState=initialElementQueue();
   private queueResources=new Map<number,QueueItem>();
@@ -351,9 +357,9 @@ export class DemuxePlayerElement extends Base {
       try {this.configure({type:'asset-lock',value:this.getAttribute('asset-base')});const core=initializing=new Player(this.$('surface'),{assetBase:this.assetBase,watchdogs:this.configuration.watchdogs,audioPlayback:this.configuration.audioPlayback,preview:this.previewOptions??{strategy:{type:'adaptive'},maxEntries:96,maxCacheBytes:16*1024*1024},prepare:this.getAttribute('prepare')==='all'?'all':(this.getAttribute('prepare')??'').split(/\s+/).filter(Boolean) as import('../types.js').PreparationComponent[]});if(!transitionElementLifecycle(this.lifecycle,{type:'connect-ready',connection:token,connected:this.isConnected}).accepted)throw new PlayerError('ABORTED','Player element initialization retired');this.core=core;this.syncPreviewEnabled();check();core.presentation.setFullscreenTarget(this);const expansion=this.viewportExpansion!,element=this;core.presentation.setViewportExpansionAdapter({get available(){return element.controls&&expansion.available;},get active(){return expansion.active;},open(){element.settings(false,false);expansion.open();element.revealControls();},close:focus=>expansion.close(focus),subscribe:listener=>expansion.subscribe(listener)});this.view({type:'reset-owner'});
         for(const type of [...PLAYER_EVENTS,'preparationchange','inspectionchange','mpv','log','source','output'])core.addEventListener(type,event=>{
           if(this.core!==core||this.terminal)return;const detail=(event as CustomEvent).detail;
-          if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:`${this.labels.step} 1/2 · ${detail.phase==='reading'?this.labels.reading:this.labels.inspecting}`});this.update(core.state);}
+          if(type==='inspectionchange'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.phase==='reading'?'reading':'inspecting'});this.update(core.state);}
           if(type==='preparationchange')this.update(core.state);
-          if(type==='modechange'&&detail.phase==='loading'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:`${this.labels.step} 2/2 · Starting ${{native:'Native',hybrid:'Hybrid',software:'Software'}[detail.mode as 'native'|'hybrid'|'software']} playback…`});this.update(core.state);}
+          if(type==='modechange'&&detail.phase==='loading'&&core.state.pendingOperation?.kind==='opening'){this.control({type:'opening-stage',stage:detail.mode as 'native'|'hybrid'|'software'});this.update(core.state);}
           if(type==='error')this.showError(detail);
           if(type==='ended')queueMicrotask(()=>{if(this.core===core)this.advanceQueue();});
           this.dispatchEvent(new CustomEvent(type,{detail}));
@@ -502,7 +508,7 @@ export class DemuxePlayerElement extends Base {
     (this.$('speed') as HTMLSelectElement).value=String(state.playbackRate);
     const buffering=state.status==='buffering'&&state.playbackIntent==='play'&&!pending;this.setHidden('buffering-indicator',!buffering);this.$('shell').classList.toggle('buffering',buffering);this.bufferedProgress(state);
     const opening=state.pendingOperation?.kind==='opening';
-    this.control({type:'opening',operation:opening?state.pendingOperation!.id:null,initialStage:`${labels.step} 1/2 · ${labels.inspecting}`});
+    this.control({type:'opening',operation:opening?state.pendingOperation!.id:null,initialStage:'inspecting'});
     const activityView=elementActivity(state,this.core?.preparationProgress??[],this.openingStage,labels),{activity,pill}=activityView;
     this.setHidden('busy',!pill||seeking||buffering&&state.streaming?.recovery?.status!=='retrying');this.text('busy',pill);
     // Preparation status shares the toolbar's alignment and responsive padding.

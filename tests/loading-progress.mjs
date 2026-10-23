@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-import {chromium} from 'playwright';
+import {chromium,firefox} from 'playwright';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 const server=spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:'0'},stdio:['ignore','pipe','inherit']});let browser;
 try{
  const origin=await new Promise((resolve,reject)=>{server.once('error',reject);server.stdout.on('data',data=>{const match=/http:\/\/127\.0\.0\.1:\d+/.exec(String(data));if(match)resolve(match[0]);});});
- browser=await chromium.launch({headless:true,channel:'chrome'});
+ const family=process.env.BROWSER??'chrome';
+ assert.ok(['chrome','chromium','firefox'].includes(family),'Unsupported BROWSER: '+family);
+ browser=await (family==='firefox'?firefox:chromium).launch({headless:true,...(family==='chrome'?{channel:'chrome'}:{})});
  const page=await browser.newPage();await page.goto(origin+'/examples/player-element.html');
  await page.evaluate(async()=>{window.element=document.querySelector('demuxe-player');await element.ready;});
  const pill=page.locator('demuxe-player').first().locator('#busy');
@@ -27,11 +29,20 @@ try{
    await page.waitForFunction(stepLabel=>{
     const busy=element.shadowRoot.getElementById('busy');
     return !busy.hidden&&busy.textContent.startsWith(stepLabel+' 2/2 · Starting Native');
-   },stepLabel).catch(async error=>{error.message+='\n'+JSON.stringify(await page.evaluate(()=>({stages,opening:element.player.state.pendingOperation,status:element.player.state.status,pill:element.shadowRoot.getElementById('busy').textContent})));throw error;});
+   },stepLabel).catch(async error=>{console.error('Startup timeout:',JSON.stringify(await page.evaluate(()=>({stages,opening:element.player.state.pendingOperation,state:element.player.state,pill:element.shadowRoot.getElementById('busy').textContent}))));throw error;});
    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    assert.equal(await pill.isVisible(),true);
    assert.ok((await pill.innerText()).startsWith(stepLabel+' 2/2 · Starting Native'));
    assert.equal(await page.evaluate(()=>element.player.state.pendingOperation?.kind),'opening');
+   const operation=await page.evaluate(()=>element.player.state.pendingOperation.id);
+   for(const labels of [{step:'Phase'},{}]){
+    await page.evaluate(labels=>{element.labels=labels;},labels);
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const expected=(labels.step??'Step')+' 2/2 · Starting Native';
+    assert.equal(await pill.isVisible(),true);
+    assert.ok((await pill.innerText()).startsWith(expected));
+    assert.equal(await page.evaluate(()=>element.player.state.pendingOperation.id),operation);
+   }
    release();
    assert.deepEqual(await page.evaluate(()=>opening),{ok:true});
    assert.equal(await pill.isVisible(),false);
@@ -43,5 +54,5 @@ try{
   }finally{release();await page.unrouteAll({behavior:'wait'});}
  }
  await page.evaluate(()=>element.destroy());
- console.log('PASS visible native startup, completion without a third step, and reset on reopen',browser.version());
+ console.log('PASS visible native startup, live label changes, completion without a third step, and reset on reopen',browser.version());
 }finally{await browser?.close();server.kill();}

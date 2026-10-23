@@ -23,6 +23,7 @@ export const browsers = {
     {file:'roadmap-browser', report:'results/api-roadmap', minimum:18},
   ],
   ui: [
+    {file:'loading-progress'},
     // Trusted touch input uses CDP; the shared gate also runs Firefox.
     ...(['chromium','chrome'].includes(process.env.BROWSER??'chromium')?[{file:'player-navigation-preview',report:'results/api-stability/excerpt-preview',minimum:6}]:[]),
     {file:'player-component', report:'results/player-component', minimum:25},
