@@ -86,7 +86,11 @@ try{
  const box=await timeline.boundingBox();await page.mouse.move(box.x+box.width*.4,box.y+box.height/2);await panel.waitFor({state:'visible'});
  // Pointer movement shows a placeholder before the software image is decoded.
  await page.waitForFunction(()=>{const root=element.shadowRoot,image=root.querySelector('#thumbnail-preview img');return !image.hidden&&image.complete&&image.naturalWidth>0&&/≈/.test(root.querySelector('#thumbnail-time').textContent);});
- assert.match(await panel.innerText(),/≈/);assert.equal(await panel.locator('img').evaluate(img=>img.naturalWidth>0),true);
+ const approximation=await panel.evaluate(panel=>{
+  const target=panel.querySelector('#thumbnail-target'),represented=panel.querySelector('#thumbnail-time');
+  return getComputedStyle(represented).display==='none'?getComputedStyle(target,'::before').content:represented.textContent;
+ });
+ assert.match(approximation,/≈/);assert.equal(await panel.locator('img').evaluate(img=>img.naturalWidth>0),true);
  await page.mouse.move(box.x,box.y-150);await panel.waitFor({state:'hidden'});await page.evaluate(()=>element.destroy());
  console.log(JSON.stringify({browser:browser.version(),codec,hoverVisible:true,...result},null,2));
 }finally{await browser?.close();server.kill();await unlink(fixture);}

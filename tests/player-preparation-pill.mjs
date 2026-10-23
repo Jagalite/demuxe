@@ -24,7 +24,7 @@ try{for(const name of ['chrome','firefox']){
   await page.locator('#viewer #file').setInputFiles('fixtures/example.mp4');
   await page.waitForFunction(()=>!!player.state.sourceId&&!player.state.pendingOperation);
   assert.equal(await page.locator('#viewer #busy').isVisible(),false);
-  const pills=await page.evaluate(()=>pills);assert.ok(pills.some(p=>p.text.startsWith('Compiling')));assert.ok(pills.some(p=>p.text==='Inspecting media…'));assert.ok(pills.some(p=>p.text==='Starting Native playback…'));
+  const pills=await page.evaluate(()=>pills);assert.ok(pills.some(p=>p.text.startsWith('Compiling')));assert.ok(pills.some(p=>p.text==='Step 1/2 · Inspecting media…'));assert.ok(pills.some(p=>p.text==='Step 2/2 · Starting Native playback…'));
   await page.evaluate(()=>player.close());assert.equal(await page.locator('#viewer #busy').textContent(),'Components ready · 4/4');
   await page.evaluate(()=>player.destroy());await page.waitForTimeout(200);assert.equal(page.workers().length,0);
   await page.close();

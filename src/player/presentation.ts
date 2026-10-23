@@ -103,6 +103,18 @@ export const presentationStyles = `
 .shell[data-layout=classic] .time{font:13px/1.5 Arial,Helvetica,sans-serif;letter-spacing:0}
 .shell[data-layout=classic] .time-display{gap:4px}
 .shell[data-layout=classic] .time-display #duration::before{margin-right:4px}
+/* A separate image and time pill, matching the current desktop seek preview.
+   Only a different cached frame time needs a second, on-image label. */
+.shell[data-layout=classic] .thumbnail-preview{bottom:calc(100% - 24px);display:grid;grid-template-columns:minmax(0,1fr);gap:8px;width:clamp(160px,30cqw,240px);overflow:visible;border:0;border-radius:0;background:transparent;box-shadow:none;color:#fff;font:500 13px/15px Arial,Helvetica,sans-serif;text-shadow:0 1px 2px #0006}
+.shell[data-layout=classic] .thumbnail-preview img{grid-area:1/1;width:100%;height:auto;aspect-ratio:16/9;max-height:none;object-fit:contain;border:1px solid #fff;border-radius:8px;background:#000}
+.shell[data-layout=classic] .thumbnail-preview #thumbnail-target{grid-area:2/1;justify-self:center;padding:8px 16px;border-radius:18px;background:#0005;font:inherit;font-variant-numeric:tabular-nums;white-space:nowrap}
+.shell[data-layout=classic] .thumbnail-preview #thumbnail-target[data-approximate]::before{content:'≈ '}
+.shell[data-layout=classic] .thumbnail-preview #thumbnail-time{grid-area:1/1;align-self:end;justify-self:end;margin:6px;padding:2px 5px;border-radius:4px;background:#000a;color:#fff;font:500 10px/14px Arial,Helvetica,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.shell[data-layout=classic] .thumbnail-preview #thumbnail-time[data-redundant],.shell[data-layout=classic] .thumbnail-preview:has(img[hidden]) #thumbnail-time{display:none}
+@media(forced-colors:active){
+ .shell[data-layout=classic] .thumbnail-preview img{border-color:CanvasText}
+ .shell[data-layout=classic] .thumbnail-preview :is(#thumbnail-target,#thumbnail-time){background:Canvas;color:CanvasText;border:1px solid CanvasText;text-shadow:none}
+}
 .shell[data-layout=classic] .topbar{background:linear-gradient(#0009,transparent);color:#fff}
 .shell[data-layout=classic] .player-title{font-size:18px;text-shadow:0 1px 2px #0008}
 .shell[data-layout=classic][data-compact=false] .controls .times{gap:8px;min-height:44px}

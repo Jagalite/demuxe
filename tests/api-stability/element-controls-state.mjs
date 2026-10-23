@@ -78,10 +78,10 @@ test('source or route change retires dragging; opening progress cannot carry int
  const command={type:'preview',identity:'1:native',pending:false,controls:true,seekable:true};let state=step(initialElementControls(),command).state;
  state=step(state,{type:'drag',active:true}).state;assert.equal(step(state,command).resetPreview,false);
  for(const patch of [{identity:'2:native'},{identity:'1:software'},{pending:true},{controls:false},{seekable:false}]){const change=step(state,{...command,...patch});assert.equal(change.resetPreview,true);assert.equal(change.state.dragging,false);}
- state=step(state,{type:'opening',operation:1,initialStage:'Inspecting'}).state;
- state=step(state,{type:'opening-stage',stage:'Starting Native'}).state;assert.equal(step(state,{type:'opening',operation:1,initialStage:'Inspecting'}).state.openingStage,'Starting Native');
- state=step(state,{type:'opening',operation:2,initialStage:'Inspecting'}).state;assert.equal(state.openingStage,'Inspecting');
- assert.equal(step(state,{type:'opening',operation:null,initialStage:'Inspecting'}).state.openingStage,'');
+ state=step(state,{type:'opening',operation:1,initialStage:'inspecting'}).state;
+ state=step(state,{type:'opening-stage',stage:'native'}).state;assert.equal(step(state,{type:'opening',operation:1,initialStage:'inspecting'}).state.openingStage,'native');
+ state=step(state,{type:'opening',operation:2,initialStage:'inspecting'}).state;assert.equal(state.openingStage,'inspecting');
+ assert.equal(step(state,{type:'opening',operation:null,initialStage:'inspecting'}).state.openingStage,null);
 });
 
 test('diagnostics throttle uses supplied time and visibility policy, with explicit forced refresh',()=>{
