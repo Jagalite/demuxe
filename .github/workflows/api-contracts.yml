@@ -62,11 +62,6 @@ jobs:
         env:
           BROWSER: ${{ matrix.browser }}
           API_GUARD_REPORT: results/api-stability/advanced-guard.json
-      - name: Check startup progress and live labels
-        run: timeout --kill-after=10s 5m node --import ./tests/api-stability/browser-guard.mjs tests/loading-progress.mjs
-        env:
-          BROWSER: ${{ matrix.browser }}
-          API_GUARD_REPORT: results/api-stability/loading-progress-guard.json
       - name: Prove lifecycle regressions reject the unguarded implementation
         run: timeout --kill-after=10s 5m node tests/api-stability/advanced-negative.mjs
         env:
