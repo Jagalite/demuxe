@@ -43,6 +43,18 @@ test('labels validate known keys, detach values and derive seek labels without m
  assert.deepEqual(step(custom,{type:'labels',entries:[],keys:Object.keys(defaults)}).state.labels,{});
 });
 
+test('public startup step label supports customization, validation and reset',async()=>{
+ const {defaultLabels}=await import('../../web/generated/player/index.js');
+ assert.equal(defaultLabels.step,'Step');
+ const command={type:'labels',entries:[['step','Stage']],keys:Object.keys(defaultLabels)};
+ const custom=step(initial(),command).state;
+ assert.equal(elementLabels(defaultLabels,custom).step,'Stage');
+ assert.equal(step(custom,{...command,entries:[['step',12]]}).state,custom);
+ const reset=step(custom,{...command,entries:[]}).state;
+ assert.equal(elementLabels(defaultLabels,reset).step,'Step');
+ assert.equal(defaultLabels.step,'Step');
+});
+
 test('watchdog rejection and nested reflection retain accepted configuration',()=>{
  const state=initial(),next={...watchdogs,nativeProgress:false};assert.equal(step(state,{type:'watchdogs',value:next,terminal:true}).error.code,'ABORTED');assert.equal(state.watchdogs.nativeProgress,true);
  let current=step(state,{type:'watchdogs',value:next,terminal:false}).state;next.nativeProgress=true;assert.equal(current.watchdogs.nativeProgress,false);
