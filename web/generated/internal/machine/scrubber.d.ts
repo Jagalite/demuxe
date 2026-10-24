@@ -89,6 +89,7 @@ export declare function scrubberPointer(facts: Readonly<{
     x: number;
     parentLeft: number;
     parentWidth: number;
+    previewWidth?: number;
 }>): Readonly<{
     hide: boolean;
     time?: number;

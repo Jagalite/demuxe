@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 export function initialElementControls() {
-    return Object.freeze({ idle: false, seekPreview: false, playing: false, playbackIntent: 'pause', playbackStatus: 'idle', seeking: false, dragging: false, stageWasIdle: false, menuOpen: false, menuTrigger: 'settings-toggle', diagnostics: false, diagnosticsUpdated: 0, openingOperation: null, openingStage: '', previewIdentity: '', announcement: '', failure: undefined });
+    return Object.freeze({ idle: false, seekPreview: false, playing: false, playbackIntent: 'pause', playbackStatus: 'idle', seeking: false, dragging: false, stageWasIdle: false, menuOpen: false, menuTrigger: 'settings-toggle', diagnostics: false, diagnosticsUpdated: 0, openingOperation: null, openingStage: null, previewIdentity: '', announcement: '', failure: undefined });
 }
 function canHide(state, facts) { return facts.playing && !facts.pending && !state.menuOpen && !state.dragging && !facts.focusVisible && facts.connected; }
 export function transitionElementControls(state, command) {
@@ -23,7 +23,7 @@ export function transitionElementControls(state, command) {
         }
         case 'seek-preview-expired': return Object.freeze({ state: Object.freeze({ ...state, seekPreview: false }) });
         case 'playing': return state.playing === command.playing && state.playbackIntent === command.intent && state.playbackStatus === command.status ? Object.freeze({ state, changed: false }) : Object.freeze({ state: Object.freeze({ ...state, playing: command.playing, playbackIntent: command.intent, playbackStatus: command.status }), changed: true, reveal: !state.idle || command.intent === 'pause' || ['ended', 'error', 'idle'].includes(command.status) });
-        case 'opening': return Object.freeze({ state: command.operation === null ? Object.freeze({ ...state, openingOperation: null, openingStage: '' }) : command.operation !== state.openingOperation ? Object.freeze({ ...state, openingOperation: command.operation, openingStage: command.initialStage }) : state });
+        case 'opening': return Object.freeze({ state: command.operation === null ? Object.freeze({ ...state, openingOperation: null, openingStage: null }) : command.operation !== state.openingOperation ? Object.freeze({ ...state, openingOperation: command.operation, openingStage: command.initialStage }) : state });
         case 'opening-stage': return Object.freeze({ state: Object.freeze({ ...state, openingStage: command.stage }) });
         case 'diagnostics': return Object.freeze({ state: Object.freeze({ ...state, diagnostics: command.show && command.enabled && command.controls }) });
         case 'diagnostics-sample': {

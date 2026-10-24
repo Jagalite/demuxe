@@ -11,10 +11,11 @@ p=argparse.ArgumentParser();p.add_argument('--output',type=pathlib.Path,default=
 mpv_subtitles=args.mpv_subtitles or all((root/'web/engine-subtitles'/('service.'+ext)).is_file() for ext in ('mjs','wasm'))
 project=json.loads((root/'package.json').read_text())
 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
-dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=root))
+source_status=subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True)
+dirty=bool(source_status)
 source_archive=None;optional_sources=[]
 if args.release_tag:
- if dirty:raise SystemExit('Release packaging requires a clean source checkout')
+ if dirty:raise SystemExit('Release packaging requires a clean source checkout:\n'+source_status)
  if subprocess.check_output(['git','rev-parse',f'refs/tags/{args.release_tag}^{{commit}}'],cwd=root,text=True).strip()!=source_commit:raise SystemExit('Release tag must identify HEAD')
  if not args.adaptation_build or not mpv_subtitles:raise SystemExit('Tagged release requires fresh optional preparation and mpv subtitle builds to retain published playback capability')
 if project.get('license') != 'Apache-2.0' or not (root/'LICENSE').is_file():raise SystemExit('Select and include the Apache original-code license before packaging')
