@@ -1,0 +1,95 @@
+{
+  "name": "@demuxe/provider-mediabunny",
+  "version": "1.1.2",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0 AND MPL-2.0",
+  "description": "Optional MediaBunny inspection, preview and bounded prepared-file adapters for Demuxe.",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    },
+    "./inspect/mp4": {
+      "types": "./inspect-format.d.ts",
+      "import": "./inspect-mp4.js"
+    },
+    "./inspect/webm": {
+      "types": "./inspect-format.d.ts",
+      "import": "./inspect-webm.js"
+    },
+    "./preview/mp4": {
+      "types": "./preview-format.d.ts",
+      "import": "./preview-mp4.js"
+    },
+    "./preview/webm": {
+      "types": "./preview-format.d.ts",
+      "import": "./preview-webm.js"
+    }
+  },
+  "dependencies": {
+    "mediabunny": "1.63.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js && python3 test/test_source_archive.py",
+    "prepack": "node -e \"throw Error('Provider is not release-qualified')\"",
+    "build:runtime": "node build.mjs",
+    "test:core": "node --test test/core-inspection.mjs test/preview-controller-regression.mjs test/core-remote-source.mjs test/core-stream-runtime.mjs test/core-stream-bridge.mjs test/core-remote-inspection.mjs",
+    "test:browser": "node test/browser-preview.mjs",
+    "test:package": "node test/package-build.mjs",
+    "test:browser:mp4": "node test/browser-mp4.mjs",
+    "test:browser:stream": "node test/browser-stream.mjs",
+    "test:browser:public": "node test/browser-public.mjs",
+    "test:browser:resources": "node test/browser-resources.mjs",
+    "test:browser:retained-owners": "node test/browser-retained-owners.mjs",
+    "test:heap-analysis": "python3 test/test_heap_snapshot.py",
+    "test:browser:backup": "node test/browser-backup.mjs",
+    "test:source:rebuild": "node test/rebuild-source.mjs",
+    "test:browser:audio-preservation": "node test/browser-audio-preservation.mjs",
+    "build:delivery": "node build-delivery.mjs",
+    "assemble:candidate": "node assemble-candidate.mjs",
+    "audit:candidate": "node audit-candidate.mjs",
+    "test:source-archive": "python3 test/test_source_archive.py"
+  },
+  "peerDependencies": {
+    "demuxe": "1.1.2"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "bounded-reader.js",
+    "packet-copy.js",
+    "file-preparation.js",
+    "matroska-profile.js",
+    "runtime-webm.js",
+    "build.mjs",
+    "LICENSE",
+    "LICENSES/",
+    "README.md",
+    "test/",
+    "qualification/",
+    "video-preparation.js",
+    "mp4-preparation.js",
+    "mp4-profile.js",
+    "runtime-mp4.js",
+    "worker-preparation.js",
+    "fragment-stream.js",
+    "mp4-stream.js",
+    "remux-producer.js",
+    "stream-preparation.js",
+    "worker-stream.js",
+    "runtime-mp4-stream.js",
+    "track-metadata.js",
+    "source-build/",
+    "adapter-factories.js",
+    "inspect-mp4.js",
+    "inspect-webm.js",
+    "preview-mp4.js",
+    "preview-webm.js",
+    "inspect-format.d.ts",
+    "preview-format.d.ts",
+    "build-delivery.mjs",
+    "assemble-candidate.mjs",
+    "audit-candidate.mjs"
+  ]
+}

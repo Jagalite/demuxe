@@ -1533,7 +1533,12 @@ export class Player extends EventTarget {
                     return result.id.startsWith(prefix) ? { ...result, id: result.id.slice(prefix.length) } : { type: 'default' };
                 return result;
             } : undefined) : 'NativePlayer' in module ? new module.NativePlayer(surface, forcePreparation ? 'always' : this.nativeRemux, this.assetBase, this.bufferedNativeSeeks, adaptation, ['auto', 'no'].includes(aid) ? (this.privateRemux && recipe?.native?.selectedAudio ? this.sourceInspection?.probe.tracks.find(t => t.type === 'audio')?.index : undefined) : Number(aid) - 1, this.nativeASS, this.fonts, planId, this.buffering, loadTimeoutMs, defaultSubtitleStreamIndex, this.remuxRuntime, this.providerRuntime, { providerPreferences: this.remuxSelection.providerPreferences, prefetchAfterMs: this.startupEscalation?.prefetchAfterMs, prefetch: prefetchFallback, module: async (path) => (await this.startupModules?.ready(path)?.catch(() => undefined)) ?? (path === `web/engine-remux${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm` ? await this.preparation?.readyModule('engine-remux') : undefined) }) : new module.WasmPlayer(surface, { buffering: this.buffering, mode: mode, softwarePresenter: this.softwarePresenter, audioOutput: this.audioOutput, audioFallback: this.audioFallback, resourceLimits: this.resourceLimits, fonts: this.fonts, assetBase: this.assetBase, prepared, providerAssets: this.providerRuntime, decodeQuality: this.decodeQuality, adaptiveFrameDrop: this.adaptiveFrameDrop, videoTrack: this.sourceInspection?.probe.tracks.find(t => t.type === 'video' && !t.attachedPicture) });
-            session = { backend, surface };
+            // Registration adds accessors that capture this player and its session.
+            // A dictionary avoids retaining those closures in a literal allocation
+            // site's cached accessor shape after the session has been destroyed.
+            session = Object.create(null);
+            session.backend = backend;
+            session.surface = surface;
             await this.registerSession(session, sessionId, true);
             current();
             const watchdogs = backend.setWatchdogs;
@@ -2740,28 +2745,37 @@ export class Player extends EventTarget {
                                 fastAllowed = fastInspectionAllowed({ local: true, privateDemuxer: !!(this.privateRemux && this.privateSourceDemuxer(source)), preserve, componentRepairRetry: work.componentRepairRetry, textTracks: tracks.length, aid: settings.aid, sid: settings.sid, filename: local.name });
                                 current();
                             }
+                            else if (this.nativeRemux !== 'never' && (this.nativeRemux === 'always' || source.options.headers || source.options.refreshAuthorization || source.options.allowedOrigins || source.options.immutable !== undefined || source.options.credentials === 'omit') && this.providerRuntime?.hasOffer('browser-prepared', 'selected-streams') && ['mediabunny-file-preparation', 'mediabunny-mp4-file-preparation', 'mediabunny-mp4-stream-preparation'].some(id => this.providerRuntime.hasOffer(id, 'packet-copy')) && !source.options.demuxer && !source.options.streaming && (!source.options.format || source.options.format === 'file')) {
+                                fastAllowed = fastInspectionAllowed({ local: false, remote: true, privateDemuxer: false, preserve, componentRepairRetry: work.componentRepairRetry, textTracks: tracks.length, aid: settings.aid, sid: settings.sid, filename: new URL(source.options.url, location.href).pathname });
+                                current();
+                            }
                             advance({ kind: 'work.normal-start', id: lease.id, fastAllowed });
                             break;
                         }
                         case 'fast': {
-                            if (source.kind !== 'local')
-                                throw Error('Fast inspection requires a local source');
-                            const local = localFile;
-                            current();
-                            const { inspectFastSource } = await this.interruptible(import(new URL('web/fast-source-inspector.js', this.assetBase).href));
-                            current();
                             const owned = controller;
-                            const fast = await inspectFastSource(local, { signal: owned.signal, requirements: routingRequirements, onProgress: (progress) => {
-                                    try {
-                                        this.assertInspection(lease);
-                                    }
-                                    catch {
-                                        return;
-                                    }
-                                    if (!owned.signal.aborted) {
-                                        this.emit('inspectionchange', progress);
-                                    }
-                                } });
+                            const onProgress = (progress) => {
+                                try {
+                                    this.assertInspection(lease);
+                                }
+                                catch {
+                                    return;
+                                }
+                                if (!owned.signal.aborted) {
+                                    this.emit('inspectionchange', progress);
+                                }
+                            };
+                            let fast;
+                            if (source.kind === 'local') {
+                                const { inspectFastSource } = await this.interruptible(import(new URL('web/fast-source-inspector.js', this.assetBase).href));
+                                current();
+                                fast = await inspectFastSource(localFile, { signal: owned.signal, requirements: routingRequirements, onProgress });
+                            }
+                            else {
+                                const { inspectRemoteFastSource } = await this.interruptible(import('./internal/remote-fast-inspection.js'));
+                                current();
+                                fast = await inspectRemoteFastSource(source.options, this.assetBase, owned.signal, onProgress);
+                            }
                             current();
                             advance({ kind: 'work.fast', id: lease.id, probe: fast.status === 'satisfied' ? fast.evidence : undefined, available: fast.status === 'satisfied' ? fast.available : [], bytes: fast.bytesRead, reason: fast.reason });
                             break;
@@ -2868,6 +2882,21 @@ export class Player extends EventTarget {
     }
     async prefetchStartup(planId, source, settings) {
         const recipe = executionRecipe(planId), preparationPlan = startupPreparation(planId, this.remuxRuntime, this.softwarePresenter === 'rgb', { backend: recipe?.backend, adaptation: recipe?.native?.adaptation });
+        // The eventual preparation owner resolves provider eligibility and fallback.
+        // Do not speculate FFmpeg bytes ahead of an explicitly preferred MediaBunny
+        // provider; a profile decline can still acquire FFmpeg on demand.
+        if (planId === 'native-remux' && preparationPlan.kind === 'remux' && !preparationPlan.adapted && this.providerRuntime) {
+            const providers = this.remuxSelection.providerPreferences?.find(rule => rule.capability === 'media.prepare.file')?.providers;
+            const bunny = providers?.findIndex(id => ['mediabunny-file-preparation', 'mediabunny-mp4-file-preparation', 'mediabunny-mp4-stream-preparation'].includes(id)) ?? -1;
+            const ffmpeg = providers?.indexOf('ffmpeg-file-preparation' + (this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime)) ?? -1;
+            if (bunny >= 0 && (ffmpeg < 0 || bunny < ffmpeg)) {
+                const eligible = source.kind === 'local'
+                    ? source.file instanceof File && (this.providerRuntime.canPrepareFile(source.file, this.remuxRuntime) || this.providerRuntime.canStreamFile(source.file, this.remuxRuntime))
+                    : this.providerRuntime.canPrepareRemote(source.options, this.remuxRuntime) || this.providerRuntime.canStreamRemote(source.options, this.remuxRuntime);
+                if (eligible)
+                    return;
+            }
+        }
         if (preparationPlan.kind === 'engine') {
             const mode = preparationPlan.mode;
             const preparation = this.preparation ??= new EnginePreparation(this.assetBase, this.softwarePresenter === 'rgb' ? 'engine-software-full' : 'engine-software-yuv', () => { if (!this.destroyed)

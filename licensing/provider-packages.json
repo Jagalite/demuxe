@@ -955,9 +955,41 @@
         "THIRD_PARTY/shaka-player/third_party/cml-cmcd/SUMMARY.txt"
       ],
       "template": "packages/provider-shaka/package.json"
+    },
+    "mediabunny-candidate": {
+      "npmName": "@demuxe/provider-mediabunny",
+      "native": false,
+      "candidateOnly": true,
+      "auditKind": "mediabunny-corresponding-source-v1",
+      "template": "packages/provider-mediabunny/package.json",
+      "owners": [
+        "core",
+        "mediabunny"
+      ],
+      "licenses": [
+        "Apache-2.0",
+        "MPL-2.0",
+        "CC-BY-4.0"
+      ],
+      "requiredFiles": [
+        "package.json",
+        "provider-manifest.json",
+        "license-map.json",
+        "source-companion.json",
+        "build-evidence.json",
+        "CANDIDATE-NOT-QUALIFIED.txt"
+      ]
     }
   },
   "ownershipRules": [
+    {
+      "owner": "core",
+      "paths": [
+        "web/native-remux-player.js",
+        "web/worker-remux-controller.js",
+        "web/native-mse-worker.js"
+      ]
+    },
     {
       "owner": "core",
       "paths": [
@@ -1545,7 +1577,10 @@
         "src/internal/machine/metadata-budget.ts",
         "src/internal/shaka-api.ts",
         "src/internal/machine/async-policy.ts",
-        "src/internal/machine/playback-deadlines.ts"
+        "src/internal/machine/playback-deadlines.ts",
+        "src/internal/preparation-source.ts",
+        "src/internal/remote-fast-inspection.ts",
+        "src/internal/stream-worker.ts"
       ]
     },
     {
@@ -1748,6 +1783,9 @@
     "packages/player-core/dist/index.d.ts",
     "src/internal/provider-build.ts",
     "src/internal/provider-runtime.ts",
+    "src/internal/preparation-source.ts",
+    "src/internal/remote-fast-inspection.ts",
+    "src/internal/stream-worker.ts",
     "web/file-reader.js",
     "web/resource-loader.js",
     "web/fallback-stream-policy.js",
@@ -1859,7 +1897,10 @@
     "src/internal/machine/shared-runtime.ts",
     "src/internal/shared-provider-assets.ts",
     "src/internal/machine/shared-assets.ts",
-    "src/runtime-types.ts"
+    "src/runtime-types.ts",
+    "web/native-remux-player.js",
+    "web/worker-remux-controller.js",
+    "web/native-mse-worker.js"
   ],
   "playerCoreComputedImports": {
     "src/unified-player.ts": [
@@ -1870,7 +1911,8 @@
     "src/internal/native-player.ts": [
       "new URL('web/selected-mp4-view.js',this.assetBase).href",
       "moduleURL",
-      "new URL('web/range-reader.js',this.assetBase).href"
+      "new URL('web/range-reader.js',this.assetBase).href",
+      "new URL('web/native-remux-player.js',this.assetBase).href"
     ],
     "src/internal/provider-modules.ts": [
       "new URL(paths[id], assetBase).href"
@@ -1882,6 +1924,13 @@
     "src/internal/provider-runtime.ts": [
       "readerURL.href",
       "ownerURL.href"
+    ],
+    "src/internal/preparation-source.ts": [
+      "new URL('web/range-reader.js',base).href"
+    ],
+    "src/internal/remote-fast-inspection.ts": [
+      "new URL('web/range-reader.js',base).href",
+      "new URL('web/fast-source-inspector.js',base).href"
     ]
   },
   "profiles": {

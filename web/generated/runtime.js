@@ -27,6 +27,8 @@ export function awaitRuntime(pending, signal) {
 export class DemuxeRuntime {
     get assetBase() { return this.base.href; }
     get qualifiedProviders() { return this.qualification; }
+    get qualifiedCompositions() { return this.compositions; }
+    compositions;
     qualification;
     control;
     base;
@@ -44,6 +46,18 @@ export class DemuxeRuntime {
         for (const [id, identity] of Object.entries(this.qualifiedProviders))
             if (!id || typeof identity !== 'string' || !identity)
                 throw new PlayerError('INVALID_ARGUMENT', 'Invalid provider qualification identity');
+        if (options.qualifiedCompositions !== undefined && !Array.isArray(options.qualifiedCompositions))
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid provider compositions');
+        this.compositions = Object.freeze((options.qualifiedCompositions ?? []).map(record => {
+            if (!record || typeof record.recipeId !== 'string' || !record.recipeId || typeof record.bindingId !== 'string' || !record.bindingId || !record.implementationIdentities || typeof record.implementationIdentities !== 'object' || Array.isArray(record.implementationIdentities))
+                throw new PlayerError('INVALID_ARGUMENT', 'Invalid provider composition');
+            const identities = Object.entries(record.implementationIdentities);
+            if (!identities.length || identities.some(([id, identity]) => !id || typeof identity !== 'string' || !identity))
+                throw new PlayerError('INVALID_ARGUMENT', 'Invalid composition identities');
+            if (!Array.isArray(record.sourceProfiles) || !record.sourceProfiles.length || record.sourceProfiles.some((profile) => typeof profile !== 'string' || !profile) || new Set(record.sourceProfiles).size !== record.sourceProfiles.length)
+                throw new PlayerError('INVALID_ARGUMENT', 'Invalid composition source profiles');
+            return Object.freeze({ recipeId: record.recipeId, bindingId: record.bindingId, implementationIdentities: Object.freeze(Object.fromEntries(identities)), sourceProfiles: Object.freeze([...record.sourceProfiles]) });
+        }));
         this.control = initialSharedRuntime(this.qualification);
         this.assets = new SharedProviderAssets(options.maxCacheBytes);
         this.current = Object.freeze({ revision: 0, providers: Object.freeze([]), deployment: parseProviderDeployment({ schema: 1, providerContractVersion: 1, revision: 'runtime-0', assets: [], providers: [] }, this.base) });

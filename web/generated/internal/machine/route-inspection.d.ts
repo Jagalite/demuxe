@@ -65,6 +65,7 @@ export declare function transitionInspection(state: InspectionState, change: Ins
 /** Decisions consume normalized source/configuration facts, never File or DOM handles. */
 export declare function fastInspectionAllowed(facts: Readonly<{
     local: boolean;
+    remote?: boolean;
     privateDemuxer: boolean;
     preserve: boolean;
     componentRepairRetry: boolean;

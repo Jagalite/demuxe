@@ -1,0 +1,160 @@
+{
+  "status": "finite-independent-mov-decline-passed-not-release",
+  "authorship": {
+    "description": "Synthetic sine encoded as AAC and muxed as QuickTime by FFmpeg, independently of MediaBunny",
+    "ffmpeg": "/opt/homebrew/Cellar/ffmpeg/8.1.2/bin/ffmpeg",
+    "ffmpegSHA256": "2ce81b92499c1b6b96eb060c69723114bd0da13f1bfbd9da26dee24d099e644a",
+    "x265LibrarySHA256": "8a60e5b0fd09bf40e18f3bf0260072bf016289bd857fe4bd96e4495394b74719",
+    "command": "ffmpeg -hide_banner -loglevel error -f lavfi -i sine=frequency=440:sample_rate=48000:duration=3.2 -c:a aac -b:a 96k [-use_editlist 0] -f mov -y OUTPUT",
+    "probes": {
+      "mono": {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 1,
+        "duration": "3.200000",
+        "nb_frames": "151",
+        "start_time": "0.000000"
+      },
+      "noedit-mono": {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 1,
+        "duration": "3.221333",
+        "nb_frames": "151",
+        "start_time": "0.000000"
+      }
+    }
+  },
+  "fixtureSHA256": {
+    "packages/provider-mediabunny/qualification/fixtures/ffmpeg-aac-mono-48000.mov": "7fd78297d04ad3d7030fa8a25578fff62fb426ed2bed56fc4d6a193de90009da",
+    "packages/provider-mediabunny/qualification/fixtures/ffmpeg-aac-mono-48000-noedit.mov": "ae3c751fe8f5a5178a1c9596ecc2f4b9da67da3127695969761435df954ea3d4"
+  },
+  "sourceSHA256": {
+    "packages/provider-mediabunny/test/browser-backup.mjs": "8a43a306da8935b2f862f1a410a580a370e93b75c005db8c40332ed763496e56",
+    "tests/verify-mediabunny-natural-mov-decline.mjs": "a4aacf4895397fe8d88d14685721e0ba4f8ca300417cfc69e5303e3dec33c35f"
+  },
+  "evidenceSHA256": {
+    "independent-mov-edited-chrome.json": "4348b0c45d8c09bff1d73067a56c36149bb370f9670a1ed6d2fbbf115317f66b",
+    "independent-mov-noedit-chrome-remote.json": "80aa3bc43642e899cb39faa1d194d6202b2c15f75c1a8495f49e898b6f833f22",
+    "independent-mov-edited-firefox.json": "91cc2abc4e9de89c40898ca93bb7ed6412c476b40e6ef3392eb69d9cc3a9deb6",
+    "independent-mov-noedit-preferred-expectation-failed.json": "5a8a26b904352bad46e548c668504b8d49e9573d3fbe23e1cf52958664165dc6",
+    "mov-audio-refresh-chrome-stereo.json": "a274ee03026f4d8521b38cae406b68a8fd9b3c27d9e855462f31c94b8d20a852",
+    "mov-audio-refresh-chrome-mono-remote.json": "e222760bdcc7ef86b5284a526ef3d0dab0d57d9d7b52b9c353651f5ab816d095",
+    "mov-audio-refresh-firefox-stereo.json": "19aa42c84530e33a12ce2385192cecc25460ddf8ef9af003ebec2bf6fb2046df",
+    "mov-audio-refresh-webkit-preferred-only.json": "666b4eb15a8d6d0f1623d89439ffdb91c0259435256866278c79a03507d37018",
+    "independent-mov-source-rebuild-webm.json": "888a6ad6eee4d5afa5ed1ad0feeb1dd3d67f1fd4bfc07a6125560e70669ef19f",
+    "independent-mov-source-rebuild-mp4.json": "7bd6ce35973f06c5d804f09c1e5a09151d10768c7bca57479cbb3e260853e2af",
+    "independent-mov-source-rebuild-stream.json": "0348740197001875e7311d58dd99d471b37db4f0a6724c396a9fe15a08361289"
+  },
+  "independentVerification": {
+    "edited-chrome": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "155.0.8059.85",
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 142,
+      "negativeControls": 7
+    },
+    "noedit-chrome-remote": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "155.0.8059.85",
+      "remote": true,
+      "sourceProfile": "remote:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 7
+    },
+    "edited-firefox": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "157.0",
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 141,
+      "negativeControls": 7
+    }
+  },
+  "existingMatrixReverification": {
+    "stereo": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "155.0.8059.85",
+      "channels": 2,
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-2ch",
+      "coreFiles": 277,
+      "staticInputs": 144,
+      "negativeControls": 8
+    },
+    "mono": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "155.0.8059.85",
+      "channels": 1,
+      "remote": true,
+      "sourceProfile": "remote:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    },
+    "firefox": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "157.0",
+      "channels": 2,
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-2ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    }
+  },
+  "implementationIdentities": {
+    "webm": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+    "mp4": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+    "stream": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45"
+  },
+  "candidateAudit": {
+    "status": "main-auditor-private-candidates-passed-not-release",
+    "results": [
+      {
+        "kind": "webm",
+        "archiveSHA256": "8dc9e563ea620dcec40e402ed6e3c71b6289a13bb13a21ad4c34e216d1cdbf57",
+        "recordSHA256": "54929b00f43a4203c0ba87c6ec1bdb5eacef1b99041e9d15d1fe8fdd4161cd36",
+        "files": 12,
+        "sources": 108
+      },
+      {
+        "kind": "mp4",
+        "archiveSHA256": "1a9b9be8cfab47d83fd1bef3903bc706c1d2f52b988a5d5253ee4d01061ba3f3",
+        "recordSHA256": "628830f08f5eba11207b36562c10b485156dade134e887779f6f1f73d4eedd33",
+        "files": 12,
+        "sources": 108
+      },
+      {
+        "kind": "stream",
+        "archiveSHA256": "8a84e0ae8cbc26658d7d5b3b1f8310a5b78e692f5cd8d4025729faffd2ece9be",
+        "recordSHA256": "b03f05369adf2d35c2497810bc214560569ead112bf5d6d1a4763539900d51ea",
+        "files": 12,
+        "sources": 108
+      }
+    ],
+    "negativeControls": [
+      "missing source inventory",
+      "publishable metadata",
+      "changed local adapter",
+      "wrong reviewed hash",
+      "existing output preserved"
+    ]
+  },
+  "checks": {
+    "packageTests": "63 passed and five source archive tests passed",
+    "coreTests": "54 passed",
+    "sourceRebuild": "webm, mp4 and mp4-stream passed; tested worker identities unchanged",
+    "webkit": "refreshed preferred-provider-only SDK-authored MOV check passed"
+  },
+  "limitations": [
+    "Independent fixtures naturally decline; no MediaBunny packet-preservation or acceptance claim for them.",
+    "Selected decline cases do not constitute full fallback matrices or release qualification.",
+    "Broader AAC edit and gapless behavior remains outside the accepted profile.",
+    "The earlier failed preferred-provider expectation is retained; it observed fallback rather than the expected MediaBunny acceptance."
+  ]
+}

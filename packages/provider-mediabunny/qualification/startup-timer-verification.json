@@ -1,0 +1,39 @@
+{
+  "status": "finite-packaged-startup-timer-verified-not-release",
+  "harnessSHA256": "ca1669470c6e869ce7ee6364966363606eceac328a1100442983a48adb891a0e",
+  "verifierSHA256": "a86a79dfac31d5530422ce511f72b57335432d52869e27b4a5ea2c2b420b1942",
+  "evidenceSHA256": {
+    "startup-timer-observer-initial-failed.json": "4fc730e56f70cb8f448989974f9fe7cf82ee89d8d96f79ced86bfe16f058aca4",
+    "startup-timer-pre-fix-failed.json": "eff308df4dd220400cc4d8d0473e9685d87cad75da40b50e73333fd5894e4413",
+    "startup-timer-chrome.json": "74594038682376bc6afc8b330c8d5e9e56ea4216f0aced26568d8b4dca39c58f",
+    "startup-timer-firefox.json": "b33175db8cd789cee9f6fa36e3dcdf234699330cd527bcab0d7093b6a9e828b7"
+  },
+  "verification": {
+    "chrome": {
+      "status": "finite-packaged-startup-timer-verified-not-release",
+      "browser": "155.0.8059.85",
+      "coreFiles": 277,
+      "requests": 623,
+      "negativeControls": 7
+    },
+    "firefox": {
+      "status": "finite-packaged-startup-timer-verified-not-release",
+      "browser": "157.0",
+      "coreFiles": 277,
+      "requests": 601,
+      "negativeControls": 7
+    }
+  },
+  "preFixControl": {
+    "status": "failed-not-qualified",
+    "unwantedBytes": 3013312,
+    "millisecondsAfterDirectStart": 407
+  },
+  "observerCorrection": "Initial harness recorded only the complete-file worker name, missing the incremental worker profile-mismatch message; corrected before final runs. Initial failed receipt retained.",
+  "scope": "Two MP4 providers, preferred and mutated-roll decline paths, Chrome and Firefox, actual default startup timers with deliberately suppressed first direct-load start.",
+  "limitations": [
+    "A forced first direct-load stall exercises the timer and fallback policy; it does not reproduce the cause or rate of spontaneous startup delays.",
+    "Synthetic local AVC/AAC fixture and test-owned qualification; no production or broader source qualification.",
+    "Window-created worker cleanup is observed; nested workers and actual WebKit MSE audio remain outside this result."
+  ]
+}

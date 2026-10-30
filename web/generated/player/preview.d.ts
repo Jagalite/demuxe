@@ -18,6 +18,7 @@ export declare class ScrubberPreview {
     private displayedURL?;
     private settleTimer?;
     private touchPointer?;
+    private syncTimeLabels;
     private cancelSettle;
     private transition;
     private identity;

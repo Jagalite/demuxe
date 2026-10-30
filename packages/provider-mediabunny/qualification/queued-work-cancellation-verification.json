@@ -1,0 +1,23 @@
+{
+  "status": "source-fix-unit-and-candidate-checks-passed-not-browser-qualified",
+  "change": "Check the lease immediately before executing queued run work, preserving cancellation before work begins.",
+  "negativeControl": "The new focused test failed before the fix with one work invocation after abort.",
+  "tests": {
+    "package": "78 JavaScript tests and 5 source archive tests passed",
+    "core": "57 adapter/core tests passed",
+    "candidate": "package-build artifact and source checks passed for all three rebuilt workers; four format bundles built"
+  },
+  "sourceSHA256": {
+    "packages/provider-mediabunny/bounded-reader.js": "91b5e2f911a8cb4773fa0d571f4e74ae5d2c71a2f3a0ae68efc6acc2c1249129",
+    "packages/provider-mediabunny/test/bounded-reader.test.js": "7628f064509c30904eca0737f75ac6f5f937c4cc48e8415fe3d321f3eaa455df"
+  },
+  "workerIdentities": {
+    "webm": "sha256:defe8da8a75e74a45e588ebf2d4a9008a6a1f830eab81394aa393ab5db038a8e",
+    "mp4": "sha256:3492b6d1a207060a7e0befa109a47bfb419b1f25dba57fac00023d2f88ea4921",
+    "mp4-stream": "sha256:06c24f19c5ba5e15b923085c734a68f9720283d935446d7d6cd1395bb1293983"
+  },
+  "limitations": [
+    "Prior browser, lifecycle, acquisition, packet preservation and resource receipts bind earlier worker or format identities; they do not qualify these rebuilt artifacts.",
+    "WebKit incremental audio and production release review remain open."
+  ]
+}

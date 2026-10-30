@@ -1,0 +1,150 @@
+{
+  "status": "failed-not-qualified",
+  "recordedAt": "2026-10-30T02:09:18.129Z",
+  "environment": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "arch": "arm64",
+    "cpu": "Apple M1",
+    "logicalCPUs": 8,
+    "totalMemoryBytes": 8589934592,
+    "initialLoadAverage": [
+      3.2568359375,
+      2.63427734375,
+      2.609375
+    ],
+    "node": "v23.5.0"
+  },
+  "workload": {
+    "trials": 3,
+    "cycles": 3,
+    "remote": false,
+    "contentProfile": "vp8-video-only",
+    "sourceBytes": 1477,
+    "sourceSha256": "8b2aacb0f1db5237f9734b8145adaf93de55ececcd8b126630564b2738359e47",
+    "aheadSeconds": 1,
+    "behindSeconds": 1,
+    "codedBudgetBytes": 8388608,
+    "playbackSecondsPerLeg": 0.4,
+    "seekTarget": 1.25,
+    "sampleIntervalMs": 200
+  },
+  "identities": {
+    "provider": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+    "presenter": "sha256:15e269dee0e95e465e666d6725b9cc55ebdf3151876a566444915f959ac2cf51",
+    "worker": "82854ac7b5971f7828fb0e508389939eeba0a5729f7d897d3984d830c186b1ec",
+    "harness": "ed3d91427259a9b0b50e76cf840122ee1cc422e73ea407c9cebdf1d1b686f6be",
+    "sampler": "1972651ebfd42d8ce98606585197cb3af19f1c022dc8a0299d850a1ecc2432a7"
+  },
+  "trials": [
+    {
+      "trial": 0,
+      "cycles": [],
+      "samples": [
+        {
+          "phase": "launch",
+          "at": 631.735333,
+          "aggregateRssBytes": 437731328,
+          "observedCpuSeconds": 0.5800000000000001,
+          "processes": 4,
+          "samples": 1,
+          "peakAggregateRssBytes": 437731328
+        },
+        {
+          "phase": "launch",
+          "at": 866.332708,
+          "aggregateRssBytes": 849936384,
+          "observedCpuSeconds": 1.1600000000000001,
+          "processes": 7,
+          "samples": 2,
+          "peakAggregateRssBytes": 849936384
+        },
+        {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 1053.356666,
+          "aggregateRssBytes": 981024768,
+          "observedCpuSeconds": 1.3800000000000001,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 981024768
+        },
+        {
+          "phase": "catalog-loaded",
+          "at": 1100.163208,
+          "aggregateRssBytes": 983236608,
+          "observedCpuSeconds": 1.4100000000000001,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 983236608
+        },
+        {
+          "phase": "opening",
+          "at": 1141.339791,
+          "aggregateRssBytes": 990216192,
+          "observedCpuSeconds": 1.44,
+          "processes": 7,
+          "samples": 5,
+          "peakAggregateRssBytes": 990216192
+        }
+      ],
+      "sampleErrors": [],
+      "baseline": {
+        "phase": "public-entry-loaded-before-catalog",
+        "rendererJsHeapUsedBytes": 1557608,
+        "rendererJsHeapTotalBytes": 2097152,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.056663,
+        "process": {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 1053.356666,
+          "aggregateRssBytes": 981024768,
+          "observedCpuSeconds": 1.3800000000000001,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 981024768
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      },
+      "catalog": {
+        "phase": "catalog-loaded",
+        "rendererJsHeapUsedBytes": 1722544,
+        "rendererJsHeapTotalBytes": 2359296,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.063082,
+        "process": {
+          "phase": "catalog-loaded",
+          "at": 1100.163208,
+          "aggregateRssBytes": 983236608,
+          "observedCpuSeconds": 1.4100000000000001,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 983236608
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Fresh browser per trial; operating-system disk/code caches are not cleared",
+    "Route interception measures served response-body bytes, not real network/TLS/compressed traffic",
+    "Sampled browser-tree RSS sums shared pages and includes browser/runtime overhead; it is not unique physical or decoder-retained memory",
+    "CDP renderer JS heap after forced GC excludes dedicated worker heaps, media decoders and native allocations",
+    "Observed CPU maxima miss work of processes born and exited between samples",
+    "No whole-process peak-retained-memory qualification, independent FFmpeg performance comparator, large-file throughput or release approval"
+  ],
+  "browser": "155.0.8059.85",
+  "error": {
+    "message": "page.evaluate: Error: Measured source track metadata changed\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:408)\n    at async <anonymous>:396:30",
+    "stack": "page.evaluate: Error: Measured source track metadata changed\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:408)\n    at async <anonymous>:396:30\n    at /Volumes/seed2/Projects/demuxe-mediabunny/packages/provider-mediabunny/test/browser-resources.mjs:88:102"
+  }
+}

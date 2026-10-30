@@ -1,0 +1,65 @@
+{
+  "status": "finite-resource-workloads-passed-firefox-color-diagnostic-not-qualification",
+  "artifactsSHA256": {
+    "reader-fix-resources-local-mp4.json": "74dc0294ca0edaa6cb0db164a8b5ef5aa5be287cf8832c0d5a22f93a815a91e2",
+    "reader-fix-resources-local-mp4-verified.json": "3048fabacc6f5545b88a87461f00cad06d7133b06df0cc305ad7e22922dcdb75",
+    "reader-fix-resources-local-stream.json": "fe3c366389e5f27fc53f68713756a8990edbb730e775e14bdf2db98ed59fbf0e",
+    "reader-fix-resources-local-stream-verified.json": "007d288421ae3b248c7543497f440a15e9a45a7d0a0f36e0af7e2a7664eabfdb",
+    "reader-fix-resources-local-webm.json": "518f83ac66a5eb93f81c1d7b7a4f9ff7a62fdb3bfa42b87870149067c3eb51ea",
+    "reader-fix-resources-local-webm-verified.json": "577a98758cb6748b1895e1d62de0586c2d33c5eaabee09ecc8e527f48c08ca3b",
+    "reader-fix-resources-remote-mp4.json": "eff7542677476895578f6146afcbd5dbc534e5e7b41700725960c598261cae34",
+    "reader-fix-resources-remote-mp4-verified.json": "3bf5051036499b6a5fdb0e1221a197eb6f26abdff7ce9dc5ba92aba6bddf0c81",
+    "reader-fix-resources-remote-stream.json": "d0753e400b95e52cd8e318cc0a7562bbe201dbd70be410ed73959aaaaa25183a",
+    "reader-fix-resources-remote-stream-verified.json": "45a12b424acaacc58ebb6e539604d545a938bfe6ac8e867686b693ad1b4a73fe",
+    "reader-fix-resources-remote-webm.json": "9a0d52427b9d5945de8db6a0023e492064e82d208c5e6081153759debac80249",
+    "reader-fix-resources-remote-webm-verified.json": "1e5d909a8bafa2afaba9aa4422b17cb2e63e82521ac2a7a0abc75572702c337e",
+    "reader-fix-firefox-color-early-diagnostic.json": "453185b4a40da235945d096c7ab73e38ad1c5d40ef1ca88668b0ef13b1ac82c1",
+    "reader-fix-firefox-color-fresh-diagnostic.json": "11f9b6c703dd8568c54755d8f1a994182656995072c1312355cde7b72ceb1471"
+  },
+  "metrics": {
+    "local-mp4": {
+      "medianOpenMs": 50.0,
+      "medianSeekFreshMs": 78.6,
+      "peakSampledBrowserRssMiB": 1094.7,
+      "providerBytesPerFreshBrowser": 271429
+    },
+    "local-stream": {
+      "medianOpenMs": 81.3,
+      "medianSeekFreshMs": 79.0,
+      "peakSampledBrowserRssMiB": 1091.0,
+      "providerBytesPerFreshBrowser": 277842
+    },
+    "local-webm": {
+      "medianOpenMs": 61.3,
+      "medianSeekFreshMs": 30.1,
+      "peakSampledBrowserRssMiB": 996.9,
+      "providerBytesPerFreshBrowser": 223876
+    },
+    "remote-mp4": {
+      "medianOpenMs": 52.6,
+      "medianSeekFreshMs": 79.4,
+      "peakSampledBrowserRssMiB": 1153.6,
+      "providerBytesPerFreshBrowser": 271429
+    },
+    "remote-stream": {
+      "medianOpenMs": 82.8,
+      "medianSeekFreshMs": 79.2,
+      "peakSampledBrowserRssMiB": 1091.2,
+      "providerBytesPerFreshBrowser": 277842
+    },
+    "remote-webm": {
+      "medianOpenMs": 55.2,
+      "medianSeekFreshMs": 30.2,
+      "peakSampledBrowserRssMiB": 993.6,
+      "providerBytesPerFreshBrowser": 223876
+    }
+  },
+  "colorDiagnostic": "Firefox original and source-prepared WebM produced the same center pixel after a fresh decoded frame at three seek targets. The earlier pre-frame sample had one transparent pixel; it is retained separately. The public Player decoded-color assertion remains failed.",
+  "limits": [
+    "Three fresh Chrome browsers and three cycles per workload; synthetic fixtures only.",
+    "Remote transport is route-intercepted.",
+    "Sampled browser-tree RSS sums shared pages, excludes missed peaks and is not unique or decoder-retained memory; renderer JS heap excludes workers and native allocations.",
+    "Firefox diagnostic uses a source-level preparer, not the deployed worker or public Player, and samples only a center pixel.",
+    "WebKit incremental audio and production release qualification remain open."
+  ]
+}

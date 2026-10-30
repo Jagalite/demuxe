@@ -86,22 +86,75 @@ export declare const EXECUTION_RECIPES: {
             audioFilter: boolean;
         }>;
     }>;
-    readonly 'native-remux': Readonly<{
-        requirements: readonly CapabilityRequest[];
-        backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
-        native?: NativeExecutionProfile;
-        /** Unordered catalog of current guarded alternatives. Never routing order. */
-        bindings: readonly Readonly<{
+    readonly 'native-remux': {
+        readonly bindings: readonly [...Readonly<{
             id: string;
             owner: string;
             providers: readonly CurrentProviderBinding[];
-        }>[];
-        synchronizationOwner: string;
-        features: Readonly<{
+        }>[], {
+            readonly id: "mediabunny";
+            readonly owner: "NativePlayer.startRemux / bounded prepared-file owner";
+            readonly providers: readonly [{
+                readonly provider: "mediabunny-file-preparation";
+                readonly request: {
+                    readonly capability: "media.prepare.file";
+                    readonly version: 1;
+                    readonly profile: "packet-copy";
+                };
+            }, {
+                readonly provider: "browser-prepared";
+                readonly request: {
+                    readonly capability: "media.present.prepared";
+                    readonly version: 1;
+                    readonly profile: "selected-streams";
+                };
+            }];
+        }, {
+            readonly id: "mediabunny-mp4";
+            readonly owner: "NativePlayer.startRemux / bounded prepared-file owner";
+            readonly providers: readonly [{
+                readonly provider: "mediabunny-mp4-file-preparation";
+                readonly request: {
+                    readonly capability: "media.prepare.file";
+                    readonly version: 1;
+                    readonly profile: "packet-copy";
+                };
+            }, {
+                readonly provider: "browser-prepared";
+                readonly request: {
+                    readonly capability: "media.present.prepared";
+                    readonly version: 1;
+                    readonly profile: "selected-streams";
+                };
+            }];
+        }, {
+            readonly id: "mediabunny-mp4-stream";
+            readonly owner: "NativePlayer.startRemux / existing RemuxPlayer producer lifecycle";
+            readonly providers: readonly [{
+                readonly provider: "mediabunny-mp4-stream-preparation";
+                readonly request: {
+                    readonly capability: "media.prepare.file";
+                    readonly version: 1;
+                    readonly profile: "packet-copy";
+                };
+            }, {
+                readonly provider: "browser-prepared";
+                readonly request: {
+                    readonly capability: "media.present.prepared";
+                    readonly version: 1;
+                    readonly profile: "selected-streams";
+                };
+            }];
+        }];
+        readonly requirements: readonly CapabilityRequest[];
+        readonly backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";
+        readonly native?: NativeExecutionProfile | undefined;
+        readonly synchronizationOwner: string;
+        readonly features: Readonly<{
             gain: boolean;
             audioFilter: boolean;
         }>;
-    }>;
+    };
     readonly 'native-direct-gain': Readonly<{
         requirements: readonly CapabilityRequest[];
         backend: "NativePlayer" | "ShakaBackend" | "WasmPlayer" | "PrivateSoftwarePlayer";

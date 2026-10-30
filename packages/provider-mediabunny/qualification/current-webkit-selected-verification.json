@@ -1,0 +1,58 @@
+{
+  "status": "webkit-selected-provider-cases-partial-not-release",
+  "sourceSHA256": {
+    "src/unified-player.ts": "e46237455c4c606684e89d261eb2de216286bbea59fbfd4d6cfc44cc1388766d",
+    "packages/provider-mediabunny/test/browser-backup.mjs": "8a43a306da8935b2f862f1a410a580a370e93b75c005db8c40332ed763496e56",
+    "tests/verify-mediabunny-webkit-selected.mjs": "29837eed0ec932989e631cbc6474ca47b7a63fc9493a17d33930047a7319e531"
+  },
+  "evidenceSHA256": {
+    "current-webkit-file-selected.json": "fb7179391d5ded6867ded50ba3e5be2d638061c1cf502d354024433eedd3ea6e",
+    "current-webkit-stream-preferred.json": "074d29eee821874f1d51a1bdeb947d7993772283669597807740d92dc679e701",
+    "current-webkit-stream-terminal.json": "8e360fae726ca196fe49c2100b4c6560039d9125dff94020227f371e2d94886a"
+  },
+  "verification": {
+    "file-selected": {
+      "status": "finite-webkit-selected-cases-verified-not-release",
+      "browser": "27.2",
+      "provider": "mediabunny-mp4-file-preparation",
+      "cases": [
+        "preferred-mediabunny",
+        "corrupt-mediabunny",
+        "missing-backup",
+        "source-denied"
+      ],
+      "coreFiles": 277,
+      "staticInputs": 135,
+      "negativeControls": 7
+    },
+    "stream-terminal": {
+      "status": "finite-webkit-selected-cases-verified-not-release",
+      "browser": "27.2",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "cases": [
+        "corrupt-mediabunny",
+        "missing-backup",
+        "source-denied"
+      ],
+      "coreFiles": 277,
+      "staticInputs": 135,
+      "negativeControls": 6
+    }
+  },
+  "streamPreferredFailure": {
+    "status": "failed-not-qualified",
+    "browser": "27.2",
+    "case": "preferred-mediabunny",
+    "observed": "video clock progressed; Web Audio stereo RMS zero",
+    "acquiredAsset": {
+      "path": "/web/providers/mediabunny/mp4-stream.js",
+      "bytes": 277207,
+      "sha256": "ad24955d865371102fdbc4894787e31f52ded0e52b142888ee319ec5f4331b20"
+    }
+  },
+  "limits": [
+    "Explicit subsets; no complete WebKit A/V matrix or FFmpeg audible-output claim.",
+    "The streaming observation does not determine whether actual speakers are silent.",
+    "Test-owned qualification and archived FFmpeg assets are not release qualification."
+  ]
+}

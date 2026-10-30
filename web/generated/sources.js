@@ -9,15 +9,15 @@ function validate(source) { if (source.transport !== 'application-managed' || ty
     throw new PlayerError('INVALID_ARGUMENT', 'Invalid immutable random-access source'); }
 function deadline(work, signal, ms) {
     return new Promise((resolve, reject) => {
-        const abort = () => finish(new PlayerError('ABORTED', 'Source read cancelled'));
-        const timer = setTimeout(() => finish(new PlayerError('NETWORK_TIMEOUT', 'Source read deadline exceeded')), ms);
+        const abort = () => finish(false, new PlayerError('ABORTED', 'Source read cancelled'));
+        const timer = setTimeout(() => finish(false, new PlayerError('NETWORK_TIMEOUT', 'Source read deadline exceeded')), ms);
         let done = false;
-        const finish = (error, value) => { if (done)
-            return; done = true; clearTimeout(timer); signal.removeEventListener('abort', abort); error ? reject(error) : resolve(value); };
+        const finish = (ok, value) => { if (done)
+            return; done = true; clearTimeout(timer); signal.removeEventListener('abort', abort); ok ? resolve(value) : reject(value); };
         signal.addEventListener('abort', abort, { once: true });
         if (signal.aborted)
             abort();
-        work.then(value => finish(undefined, value), error => finish(error));
+        work.then(value => finish(true, value), error => finish(false, error));
     });
 }
 /** Serialize provider calls, reject late results, and never retain provider buffers. */
@@ -115,14 +115,25 @@ export async function materializeSource(source, signal) {
     if (source.size > CUSTOM_SOURCE_PLAYBACK_LIMIT)
         throw new PlayerError('UNSUPPORTED_FEATURE', 'Custom playback staging is limited to 32 MiB; use a File for larger sources');
     const reader = new ByteReader(source, signal, 4096, CUSTOM_SOURCE_PLAYBACK_LIMIT);
+    let failed = false;
     try {
         const parts = [];
         for (let at = 0; at < source.size; at += 262144)
             parts.push(await reader.read(at, Math.min(262144, source.size - at)));
         return new File(parts, source.name ?? 'custom-media', { type: source.type ?? '' });
     }
+    catch (error) {
+        failed = true;
+        throw error;
+    }
     finally {
-        await reader.close();
+        try {
+            await reader.close();
+        }
+        catch (error) {
+            if (!failed)
+                throw error;
+        }
     }
 }
 let serial = 0;
@@ -137,7 +148,7 @@ export async function inspectMedia(input, options = {}) {
     if (options.signal?.aborted)
         abort();
     const timer = setTimeout(abort, timeoutMs);
-    let reader, remote;
+    let reader, remote, failed = false;
     try {
         if (controller.signal.aborted)
             throw new PlayerError('ABORTED', 'Inspection cancelled');
@@ -161,6 +172,12 @@ export async function inspectMedia(input, options = {}) {
             source = { kind: 'bytes', transport: 'application-managed', id: 'remote', size, read: (at, n) => remote.read(BigInt(at), n) };
         }
         reader = new ByteReader(source, controller.signal, maxReads, maxBytes);
+        if (options.inspector) {
+            const result = await deadline(options.inspector({ kind: 'bytes', transport: 'application-managed', id: source.id, size: source.size, ownership: 'borrowed', read: async (at, n) => new Uint8Array(await reader.read(at, n)) }, { signal: controller.signal, maxBytes, maxReads, timeoutMs }), controller.signal, timeoutMs);
+            if (reader.failure)
+                throw reader.failure;
+            return freeze({ ...result, sourceIdentity: isCustomSource(input) ? input.id : null, bytesRead: reader.bytes, reads: reader.reads });
+        }
         const file = { size: source.size, slice: (at, end) => ({ arrayBuffer: () => reader.read(at, end - at) }) };
         const { inspectFastSource } = await import(new URL('web/fast-source-inspector.js', base).href);
         const result = await deadline(inspectFastSource(file, { signal: controller.signal, requirements: ['container', 'tracks', 'duration'] }), controller.signal, timeoutMs);
@@ -172,10 +189,31 @@ export async function inspectMedia(input, options = {}) {
         const list = evidence?.tracks ? tracks(evidence.tracks.map((t) => ({ ...t, 'ff-index': t.index, selected: false })), run, 'software').map(t => ({ ...t, id: `inspection:${t.id}` })) : [];
         return freeze({ id: `inspection:${run}`, sourceIdentity: isCustomSource(input) ? input.id : null, status: result.status === 'satisfied' ? 'complete' : evidence ? 'partial' : 'unknown', completeFor: result.available ?? [], format: evidence?.format ?? null, duration: Number.isFinite(evidence?.duration) && evidence.duration > 0 ? evidence.duration : null, tracks: evidence?.tracks ? list : null, chapters: null, tags: null, reason: result.reason ? String(redact(result.reason)) : null, bytesRead: reader.bytes, reads: reader.reads });
     }
+    catch (error) {
+        failed = true;
+        throw error;
+    }
     finally {
         clearTimeout(timer);
         options.signal?.removeEventListener('abort', abort);
-        remote?.close();
-        await reader?.close();
+        let cleanupFailed = false, cleanupError;
+        try {
+            remote?.close();
+        }
+        catch (error) {
+            cleanupFailed = true;
+            cleanupError = error;
+        }
+        try {
+            await reader?.close();
+        }
+        catch (error) {
+            if (!cleanupFailed) {
+                cleanupFailed = true;
+                cleanupError = error;
+            }
+        }
+        if (!failed && cleanupFailed)
+            throw cleanupError;
     }
 }

@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: Apache-2.0
+// Verify forced direct-load startup and actual provider fallback observations.
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {join,resolve} from 'node:path';
+import {verifyPresenterInputs} from '../packages/provider-mediabunny/test/verify-composition-evidence.mjs';
+const [receiptPath,deploymentPath]=process.argv.slice(2);if(!deploymentPath)throw Error('Pass receipt and deployment');
+const root=resolve(deploymentPath),hash=x=>createHash('sha256').update(x).digest('hex');
+const mb=await readFile(join(root,'demuxe-providers.json')),manifest=JSON.parse(mb),receipt=JSON.parse(await readFile(receiptPath));
+const fixture=await readFile(new URL('../packages/provider-mediabunny/qualification/fixtures/avc-aac-320x240.mp4',import.meta.url)),declined=Buffer.from(fixture),group=declined.indexOf('sgpd');assert.ok(group>0);assert.equal(declined.readInt16BE(group+20),-1);declined.writeInt16BE(-2,group+20);
+const harness=hash(await readFile(new URL('./browser-mediabunny-startup.mjs',import.meta.url)));
+function verify(value){
+ assert.equal(value.status,'finite-packaged-startup-timer-passed-not-release');assert.ok(value.browser);assert.equal(value.harnessSHA256,harness);assert.equal(value.manifestSHA256,hash(mb));assert.equal(value.fixtureSHA256,hash(fixture));assert.equal(value.declinedSHA256,hash(declined));
+ const expected=['mediabunny-mp4-file-preparation','mediabunny-mp4-stream-preparation'].flatMap(sdk=>['preferred','decline','unqualified'].map(scenario=>({sdk,scenario})));assert.equal(value.cases.length,expected.length);
+ for(let i=0;i<expected.length;i++){
+  const row=value.cases[i];assert.equal(row.sdk,expected[i].sdk);assert.equal(row.scenario,expected[i].scenario);assert.equal(row.forced,true);assert.equal(row.remainingWorkers,0);assert.ok(row.frame>1.25&&row.rms>.01);
+  const direct=row.trace.find(x=>x.event==='direct-load'),prefetch=row.trace.find(x=>x.event==='prefetch');assert.ok(direct&&prefetch);assert.ok(prefetch.at-direct.at>=390);
+  const sdk=manifest.providers.find(x=>x.id===row.sdk),sdkAssets=new Set(sdk.assetIds),declared=manifest.assets.filter(x=>sdkAssets.has(x.id));
+  if(row.scenario==='unqualified')assert.ok(!row.deliveries.some(x=>x.path.startsWith('/web/providers/mediabunny/')));
+  else assert.ok(row.deliveries.some(x=>declared.some(a=>x.path==='/'+a.path&&x.sha256===a.sha256&&x.bytes===a.bytes)));
+  const ff=row.deliveries.filter(x=>x.path==='/web/engine-remux/remux.wasm');
+  if(row.scenario==='preferred'){assert.equal(ff.length,0);assert.equal(row.ffmpegCalls,0);}
+  else{const asset=manifest.assets.find(x=>x.path==='web/engine-remux/remux.wasm');assert.ok(row.ffmpegCalls>0);assert.equal(ff.length,1);assert.equal(ff[0].sha256,asset.sha256);assert.equal(ff[0].bytes,asset.bytes);if(row.scenario==='decline'){const mismatch=row.messages.find(x=>x.prepared===false||x.code==='PROVIDER_PROFILE_MISMATCH');assert.ok(mismatch);assert.ok(ff[0].at>=mismatch.at-20);}else{const settled=row.trace.find(x=>x.event==='prefetch-settled');assert.ok(settled);assert.ok(ff[0].at>=prefetch.at-20&&ff[0].at<=settled.at+20);}}
+ }
+ assert.ok(value.requests.some(x=>x.path==='/dist/index.js'));
+}
+verify(receipt);
+for(const x of receipt.requests){assert.ok(x.path.startsWith('/')&&x.path.split('/').every(part=>part!=='.'&&part!=='..'));const b=await readFile(join(root,x.path.slice(1)));assert.equal(x.bytes,b.length);assert.equal(x.sha256,hash(b));}
+const presenter=manifest.providers.find(x=>x.id==='browser-prepared'),coreFiles=await verifyPresenterInputs(root,presenter.implementationIdentity);
+const mutations=[v=>{v.cases[0].deliveries.push({path:'/web/engine-remux/remux.wasm'});},v=>{v.cases[1].messages=[];},v=>{v.cases[1].ffmpegCalls=0;},v=>{v.cases[1].rms=0;},v=>{v.cases[2].deliveries.push({path:'/web/providers/mediabunny/mp4.js'});},v=>{v.cases[0].remainingWorkers=1;},v=>{v.cases[0].trace=[];},v=>{v.fixtureSHA256='wrong';}];
+for(const mutate of mutations){const changed=structuredClone(receipt);mutate(changed);assert.throws(()=>verify(changed));}
+console.log(JSON.stringify({status:'finite-packaged-startup-timer-verified-not-release',browser:receipt.browser,coreFiles,requests:receipt.requests.length,negativeControls:mutations.length}));

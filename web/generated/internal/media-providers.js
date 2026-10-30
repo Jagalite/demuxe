@@ -21,6 +21,27 @@ function privatePlayback(runtime) {
  * External file subtitles use the integrated mpv attachment service.
  */
 export const MEDIA_PROVIDERS = {
+    'mediabunny-file-preparation': {
+        technology: 'javascript', delivery: ['optional-assets'],
+        provides: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }],
+        implementation: ['packages/provider-mediabunny/file-preparation.js'],
+        requirementsOwner: 'ProviderRuntime.canPrepareFile / complete local WebM or Matroska VP8 source profile',
+        configurationOwner: 'NativePlayer.startRemux', acquisition: 'backend-owned',
+    },
+    'mediabunny-mp4-file-preparation': {
+        technology: 'javascript', delivery: ['optional-assets'],
+        provides: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }],
+        implementation: ['packages/provider-mediabunny/mp4-preparation.js'],
+        requirementsOwner: 'ProviderRuntime.canPrepareFile / complete local MP4 or MOV H264 source profile',
+        configurationOwner: 'NativePlayer.startRemux', acquisition: 'backend-owned',
+    },
+    'mediabunny-mp4-stream-preparation': {
+        technology: 'javascript', delivery: ['optional-assets'],
+        provides: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }],
+        implementation: ['packages/provider-mediabunny/stream-preparation.js'],
+        requirementsOwner: 'ProviderRuntime.canStreamFile / complete local MP4 or MOV H264 source profile',
+        configurationOwner: 'NativePlayer.startRemux / existing RemuxPlayer presentation owner', acquisition: 'backend-owned',
+    },
     'browser-original': {
         technology: 'browser-native', delivery: ['browser', 'application-bundle'],
         provides: [{ capability: 'media.present.original', version: 1, profile: 'selected-source' }],

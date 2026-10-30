@@ -1,0 +1,87 @@
+{
+  "status": "candidate-real-file-chrome-passed-firefox-hevc-failed-not-release",
+  "artifactsSHA256": {
+    "reader-combined-real-asyncify-chrome.json": "9fa198d1676101495510df6c73b77a274602fcf55095d0d666712a97c5443e73",
+    "reader-combined-real-asyncify-chrome-verified.json": "fb92e95701512d37663040e37de6eb85e40713502ec384afa8ab8e1bf32ef4de",
+    "reader-combined-real-asyncify-firefox.json": "dd618fc142a5b867654b9f8f57ce531dae9cc653f15bd0f78e4641d766c1a6c0",
+    "reader-combined-real-asyncify-firefox-verified.json": "c789c45f5f962980a9b882ce04147da6d19a570d8ba106c1f9938c16101c7fa5",
+    "reader-combined-real-jspi-chrome.json": "07ea88afb4e4cb296095c23811ab65047a3c2b77cf0bce60e273c0181dfbc43b",
+    "reader-combined-real-jspi-chrome-verified.json": "6caea18c0616e7f6c315a4b70a41411c8889769bf4d760b966c241f234d0421e",
+    "reader-combined-real-jspi-firefox.json": "ef6669dc741e05a213b27b699b99d2867172bff6639dc7c088e44ea1f167125b",
+    "reader-combined-real-jspi-firefox-verified.json": "d57b549312f189c217fa5a600de724455d8ed00f7a7181756f2e7db4031b405d"
+  },
+  "fixtureManifestSHA256": "27ccf5db14b8c0229aea5be804f5e8872a689d1c7e082605aabcdef73b1fdde5",
+  "fixtures": [
+    {
+      "id": "avc-bframes-truehd",
+      "bytes": 3044253,
+      "sha256": "c10181eec5ab18441dc9babad6f2575485f56e61f794f87fe521ba130960c865",
+      "path": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/fixtures/avc-bframes-truehd.mkv"
+    },
+    {
+      "id": "large-truehd",
+      "bytes": 87563059,
+      "sha256": "3abc1d2eff5393da9e134bcbf05d2fca7e496791cc3fb069294e0da76f91988c",
+      "path": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/fixtures/large-truehd.mkv"
+    },
+    {
+      "id": "multi-lossless",
+      "bytes": 8471978,
+      "sha256": "f91ecbd00bd7a0a110e0381af5985ef8ea17aa681443dd7d73d9a70fba0ea366",
+      "path": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/fixtures/multi-lossless.mkv"
+    },
+    {
+      "id": "hevc-truehd",
+      "bytes": 20174567,
+      "sha256": "76e1aa581b2e974421824db36a79aefa4d635fabfb4ae1886dd5635a75072219",
+      "path": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/fixtures/hevc-truehd.mkv"
+    },
+    {
+      "id": "hevc-dtshd",
+      "bytes": 15747858,
+      "sha256": "86e4adf16e65d7bbce5a6d5dbd66570c43e80f3433963a2ad979716d844916fa",
+      "path": "/Volumes/seed2/Projects/demuxe-media-components/build/codec-preparation/fixtures/hevc-dtshd.mkv"
+    }
+  ],
+  "harnessSHA256": "16776fb6395953d613515a49b80fae91473e8aea6826348b2cd6f434d10b805a",
+  "verifierSHA256": "3663d89dbefae5e2c36b316ef7e256b82cb9ca312fc3a3d6d5948e1c05a972a6",
+  "deploymentManifestSHA256": "4fec3f84d65bd75ac94dbc387a33e3aa34a2245a63be00ac0d6fb3899d9abf42",
+  "runs": [
+    {
+      "runtime": "asyncify",
+      "browser": "chrome",
+      "passed": true,
+      "caseCount": 5,
+      "error": ""
+    },
+    {
+      "runtime": "asyncify",
+      "browser": "firefox",
+      "passed": false,
+      "caseCount": 3,
+      "error": "page.evaluate: PlayerError: No available deployment satisfies the remaining playback candidates: hybrid: Required provider runtime assets are not deployed: web/engine-hybrid/player.wasm, fixtures/DejaVuSans.ttf (recipe requires media.play.complete/source-tracks); hybrid-private-gain: Private Hybrid requires retained decoder assets and WebCodecs (recipe requires media.play.complete/source-tracks, audio.gain/scalar); hybrid-private: Private Hybrid requires retained decoder assets and WebCodecs (re"
+    },
+    {
+      "runtime": "jspi",
+      "browser": "chrome",
+      "passed": true,
+      "caseCount": 5,
+      "error": ""
+    },
+    {
+      "runtime": "jspi",
+      "browser": "firefox",
+      "passed": false,
+      "caseCount": 3,
+      "error": "page.evaluate: PlayerError: No available deployment satisfies the remaining playback candidates: hybrid: Required provider runtime assets are not deployed: web/engine-hybrid/player.wasm, fixtures/DejaVuSans.ttf (recipe requires media.play.complete/source-tracks); hybrid-private-gain: Private Hybrid requires retained decoder assets and WebCodecs (recipe requires media.play.complete/source-tracks, audio.gain/scalar); hybrid-private: Private Hybrid requires retained decoder assets and WebCodecs (re"
+    }
+  ],
+  "coverage": "Combined candidate deployment with test-owned identities: five real-File fixtures including reordered AVC, 87MB input, alternate audio and HEVC. Chrome passes all five for Asyncify and JSPI. Firefox passes first three for each then fails HEVC with no available fallback plan. Verifier binds fixture bytes, deployed assets, core, and five mutation controls.",
+  "limits": [
+    "The fixture hashes are checked before and after each case; a browser-side whole-File hash is intentionally not performed because the test forbids whole-file materialization.",
+    "Firefox failure remains a failure; the receipt does not establish its root cause or qualify HEVC.",
+    "Application-owned test identities and candidate harness are not the unchanged release gate or production qualification.",
+    "Historical fixture files are read-only external inputs and are not copied into this repository.",
+    "WebKit incremental audio and current core release-source drift remain open."
+  ]
+}

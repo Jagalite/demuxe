@@ -1,0 +1,53 @@
+{
+  "status": "finite-packaged-webm-startup-verified-not-release",
+  "harnessSHA256": "18f6af1ec1daaf1264389ea81ae717016370a8266dab3fb7db4127baebfa6897",
+  "verifierSHA256": "60ed8e9b73d573590d35342823cc091e845ed3e29d8594ffe86b5e68614493a4",
+  "evidenceSHA256": {
+    "webm-startup-chrome-initial.json": "fba01e3016bd9f9340d8607b9cdd7c9edc595ff19ba39cd8070ae940b92d3017",
+    "webm-startup-firefox-color-initial-failed.json": "7cde6674c2c073478443d04b593ea166d597a017213acb86e9b0974a847b52e0",
+    "webm-startup-before-failed.json": "038f246ee275e57274c1423fef2ac8dad19055b12cbcdc32c0d7b637b57cb0f8",
+    "webm-startup-chrome.json": "837d87149192228c819c2af9d9cb1b237538a5a0e3794161d43d03f7bc4657d9",
+    "webm-startup-firefox.json": "1f0a4fc6e3ffda1dd2595e653394b54980c80308d612c52122cef14baf82a788",
+    "webm-startup-harness-previous.txt": "c9133043f43374d9e141b613767332e9636b4d2a2573c905914f2ac4926d4739",
+    "webm-startup-v3-before-failed.json": "c11d90d429be36034a66758b01dbabbde916b4c1e42b0b0dfbdddcf14ecdea53",
+    "webm-startup-v3-chrome.json": "e365465e870b27a145f51fae801259c86d9c07e05149c60f4f659d79fb332d6f",
+    "webm-startup-v3-firefox.json": "1980e65275685c9cd9e60da91cc89e3aad37374081c52198aa363c4ea9f680ee",
+    "webm-startup-v3-webkit.json": "f610d73720f524b590813099fb5f31b3057f327c262f4e2986c179ae6d4dbabf"
+  },
+  "verification": {
+    "chrome": {
+      "status": "finite-packaged-webm-startup-verified-not-release",
+      "browser": "155.0.8059.85",
+      "coreFiles": 277,
+      "requests": 307,
+      "negativeControls": 7
+    },
+    "firefox": {
+      "status": "finite-packaged-webm-startup-verified-not-release",
+      "browser": "157.0",
+      "coreFiles": 277,
+      "requests": 296,
+      "negativeControls": 7
+    },
+    "webkit": {
+      "status": "finite-packaged-webm-startup-verified-not-release",
+      "browser": "27.2",
+      "coreFiles": 277,
+      "requests": 307,
+      "negativeControls": 7
+    }
+  },
+  "preFixControl": {
+    "unwantedBytes": 3013312,
+    "millisecondsAfterDirectStart": 408
+  },
+  "colorReferenceCorrection": "Initial Firefox prepared output [208,10,66,255] failed a Chrome-specific color target; separate direct Firefox decode of the same fixture produced [208,10,66,255]. Final tests compare each result to direct source decoding in the same browser within two channel values.",
+  "scope": "Synthetic VP8 video-only WebM; initial direct-load stall forces the default startup timers in Chrome, Firefox and WebKit. A second non-key SimpleBlock discardable flag triggers a real MediaBunny profile decline and FFmpeg fallback.",
+  "limitations": [
+    "Synthetic local fixture with forced stall; no general reliability, broad profile or production qualification.",
+    "One pixel is compared to direct source decoding; not a full-frame or packet-preservation test.",
+    "Window-created worker cleanup observed; nested worker census excluded.",
+    "Video-only WebKit result does not resolve the separate WebKit MSE audio observation."
+  ],
+  "priorHarnessSHA256": "c9133043f43374d9e141b613767332e9636b4d2a2573c905914f2ac4926d4739"
+}

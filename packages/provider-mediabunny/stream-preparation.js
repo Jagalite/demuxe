@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: Apache-2.0
+import {createBoundedReader} from './bounded-reader.js';
+import {inspectMp4TrackProfiles} from './mp4-profile.js';
+import {createMP4PacketStream} from './mp4-stream.js';
+import {createRemuxProducer} from './remux-producer.js';
+import {preparedTracks} from './track-metadata.js';
+const mismatch=message=>{throw Object.assign(new Error(message),{code:'PROVIDER_PROFILE_MISMATCH'});};
+/** Private finite-file streaming profile. Complete inspection is still supplied
+ * by Demuxe; the upstream A/V enumeration cannot establish subtitle absence. */
+export async function createMP4StreamProducer(runtime,file,{sourceTracks,signal,target=0}={}){
+  signal?.throwIfAborted();
+  const local=file instanceof Blob;
+  if((!local&&!(file?.kind==='bytes'&&typeof file.read==='function'))||!Number.isSafeInteger(file.size)||!file.size||file.size>32*1024*1024||!Array.isArray(sourceTracks))mismatch('Unsupported streaming source');
+  const video=sourceTracks.filter(track=>track.type==='video'),audio=sourceTracks.filter(track=>track.type==='audio');
+  if(video.length!==1||video[0].codec!=='h264'||video[0].attachedPicture||audio.length>1||sourceTracks.length!==video.length+audio.length||new Set(sourceTracks.map(track=>JSON.stringify([track.type,String(track.id)]))).size!==sourceTracks.length||audio.some(track=>track.codec!=='aac'||track.sampleRate!==48000||![1,2].includes(track.channels)))mismatch('Unsupported inspected streaming tracks');
+  const reader=createBoundedReader({size:file.size,read:async(at,n)=>local?new Uint8Array(await file.slice(at,at+n).arrayBuffer()):file.read(at,n)},{signal,maxReads:4096,maxBytes:32*1024*1024});
+  let authored;
+  try{authored=await reader.run(()=>inspectMp4TrackProfiles(reader));}finally{await reader.close();}
+  signal?.throwIfAborted();
+  let input,stream,released=false,cleanupFailed=false,cleanupError;
+  const remember=error=>{if(!cleanupFailed){cleanupFailed=true;cleanupError=error;}};
+  const retire=()=>{
+    signal?.removeEventListener('abort',abort);
+    if(released||!input)return;
+    released=true;try{input.dispose();}catch(error){remember(error);}
+  };
+  const dispose=()=>{retire();if(cleanupFailed&&!signal?.aborted)throw cleanupError;};
+  const cancelLate=value=>{try{void Promise.resolve(value?.cancel(signal?.reason)).catch(()=>{});}catch{}};
+  const abort=()=>{cancelLate(stream);retire();};
+  const run=(work,discard)=>{
+    if(!signal)return Promise.resolve().then(work);
+    signal.throwIfAborted();
+    const pending=Promise.resolve().then(()=>{signal.throwIfAborted();return work();}).then(value=>{
+      if(signal.aborted){discard?.(value);signal.throwIfAborted();}return value;
+    });
+    return new Promise((resolve,reject)=>{
+      let done=false;
+      const finish=(ok,value)=>{if(done)return;done=true;signal.removeEventListener('abort',cancel);ok?resolve(value):reject(value);};
+      const cancel=()=>finish(false,signal.reason);
+      signal.addEventListener('abort',cancel,{once:true});if(signal.aborted)cancel();
+      pending.then(value=>finish(true,value),error=>finish(false,error));
+    });
+  };
+  signal?.addEventListener('abort',abort,{once:true});
+  try{
+    signal?.throwIfAborted();
+    input=new runtime.Input({formats:[runtime.MP4,runtime.QTFF],source:local?new runtime.BlobSource(file):new runtime.CustomSource({getSize:()=>file.size,read:(start,end)=>file.read(start,end-start),prefetchProfile:'none',maxCacheSize:262144})});
+    const tracks=await run(()=>input.getTracks());signal?.throwIfAborted();
+    // The finite envelope has one track of each type. Source-owner IDs need not
+    // equal the parser's container IDs; retain the former for presentation.
+    if(tracks.length!==sourceTracks.length||tracks.some(track=>!sourceTracks.some(fact=>fact.type===track.type&&(track.type==='video'?fact.codec==='h264':fact.codec===track.codec))))mismatch('Streaming source track composition changed');
+    for(const track of tracks.filter(track=>track.type==='audio')){
+      const config=await run(()=>track.getDecoderConfig()),fact=sourceTracks.find(fact=>fact.type==='audio');
+      if(!config||config.sampleRate!==fact.sampleRate||config.numberOfChannels!==fact.channels)mismatch('Streaming audio configuration changed');
+    }
+    stream=await run(()=>createMP4PacketStream(runtime,input,{trackIds:tracks.map(track=>track.id),authoredTracks:authored,signal,target}),cancelLate);
+    signal?.throwIfAborted();
+    const raps=authored.find(track=>track.type==='video').packets.filter(packet=>packet.type==='key').map(packet=>packet.timestamp);
+    return createRemuxProducer(stream,{tracks:preparedTracks(sourceTracks),dispose,raps});
+  }catch(error){
+    try{await stream?.cancel(error);}catch(cleanup){remember(cleanup);}
+    retire();
+    if(signal?.aborted)throw signal.reason;
+    if(error?.code==='PROVIDER_PROFILE_MISMATCH'&&cleanupFailed)throw cleanupError;
+    throw error;
+  }
+}

@@ -5,6 +5,45 @@
  * External file subtitles use the integrated mpv attachment service.
  */
 export declare const MEDIA_PROVIDERS: {
+    readonly 'mediabunny-file-preparation': {
+        readonly technology: "javascript";
+        readonly delivery: readonly ["optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "packet-copy";
+        }];
+        readonly implementation: readonly ["packages/provider-mediabunny/file-preparation.js"];
+        readonly requirementsOwner: "ProviderRuntime.canPrepareFile / complete local WebM or Matroska VP8 source profile";
+        readonly configurationOwner: "NativePlayer.startRemux";
+        readonly acquisition: "backend-owned";
+    };
+    readonly 'mediabunny-mp4-file-preparation': {
+        readonly technology: "javascript";
+        readonly delivery: readonly ["optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "packet-copy";
+        }];
+        readonly implementation: readonly ["packages/provider-mediabunny/mp4-preparation.js"];
+        readonly requirementsOwner: "ProviderRuntime.canPrepareFile / complete local MP4 or MOV H264 source profile";
+        readonly configurationOwner: "NativePlayer.startRemux";
+        readonly acquisition: "backend-owned";
+    };
+    readonly 'mediabunny-mp4-stream-preparation': {
+        readonly technology: "javascript";
+        readonly delivery: readonly ["optional-assets"];
+        readonly provides: readonly [{
+            readonly capability: "media.prepare.file";
+            readonly version: 1;
+            readonly profile: "packet-copy";
+        }];
+        readonly implementation: readonly ["packages/provider-mediabunny/stream-preparation.js"];
+        readonly requirementsOwner: "ProviderRuntime.canStreamFile / complete local MP4 or MOV H264 source profile";
+        readonly configurationOwner: "NativePlayer.startRemux / existing RemuxPlayer presentation owner";
+        readonly acquisition: "backend-owned";
+    };
     readonly 'browser-original': {
         readonly technology: "browser-native";
         readonly delivery: readonly ["browser", "application-bundle"];

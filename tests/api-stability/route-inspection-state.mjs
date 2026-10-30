@@ -34,6 +34,10 @@ test('fast inspection retains repair exception without bypassing transport, trac
  for(const extra of [{local:false},{privateDemuxer:true},{textTracks:1},{aid:'no'},{sid:'1'},{filename:'Movie.M2TS'},{filename:'track.OpUs'}])assert.equal(fast(extra),false,JSON.stringify(extra));
  assert.equal(fast({filename:'not-really-an-ogg.mp4'}),true);
 });
+test('explicitly admitted remote metadata keeps the same narrow fast-inspection feature guards',()=>{
+ assert.equal(fast({local:false,remote:true}),true);
+ for(const extra of [{preserve:true},{textTracks:1},{aid:'no'},{sid:'1'},{privateDemuxer:true},{filename:'media.ogg'}])assert.equal(fast({local:false,remote:true,...extra}),false);
+});
 test('preserved public stream identity maps by index and missing streams stay explicitly missing',()=>{
  const facts={settings,preserve:true,mode:'native',hasSource:true,textTracks:0,remuxTracks:false,publicAudio:'audio:stream:2',publicSubtitle:'sub:stream:3'};
  assert.deepEqual(inspectionSelection(probe(),facts),{aid:'3',sid:'4',subtitles:true});

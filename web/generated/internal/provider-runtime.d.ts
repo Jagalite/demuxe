@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
+import type { RemotePreparationSource } from './preparation-source.js';
+import { type StreamWorker } from './stream-worker.js';
 import type { ProviderPreferences } from '../types.js';
 import type { DemuxeRuntime } from '../runtime.js';
 import type { Probe } from './selection.js';
@@ -11,6 +13,10 @@ export type ComponentPreparedAudio = {
         selected: boolean;
     }[];
     diagnostics: Record<string, unknown>;
+};
+export type StreamPreparation = {
+    worker: StreamWorker;
+    size: number;
 };
 type RepairCodec = 'truehd' | 'mlp' | 'dts-hd';
 export type CodecPreparation = Readonly<{
@@ -27,6 +33,14 @@ export interface ProviderRuntimeAssets {
     bytes(path: string): Promise<ArrayBuffer>;
     preparation?(file: File, runtime: 'pthread' | 'jspi' | 'asyncify', audioTrack?: number): CodecPreparation | undefined;
     prepareAudio?(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
+    canPrepareFile?(file: File, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    canPrepareRemote?(source: RemotePreparationSource, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    prepareRemote?(source: RemotePreparationSource, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
+    prepareFile?(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
+    canStreamRemote?(source: RemotePreparationSource, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    streamRemote?(source: RemotePreparationSource, target: number, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<StreamPreparation | undefined>;
+    canStreamFile?(file: File, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    streamFile?(file: File, target: number, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<StreamPreparation | undefined>;
 }
 /** Per-player deployment state. Only the maintained finite recipes are admitted;
  * packaging metadata cannot add compositions or confer build qualification. */
@@ -44,6 +58,8 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private readonly sources;
     private nextSource;
     private codecSources;
+    private fileSources;
+    private remoteSources;
     private sharedSnapshot?;
     get revision(): number;
     /** Adopt additive provider publications only at a player operation boundary.
@@ -75,6 +91,24 @@ export declare class ProviderRuntime implements ProviderRuntimeAssets {
     private audioProfileRejection;
     prepareAudio(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
     private evidence;
+    /** Eligibility is source-scoped and requires the complete prepared binding,
+     * not just an installed parser or an asserted capability offer. */
+    private preparationCandidate;
+    private filePreparationCandidate;
+    canStreamFile(file: File, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    private canUseStream;
+    /** One verified local producer per presentation generation. The caller owns
+     * termination; its abort signal and runtime destruction also retire the lease. */
+    streamFile(file: File, target: number, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<StreamPreparation | undefined>;
+    canStreamRemote(source: RemotePreparationSource, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    streamRemote(source: RemotePreparationSource, target: number, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<StreamPreparation | undefined>;
+    private executeStream;
+    canPrepareFile(file: File, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    private canUsePreparation;
+    prepareFile(file: File, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
+    canPrepareRemote(source: RemotePreparationSource, runtime?: 'pthread' | 'jspi' | 'asyncify'): boolean;
+    prepareRemote(source: RemotePreparationSource, signal: AbortSignal, runtime?: 'pthread' | 'jspi' | 'asyncify'): Promise<ComponentPreparedAudio | undefined>;
+    private executePreparation;
     /** The caller invokes this only after existing semantic/source admission.
      * Evidence is scoped to source identity, selected settings and runtime. It
      * binds to the core's reviewed implementation registry, never manifest offers. */

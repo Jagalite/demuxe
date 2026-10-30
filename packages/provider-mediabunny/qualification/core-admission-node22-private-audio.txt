@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: audio worker initialization is single-owner and cannot finish after retirement
+ok 1 - audio worker initialization is single-owner and cannot finish after retirement
+  ---
+  duration_ms: 0.709209
+  ...
+# Subtest: context suspension preserves native pause before stopped-device header ordering
+ok 2 - context suspension preserves native pause before stopped-device header ordering
+  ---
+  duration_ms: 0.658667
+  ...
+# Subtest: pause commits stop intent before native I/O; obsolete completions cannot change controls
+ok 3 - pause commits stop intent before native I/O; obsolete completions cannot change controls
+  ---
+  duration_ms: 0.087417
+  ...
+# Subtest: load phases require source opening and native readiness before chain publication
+ok 4 - load phases require source opening and native readiness before chain publication
+  ---
+  duration_ms: 0.253291
+  ...
+# Subtest: replacement flush waits at most 200 intervals and checks retained native handles
+ok 5 - replacement flush waits at most 200 intervals and checks retained native handles
+  ---
+  duration_ms: 3.549333
+  ...
+# Subtest: load polling allows 1000 native samples and retains the final delay before deadline
+ok 6 - load polling allows 1000 native samples and retains the final delay before deadline
+  ---
+  duration_ms: 5.261708
+  ...
+# Subtest: source retirement prevents every late load phase from starting another effect
+ok 7 - source retirement prevents every late load phase from starting another effect
+  ---
+  duration_ms: 0.21125
+  ...
+# Subtest: refresh request admission, deadline and replacement preserve scope and exactly one outcome
+ok 8 - refresh request admission, deadline and replacement preserve scope and exactly one outcome
+  ---
+  duration_ms: 0.266792
+  ...
+# Subtest: worker teardown admission is stable after repeated close and preserves closed terminal state
+ok 9 - worker teardown admission is stable after repeated close and preserves closed terminal state
+  ---
+  duration_ms: 0.307458
+  ...
+# Subtest: actual audio initialization and load preserve native call order and reply only after chain readiness
+ok 10 - actual audio initialization and load preserve native call order and reply only after chain readiness
+  ---
+  duration_ms: 2.973458
+  ...
+# Subtest: actual close while engine acquisition is pending disposes the late owner without native calls
+ok 11 - actual close while engine acquisition is pending disposes the late owner without native calls
+  ---
+  duration_ms: 1.171334
+  ...
+# Subtest: actual reentrant close revokes a source once and shares native teardown among RPC callers
+ok 12 - actual reentrant close revokes a source once and shares native teardown among RPC callers
+  ---
+  duration_ms: 0.860875
+  ...
+# Subtest: actual late load response after close cannot query or publish output ownership
+ok 13 - actual late load response after close cannot query or publish output ownership
+  ---
+  duration_ms: 0.874959
+  ...
+# Subtest: actual old source refresh cannot escape replacement and late replies cannot settle the new request
+ok 14 - actual old source refresh cannot escape replacement and late replies cannot settle the new request
+  ---
+  duration_ms: 0.938291
+  ...
+# Subtest: actual context suspension applies native pause while the consumption device is still running
+ok 15 - actual context suspension applies native pause while the consumption device is still running
+  ---
+  duration_ms: 0.9245
+  ...
+# Subtest: audio RPC capacity retains native obligations until physical settlement and reserves close
+ok 16 - audio RPC capacity retains native obligations until physical settlement and reserves close
+  ---
+  duration_ms: 4.475875
+  ...
+# Subtest: audio RPC byte and traversal limits reject before native execution
+ok 17 - audio RPC byte and traversal limits reject before native execution
+  ---
+  duration_ms: 1.308958
+  ...
+# Subtest: audio RPC budget rejects aggregate bytes and exhausted identity without mutating input
+ok 18 - audio RPC budget rejects aggregate bytes and exhausted identity without mutating input
+  ---
+  duration_ms: 0.131833
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 372.264167

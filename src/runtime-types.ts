@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /** Data and host contracts only; safe for the reusable core package. */
+export type QualifiedProviderComposition=Readonly<{recipeId:string;bindingId:string;implementationIdentities:Readonly<Record<string,string>>;sourceProfiles:readonly string[]}>;
 export type DemuxeRuntimeOptions=Readonly<{
   assetBase?:string;
   maxCacheBytes?:number;
@@ -7,6 +8,8 @@ export type DemuxeRuntimeOptions=Readonly<{
    * Omitted uses the core build's reviewed identities. Existing capability
    * contracts and execution recipes still constrain provider admission. */
   qualifiedProviders?:Readonly<Record<string,string>>;
+  /** Explicit reviewed whole bindings and source envelopes for optional MediaBunny preparation. */
+  qualifiedCompositions?:readonly QualifiedProviderComposition[];
 }>;
 export type ProviderLoadOptions=Readonly<{signal?:AbortSignal;preload?:boolean}>;
 export type ProviderCatalogSnapshot=Readonly<{revision:number;providers:readonly Readonly<{id:string;implementationIdentity:string}>[]}>;
@@ -15,6 +18,7 @@ export type ProviderCatalogSnapshot=Readonly<{revision:number;providers:readonly
 export interface DemuxeRuntimeHandle {
   readonly assetBase:string;
   readonly qualifiedProviders:Readonly<Record<string,string>>;
+  readonly qualifiedCompositions:readonly QualifiedProviderComposition[];
   readonly providers:Readonly<{
     load(manifest:string,options?:ProviderLoadOptions):Promise<ProviderCatalogSnapshot>;
     preload(ids?:readonly string[],options?:Pick<ProviderLoadOptions,'signal'>):Promise<void>;

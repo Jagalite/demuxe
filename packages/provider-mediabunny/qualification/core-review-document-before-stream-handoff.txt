@@ -1,0 +1,31 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+# MediaBunny adapter release review inventory
+
+This is a review aid for the isolated `feature/mediabunny-provider-adapters` worktree at HEAD `9702315e7aac272c718cd14ae190b8b37b7a3140`. It is not a review approval or a release qualification. The original checkout is separate. The [machine-readable inventory](../packages/provider-mediabunny/qualification/core-review-inventory.json) binds all current core inputs, the HEAD blobs, the existing qualification record and the inventory script by SHA-256.
+
+The current core manifest lists 236 inputs. Seventeen differ from or are absent at this worktree's HEAD: 14 modified files and three new files. The other 219 are unchanged from HEAD, but only 26 of those match the existing qualification record; 43 differ and 150 are unrecorded. Across all 236 current inputs, the existing record contains 79 paths: 26 current hashes match, 53 differ and 157 are unrecorded. HEAD itself is not a qualification. The current local core candidate's input inventory agrees with these 236 current hashes.
+
+Release-mode core assembly fails at `src/adapters/videojs.ts`, which is unchanged from HEAD but differs from the recorded qualification. The [failure output](../packages/provider-mediabunny/qualification/core-review-release-gate-failed.txt) is retained. That first failure is not the entire drift; updating one hash would not review the other inputs. The qualification record was not changed. The optional package remains private and its `prepack` guard rejects release packaging.
+
+## Changed core inputs requiring review
+
+- Provider descriptions and selection: [media-providers.ts](../src/internal/media-providers.ts), [execution-recipes.ts](../src/internal/execution-recipes.ts), [provider-runtime.ts](../src/internal/provider-runtime.ts), [runtime.ts](../src/runtime.ts), and [runtime-types.ts](../src/runtime-types.ts). Check exact provider/presenter identities, source-profile admission, preferences, qualification snapshots, and failure versus absence behavior.
+- Existing playback and streaming ownership: [native-player.ts](../src/internal/native-player.ts), [native-remux-player.js](../web/native-remux-player.js), and new [stream-worker.ts](../src/internal/stream-worker.ts). Check generation retirement, bounded input/output, backpressure, seek/reopen, MSE ownership and fallback.
+- Input and inspection: [sources.ts](../src/sources.ts), [route-inspection.ts](../src/internal/machine/route-inspection.ts), [fast-source-inspector.js](../web/fast-source-inspector.js), and new [preparation-source.ts](../src/internal/preparation-source.ts) and [remote-fast-inspection.ts](../src/internal/remote-fast-inspection.ts). Check source identity, authorization/range handling, bounded reads, incomplete facts, error precedence and cleanup.
+- Public integration and preview: [index.ts](../src/index.ts), [types.ts](../src/types.ts), [unified-player.ts](../src/unified-player.ts), and [controller.ts](../src/preview/controller.ts). Check that existing ownership, public contracts, preview contention, source replacement and startup policy remain authoritative.
+
+The [optional package](../packages/provider-mediabunny/) and packaging changes are outside the 236-file core inventory and require their own source, emitted-closure, notice and license review. In particular, inspect [adapter-factories.js](../packages/provider-mediabunny/adapter-factories.js), [video-preparation.js](../packages/provider-mediabunny/video-preparation.js), [mp4-profile.js](../packages/provider-mediabunny/mp4-profile.js), [mp4-stream.js](../packages/provider-mediabunny/mp4-stream.js), [fragment-stream.js](../packages/provider-mediabunny/fragment-stream.js), [build.mjs](../packages/provider-mediabunny/build.mjs), [audit-provider-package.py](../scripts/audit-provider-package.py), and [deploy-providers.py](../scripts/deploy-providers.py). This list identifies important boundaries; it does not replace reviewing the complete packaged input inventory.
+
+## Evidence and open work
+
+The latest core candidate passes the unchanged 233-file Node 22 stability workload and consumer type check; [custom staging evidence](../packages/provider-mediabunny/qualification/custom-staging-verification.json) records that result and finite packaged backup matrices. [Custom byte-source playback](../packages/provider-mediabunny/qualification/custom-byte-playback-verification.json) covers owned and borrowed local inputs. Earlier lifecycle, prefetch and resource records bind earlier core identities and are historical for the latest core. Current package/source correspondence and retained notices are candidate checks, not an independent production review.
+
+A fresh WebKit incremental A/V attempt on the preceding core reported zero Web Audio tap RMS while video advanced. It does not establish audible output, and the latest core has no passing WebKit incremental-audio result. The previous Node 23 full gate also timed out after its private-audio-worker assertions; the Node 22 pass does not convert that failure into a Node 23 pass. Broader media, browser/device, backup distribution and exact complete-composition qualification remain open. Keep existing FFmpeg/mpv providers and codec slices available as already specified.
+
+To regenerate the source classification from this worktree:
+
+```sh
+python3 scripts/audit-mediabunny-core-drift.py /absolute/path/to/new-inventory.json
+```
+
+The script snapshots HEAD for its comparisons, reads current input bytes, and does not update the qualification registry. Reviewers must inspect the actual source changes and profile-specific behavior; neither a matching hash nor a passing candidate receipt is a release decision.

@@ -1,0 +1,150 @@
+{
+  "status": "failed-not-qualified",
+  "recordedAt": "2026-10-30T02:09:52.886Z",
+  "environment": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "arch": "arm64",
+    "cpu": "Apple M1",
+    "logicalCPUs": 8,
+    "totalMemoryBytes": 8589934592,
+    "initialLoadAverage": [
+      2.998046875,
+      2.640625,
+      2.611328125
+    ],
+    "node": "v23.5.0"
+  },
+  "workload": {
+    "trials": 3,
+    "cycles": 3,
+    "remote": false,
+    "contentProfile": "vp8-video-only",
+    "sourceBytes": 1477,
+    "sourceSha256": "8b2aacb0f1db5237f9734b8145adaf93de55ececcd8b126630564b2738359e47",
+    "aheadSeconds": 1,
+    "behindSeconds": 1,
+    "codedBudgetBytes": 8388608,
+    "playbackSecondsPerLeg": 0.4,
+    "seekTarget": 1.25,
+    "sampleIntervalMs": 200
+  },
+  "identities": {
+    "provider": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+    "presenter": "sha256:15e269dee0e95e465e666d6725b9cc55ebdf3151876a566444915f959ac2cf51",
+    "worker": "82854ac7b5971f7828fb0e508389939eeba0a5729f7d897d3984d830c186b1ec",
+    "harness": "9b7f5e4dd71b06b98c4fa58f59f41cc271ba1cf9fac3fd2b6523ad9e02550db4",
+    "sampler": "1972651ebfd42d8ce98606585197cb3af19f1c022dc8a0299d850a1ecc2432a7"
+  },
+  "trials": [
+    {
+      "trial": 0,
+      "cycles": [],
+      "samples": [
+        {
+          "phase": "launch",
+          "at": 581.236875,
+          "aggregateRssBytes": 436125696,
+          "observedCpuSeconds": 0.52,
+          "processes": 4,
+          "samples": 1,
+          "peakAggregateRssBytes": 436125696
+        },
+        {
+          "phase": "launch",
+          "at": 814.736125,
+          "aggregateRssBytes": 849313792,
+          "observedCpuSeconds": 1.12,
+          "processes": 7,
+          "samples": 2,
+          "peakAggregateRssBytes": 849313792
+        },
+        {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 985.221041,
+          "aggregateRssBytes": 980008960,
+          "observedCpuSeconds": 1.34,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 980008960
+        },
+        {
+          "phase": "catalog-loaded",
+          "at": 1028.178458,
+          "aggregateRssBytes": 982007808,
+          "observedCpuSeconds": 1.37,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 982007808
+        },
+        {
+          "phase": "opening",
+          "at": 1080.300166,
+          "aggregateRssBytes": 997670912,
+          "observedCpuSeconds": 1.42,
+          "processes": 7,
+          "samples": 5,
+          "peakAggregateRssBytes": 997670912
+        }
+      ],
+      "sampleErrors": [],
+      "baseline": {
+        "phase": "public-entry-loaded-before-catalog",
+        "rendererJsHeapUsedBytes": 1557860,
+        "rendererJsHeapTotalBytes": 2097152,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.060612,
+        "process": {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 985.221041,
+          "aggregateRssBytes": 980008960,
+          "observedCpuSeconds": 1.34,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 980008960
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      },
+      "catalog": {
+        "phase": "catalog-loaded",
+        "rendererJsHeapUsedBytes": 1722652,
+        "rendererJsHeapTotalBytes": 2359296,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.067142,
+        "process": {
+          "phase": "catalog-loaded",
+          "at": 1028.178458,
+          "aggregateRssBytes": 982007808,
+          "observedCpuSeconds": 1.37,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 982007808
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Fresh browser per trial; operating-system disk/code caches are not cleared",
+    "Route interception measures served response-body bytes, not real network/TLS/compressed traffic",
+    "Sampled browser-tree RSS sums shared pages and includes browser/runtime overhead; it is not unique physical or decoder-retained memory",
+    "CDP renderer JS heap after forced GC excludes dedicated worker heaps, media decoders and native allocations",
+    "Observed CPU maxima miss work of processes born and exited between samples",
+    "No whole-process peak-retained-memory qualification, independent FFmpeg performance comparator, large-file throughput or release approval"
+  ],
+  "browser": "155.0.8059.85",
+  "error": {
+    "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'length')\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:277)\n    at async <anonymous>:396:30",
+    "stack": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'length')\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:277)\n    at async <anonymous>:396:30\n    at /Volumes/seed2/Projects/demuxe-mediabunny/packages/provider-mediabunny/test/browser-resources.mjs:88:102"
+  }
+}

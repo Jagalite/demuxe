@@ -1,0 +1,30 @@
+file:///Volumes/seed2/Projects/demuxe-mediabunny/scripts/compile-player-package.mjs:61
+ for(const source of allowed){if(qualification.sources[source]!==sha(fs.readFileSync(path.join(root,source))))throw Error('Core source changed after provider qualification: '+source);}
+                                                                                                                    ^
+
+Error: Core source changed after provider qualification: src/adapters/videojs.ts
+    at file:///Volumes/seed2/Projects/demuxe-mediabunny/scripts/compile-player-package.mjs:61:117
+    at ModuleJob.run (node:internal/modules/esm/module_job:272:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:552:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:98:5)
+
+Node.js v23.5.0
+Traceback (most recent call last):
+  File "/Volumes/seed2/Projects/demuxe-mediabunny/scripts/package-player-core.py", line 78, in <module>
+    main()
+    ~~~~^^
+  File "/Volumes/seed2/Projects/demuxe-mediabunny/scripts/package-player-core.py", line 57, in main
+    files, record, metadata = assemble()
+                              ~~~~~~~~^^
+  File "/Volumes/seed2/Projects/demuxe-mediabunny/scripts/package-player-core.py", line 25, in assemble
+    compiled = json.loads(subprocess.check_output(['node', 'scripts/compile-player-package.mjs'], cwd=ROOT))
+                          ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 472, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               **kwargs).stdout
+               ^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['node', 'scripts/compile-player-package.mjs']' returned non-zero exit status 1.

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { SessionError } from '../../types.js';
+export type OpeningStage = 'reading' | 'inspecting' | 'native' | 'hybrid' | 'software';
 export type ElementControlsState = Readonly<{
     idle: boolean;
     seekPreview: boolean;
@@ -14,7 +15,7 @@ export type ElementControlsState = Readonly<{
     diagnostics: boolean;
     diagnosticsUpdated: number;
     openingOperation: number | null;
-    openingStage: string;
+    openingStage: OpeningStage | null;
     previewIdentity: string;
     announcement: string;
     failure: SessionError | undefined;
@@ -68,10 +69,10 @@ export type ElementControlsCommand = Readonly<{
 }> | Readonly<{
     type: 'opening';
     operation: number | null;
-    initialStage: string;
+    initialStage: OpeningStage;
 }> | Readonly<{
     type: 'opening-stage';
-    stage: string;
+    stage: OpeningStage;
 }> | Readonly<{
     type: 'diagnostics';
     show: boolean;

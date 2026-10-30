@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import {Player,PreviewController,type PlayerPreview,PlayerPresentation,type PlayerOptions,type StartupEscalationOptions} from 'demuxe';
+import {Player,PreviewController,type PlayerPreview,PlayerPresentation,type PlayerOptions,type StartupEscalationOptions,type QualifiedProviderComposition} from 'demuxe';
 import {DemuxePlayerElement} from 'demuxe/player';
 import type {PlaybackRuntime,PlaybackControl,PlayerAPI} from 'demuxe/contracts';
 import {bindPlayer,subscribeSelector} from 'demuxe/integration';
@@ -39,3 +39,17 @@ const disabledStartup:PlayerOptions={startupEscalation:false};
 // @ts-expect-error escalation delays must be numeric
 const invalidStartup:StartupEscalationOptions={prefetchAfterMs:'100'};
 void [startupOptions,disabledStartup,invalidStartup];
+
+// Optional inspection is a bounded byte-owner extension, not a playback backend.
+import {inspectMedia,type MediaInspector,type InspectionOptions} from 'demuxe';
+declare const optionalInspector:MediaInspector;
+const optionalInspection:InspectionOptions={inspector:optionalInspector,maxBytes:64,maxReads:1};
+void inspectMedia(new Blob(),optionalInspection);
+// @ts-expect-error an inspector must return a MediaInspection
+const malformedInspector:MediaInspector=async()=>({status:'complete'});
+void malformedInspector;
+
+const reviewedComposition:QualifiedProviderComposition={recipeId:'native-remux',bindingId:'mediabunny-mp4',implementationIdentities:{'browser-prepared':'sha256:example'},sourceProfiles:['local:pthread:mp4-mov-avc-aac-2ch']};
+// @ts-expect-error a qualified composition must declare its source envelopes
+const unscopedComposition:QualifiedProviderComposition={recipeId:'native-remux',bindingId:'mediabunny-mp4',implementationIdentities:{}};
+void [reviewedComposition,unscopedComposition];

@@ -20,14 +20,14 @@ import {NATIVE_OUTPUT_TIMEOUT_MS} from './machine/playback-deadlines.js';
 import {watchdogPolicy} from './watchdogs.js';
 import type {WatchdogPolicy} from '../types.js';
 
-type RemuxSource = {file?: File; options?: RemoteSource; audioTrack?: number; videoOnly?:boolean};
+type RemuxSource = {file?: File; options?: RemoteSource; admission?: RemoteSource; audioTrack?: number; videoOnly?:boolean};
 type RemuxTrack = {id: string; type: string; codec: string; selected: boolean};
 type RemuxController = {
   waitingForMedia?:boolean; onBufferingChange?:()=>void;
   audioAdaptation?:'flac'|'opus'|'flac24'; generation?:number;
   windowed?:boolean; ranges?():[number,number][]; duration?:number; playbackPaused?:boolean; playbackEnded?:boolean;
   trackBounds?:{videoEnd:number;audioEnd:number};
-  starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string) => void;
+  starting?: boolean; timelineBias: number; tracks?: RemuxTrack[]; onError?: (message: string,error?:Error) => void;
   open(source: RemuxSource, target?: number): Promise<unknown>;
   canSeekBuffered?(target:number): boolean; expectedVideoFrame?(target:number):number|undefined;
   muxedFrames?:boolean; matchesVideoFrame?(target:number,mediaTime:number):boolean|undefined;
@@ -448,6 +448,21 @@ export class NativePlayer extends EventTarget implements Backend {
   }
   private async startRemux(source:RemuxSource,target:number,request:NativeLoadRequest){
     this.assertLoad(request);
+    if(await this.tryStreamRemux(source,target,request))return;
+    const remote=source.admission??source.options;
+    const prepare=source.file&&this.providerRuntime?.canPrepareFile?.(source.file,this.remuxRuntime)&&this.providerRuntime.prepareFile?()=>this.providerRuntime!.prepareFile!(source.file!,this.loadSignal(request),this.remuxRuntime):remote&&this.providerRuntime?.canPrepareRemote?.(remote,this.remuxRuntime)&&this.providerRuntime.prepareRemote?()=>this.providerRuntime!.prepareRemote!(remote,this.loadSignal(request),this.remuxRuntime):undefined;
+    if(this.requestedPlan==='native-remux'&&prepare&&!this.audioAdaptation&&!this.selectiveAudio&&!this.mpvSubtitlePlan&&this.execution?.subtitles!=='external'){
+      const prepared=await this.awaitLoad(request,prepare());
+      if(prepared){
+        await this.retireRemux(request);const url=this.acquireObjectURL(prepared.file,request);let installed=false;
+        try{
+          await this.load(url,request);await this.awaitLoad(request,this.verifyStartup({video:prepared.tracks.some(track=>track.type==='video'),audio:prepared.tracks.some(track=>track.type==='audio')}));
+          if(target>0)await this.awaitLoad(request,this.wait('seeked',()=>{this.assertLoad(request);this.video.currentTime=target;},this.loadSignal(request)));
+          this.installObjectURL(url,request);installed=true;this.projection=prepared;this.remuxSource=source;
+          this.refresh(request);this.assertLoad(request);this.emit('source',{plan:'remux',tracks:prepared.tracks});this.assertLoad(request);return;
+        }catch(error){if(!installed)this.releaseObjectURL(url,request.id);throw error;}
+      }
+    }
     const codecEngine=source.file&&this.audioAdaptation==='flac24'&&this.requestedPlan==='native-transcode'?this.providerRuntime?.preparation?.(source.file,this.remuxRuntime,source.audioTrack):undefined;
     this.assertLoad(request);
     const preparation=selectNativePreparation({providerPreferences:this.startup?.providerPreferences,runtime:this.remuxRuntime,broadAvailable:!!this.startup?.providerPreferences?.length&&(!this.providerRuntime||!!this.providerRuntime.has?.(`web/engine-remux${this.remuxRuntime==='pthread'?'':'-'+this.remuxRuntime}/remux.wasm`)),codecEngine:!!codecEngine,file:!!source.file,adaptation:this.audioAdaptation,selectiveAudio:this.selectiveAudio,embeddedSubtitles:this.mpvSubtitlePlan,externalSubtitles:this.execution?.subtitles==='external',prepareAudio:!!this.providerRuntime?.prepareAudio});
@@ -509,6 +524,36 @@ export class NativePlayer extends EventTarget implements Backend {
     if(this.video.seeking)await this.awaitLoad(request,this.wait('seeked',()=>{},this.loadSignal(request)));
     this.assertLoad(request);const tracks=this.remux!.tracks;this.assertLoad(request);
     this.refresh(request);this.assertLoad(request);this.emit('source',{plan:this.adapted?`adapted-${this.audioAdaptation}`:'remux',tracks});this.assertLoad(request);this.emit('mpv',{event:'file-loaded'});this.assertLoad(request);
+  }
+  private async tryStreamRemux(source:RemuxSource,target:number,request:NativeLoadRequest):Promise<boolean>{
+    const file=source.file,remote=source.admission??source.options,providers=this.providerRuntime,runtime=this.remuxRuntime;
+    const supported=file?providers?.canStreamFile?.(file,runtime)&&providers.streamFile:remote&&providers?.canStreamRemote?.(remote,runtime)&&providers.streamRemote;
+    if(this.requestedPlan!=='native-remux'||!supported||!providers||this.audioAdaptation||this.selectiveAudio||this.mpvSubtitlePlan||this.execution?.subtitles==='external')return false;
+    const {RemuxPlayer}=await this.awaitLoad(request,import(new URL('web/native-remux-player.js',this.assetBase).href));
+    await this.retireRemux(request);this.assertLoad(request);
+    const producerFactory=async({source:descriptor,target,signal}:{source:RemuxSource;target:number;signal:AbortSignal})=>{
+      if(file?descriptor.file!==file:descriptor.options!==remote)throw new PlayerError('SOURCE_CHANGED','Streaming source changed after admission');
+      const acquired=file?await providers.streamFile!(file,target,signal,runtime):await providers.streamRemote!(remote!,target,signal,runtime);
+      if(!acquired)throw Object.assign(new Error('Streaming packet profile declined'),{code:'PROVIDER_PROFILE_MISMATCH'});
+      return acquired;
+    };
+    const owner=new RemuxPlayer(this.video,{producerFactory,mseOwner:'window',bufferedSeeks:this.bufferedSeeks,buffering:{...resolveBuffering(this.buffering,'remux'),preload:this.buffering.preload}}) as RemuxController;
+    if(!nativeRequestCurrent(this.native,request)){await this.queueSourceCleanup(()=>this.cleanupSourceHandles(owner,undefined,undefined,[]));this.assertLoad(request);}
+    this.remux=owner;this.remuxEnginePath='web/providers/mediabunny/mp4-stream.js';
+    const classified=(error:unknown)=>(error as {code?:string})?.code==='ASSET_LOAD_FAILED'?new PlayerError('ASSET_LOAD_FAILED',String(error)):error;
+    owner.onBufferingChange=()=>{if(!this.stopped&&this.native.epoch===request.epoch&&this.remux===owner)this.refresh();};
+    owner.onError=(message,error)=>{if(!this.opening&&!this.stopped&&this.native.epoch===request.epoch&&this.remux===owner)this.emit('error',classified(error??message));};
+    try{
+      this.changeLoad(request,{type:'attempt',adapted:false});
+      await this.awaitLoad(request,owner.open(file?{file}:{options:remote},target));this.assertLoad(request);
+      await this.awaitLoad(request,this.verifyStartup({video:true,audio:!!owner.tracks?.some(track=>track.type==='audio')}));
+      this.remuxSource=source;this.refresh(request);this.assertLoad(request);
+      this.emit('source',{plan:'remux',tracks:owner.tracks});this.assertLoad(request);this.emit('mpv',{event:'file-loaded'});this.assertLoad(request);return true;
+    }catch(error){
+      this.assertLoad(request);await this.retireRemux(request);
+      if((error as {code?:string})?.code==='PROVIDER_PROFILE_MISMATCH')return false;
+      throw classified(error);
+    }
   }
   private async loadPlan(source: RemuxSource, direct: ()=>Promise<void>, requiresRemux=false, request:NativeLoadRequest) {
     this.assertLoad(request);const policy=this.native.load.work!.policy,decision=selectNativeLoadRoute({...policy,requiresRemux});
@@ -574,7 +619,7 @@ export class NativePlayer extends EventTarget implements Backend {
     return this.withLoad('source',this.loadPolicy(requiresRemux),0,true,async request=>{
       await this.retireSourceResources(request);this.assertLoad(request);
       this.video.crossOrigin=source.credentials==='include'?'use-credentials':'anonymous';this.assertLoad(request);
-      await this.loadPlan({options:{...source,url:url.href},audioTrack:this.initialAudioTrack,videoOnly:this.selectiveAudio},async()=>{
+      await this.loadPlan({options:{...source,url:url.href},admission:source,audioTrack:this.initialAudioTrack,videoOnly:this.selectiveAudio},async()=>{
         this.assertLoad(request);
         if(source.format&&source.format!=='file'){
           const mime=source.format==='hls'?'application/vnd.apple.mpegurl':'application/dash+xml',value=`canPlayType(${mime})=${this.video.canPlayType(mime)||'unknown'}`;this.assertLoad(request);this.changeNative({type:'api-hint',epoch:request.epoch,value});

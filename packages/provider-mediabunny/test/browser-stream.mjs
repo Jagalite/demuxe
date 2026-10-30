@@ -1,0 +1,282 @@
+// SPDX-License-Identifier: Apache-2.0
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve,dirname,join,sep} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+import {build} from 'esbuild';
+import {chromium} from 'playwright';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),repository=resolve(root,'../..');
+const library=await build({entryPoints:[join(root,'node_modules/mediabunny/dist/modules/src/index.js')],bundle:true,platform:'browser',format:'esm',write:false});
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const identities={library:hash(library.outputFiles[0].contents),harness:hash(await readFile(fileURLToPath(import.meta.url)))};
+for(const name of ['mp4-stream.js','fragment-stream.js','remux-producer.js','mp4-profile.js','stream-preparation.js','worker-stream.js'])identities[name]=hash(await readFile(join(root,name)));
+identities.owner=hash(await readFile(join(repository,'web/native-remux-player.js')));
+const candidate=process.env.DEMUXE_STREAM_RUNTIME_CANDIDATE;
+const nativeMode=process.env.DEMUXE_STREAM_NATIVE==='1';
+let workerRuntime,deployment,owners;
+if(nativeMode){
+  assert.ok(candidate,'Native integration requires a worker candidate');
+  owners=await build({stdin:{contents:`export {DemuxeRuntime} from ${JSON.stringify(join(join(repository,'src'),'runtime.ts'))};export {ProviderRuntime} from ${JSON.stringify(join(repository,'src/internal/provider-runtime.ts'))};export {NativePlayer} from ${JSON.stringify(join(repository,'src/internal/native-player.ts'))};export {playerError} from ${JSON.stringify(join(repository,'src/internal/errors.ts'))};`,resolveDir:repository},bundle:true,platform:'browser',format:'esm',write:false});
+  identities.presenter='sha256:'+hash(owners.outputFiles[0].contents);
+}
+if(candidate){
+  const manifest=deployment=JSON.parse(await readFile(join(candidate,'demuxe-mediabunny-candidate.json'),'utf8'));
+  const asset=manifest.assets[0];assert.equal(asset.id,'mediabunny-mp4-stream');
+  workerRuntime=await readFile(join(candidate,asset.path));assert.equal(hash(workerRuntime),asset.sha256);assert.equal(workerRuntime.length,asset.bytes);
+  identities.worker='sha256:'+hash(workerRuntime);identities.provider=manifest.providers[0].implementationIdentity;
+}
+if(nativeMode)deployment.providers.push({id:'browser-prepared',implementationIdentity:identities.presenter,technology:'browser-native',delivery:['browser','application-bundle'],applicationBuild:identities.presenter,offers:[{capability:'media.present.prepared',version:1,profile:'selected-streams'}],assetIds:[]});
+let preferenceDeployment;
+if(nativeMode){
+  preferenceDeployment=structuredClone(deployment);
+  const asset={id:'ffmpeg-baseline',path:'web/engine-remux/remux.wasm',bytes:1,sha256:hash(Buffer.from([0])),dependencies:[]};
+  const identity='sha256:'+hash(JSON.stringify({['runtime/'+asset.path]:asset.sha256},null,2)+'\n');
+  preferenceDeployment.assets.push(asset);preferenceDeployment.providers.push({id:'ffmpeg-file-preparation',implementationIdentity:identity,technology:'wasm',delivery:['optional-assets'],offers:[{capability:'media.prepare.file',version:1,profile:'packet-copy'}],assetIds:[asset.id]});
+}
+let assetRequests=0,mediaRequests=0,mediaMode='valid',remoteBytes,policyMediaRequests=0;
+let browser,timer;
+try{
+  browser=await chromium.launch({channel:'chrome',headless:true});timer=setTimeout(()=>{void browser.close();},60000);
+  const page=await browser.newPage();await page.exposeFunction('streamAssetRequests',()=>assetRequests);
+  await page.exposeFunction('streamMediaRequests',()=>mediaRequests);await page.exposeFunction('streamPolicyRequests',()=>policyMediaRequests);
+  await page.exposeFunction('setStreamMediaMode',mode=>{mediaMode=mode;});
+  await page.exposeFunction('registerStreamRemote',bytes=>{remoteBytes=Buffer.from(bytes);return {url:'https://media-stream.test/fixture.mp4',format:'file',identity:{size:String(bytes.length),etag:'"stream-v1"'},headers:{Authorization:'fixture-secret'},credentials:'omit',allowedOrigins:['https://media-stream.test']};});
+  await page.route('https://media-stream.test/**',async route=>{
+    const request=route.request(),cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization,Range,If-Range','Access-Control-Expose-Headers':'Content-Range,Content-Length,ETag'};
+    if(request.method()==='OPTIONS')return route.fulfill({status:204,headers:cors});
+    mediaRequests++;if(new URL(request.url()).searchParams.has('policy'))policyMediaRequests++;
+    if(mediaMode==='denied'||mediaMode==='refresh'&&request.headers().authorization!=='refreshed-secret')return route.fulfill({status:401,headers:cors});
+    const range=/^bytes=(\d+)-(\d*)$/.exec(request.headers().range??'');
+    const start=range?Number(range[1]):0,end=range?Math.min(range[2]?Number(range[2]):remoteBytes.length-1,remoteBytes.length-1):remoteBytes.length-1;
+    const body=remoteBytes.subarray(start,end+1),headers={...cors,'Content-Type':'video/mp4','Content-Length':String(body.length),ETag:mediaMode==='changed'?'"stream-v2"':'"stream-v1"'};
+    if(range)headers['Content-Range']=`bytes ${start}-${end}/${remoteBytes.length}`;
+    return route.fulfill({status:range?206:200,headers,body});
+  });page.on('console',message=>console.log('Browser:',message.text()));
+  await page.route('https://stream.test/**',async route=>{
+    const path=new URL(route.request().url()).pathname;
+    if(path==='/')return route.fulfill({contentType:'text/html',body:'<script type="importmap">{"imports":{"mediabunny":"/library.js"}}</script>'});
+    if(path==='/owners.js'&&owners)return route.fulfill({contentType:'text/javascript',body:Buffer.from(owners.outputFiles[0].contents)});
+    if(path==='/preference/demuxe-providers.json')return route.fulfill({contentType:'application/json',body:JSON.stringify(preferenceDeployment)});
+    if(path==='/demuxe-providers.json'&&deployment)return route.fulfill({contentType:'application/json',body:JSON.stringify(deployment)});
+    if(path==='/web/providers/mediabunny/mp4-stream.js'&&workerRuntime){assetRequests++;return route.fulfill({contentType:'text/javascript',body:workerRuntime});}
+    if(path==='/stream-runtime.js'&&workerRuntime)return route.fulfill({contentType:'text/javascript',body:workerRuntime});
+    if(path==='/library.js')return route.fulfill({contentType:'text/javascript',body:Buffer.from(library.outputFiles[0].contents)});
+    const base=path.startsWith('/web/')?repository:root,file=resolve(base,path.replace(/^\//,''));
+    if(!file.startsWith(base+sep))return route.abort();
+    try{return await route.fulfill({contentType:'text/javascript',body:await readFile(file)});}catch{return route.abort();}
+  });
+  await page.goto('https://stream.test/');
+  const result=await page.evaluate(async({useWorker,workerHash,av,channels,nativeMode,deployment,preferenceDeployment,remote,mov})=>{
+    const r=await import('mediabunny'),{RemuxPlayer}=await import('/web/native-remux-player.js');
+    const {createMP4PacketStream}=await import('/mp4-stream.js'),{createRemuxProducer}=await import('/remux-producer.js');
+    const {inspectMp4TrackProfiles}=await import('/mp4-profile.js'),{createBoundedReader}=await import('/bounded-reader.js');
+    const videoCount=remote?120:30,audioCount=remote?600:150,audioFrames=audioCount*1024,fixtureDuration=av?audioFrames/48000:videoCount/10;
+    const target=new r.BufferTarget(),output=new r.Output({format:mov?new r.MovOutputFormat({fastStart:false}):new r.Mp4OutputFormat({fastStart:false}),target});
+    const videoSource=new r.VideoSampleSource({codec:'avc',fullCodecString:'avc1.42001f',bitrate:100000,latencyMode:'realtime'});
+    output.addVideoTrack(videoSource,{frameRate:10});
+    let audioPackets=[],audioConfig,audioFailure;
+    if(av){
+      const encoder=new AudioEncoder({output:(chunk,metadata)=>{const data=new Uint8Array(chunk.byteLength);chunk.copyTo(data);audioPackets.push(data);audioConfig=metadata.decoderConfig??audioConfig;},error:error=>{audioFailure=error;}});
+      try{
+        encoder.configure({codec:'mp4a.40.2',sampleRate:48000,numberOfChannels:channels,bitrate:128000});
+        for(let block=0;block<audioCount+5;block++){
+          const pcm=new Float32Array(1024*channels);
+          for(let channel=0;channel<channels;channel++)for(let i=0;i<1024;i++)pcm[channel*1024+i]=.25*Math.sin(2*Math.PI*(channel?660:440)*(block*1024+i)/48000);
+          const sample=new AudioData({format:'f32-planar',numberOfFrames:1024,numberOfChannels:channels,sampleRate:48000,timestamp:Math.round(block*1024/48000*1e6),data:pcm});
+          try{encoder.encode(sample);}finally{sample.close();}
+        }
+        await encoder.flush();if(audioFailure)throw audioFailure;
+      }finally{encoder.close();}
+      if(audioPackets.length<audioCount)throw Error('Insufficient AAC packets');audioPackets=audioPackets.slice(0,audioCount);
+    }
+    const sound=av?new r.EncodedAudioPacketSource('aac'):undefined;if(sound)output.addAudioTrack(sound);
+    await output.start();
+    const audioPump=(async()=>{if(sound){for(let i=0;i<audioPackets.length;i++)await sound.add(new r.EncodedPacket(audioPackets[i],'key',i*1024/48000,1024/48000),i===0?{decoderConfig:audioConfig}:undefined);sound.close();}})();void audioPump.catch(()=>{});
+    const surface=new OffscreenCanvas(64,48),ctx=surface.getContext('2d');ctx.fillStyle='#e02040';ctx.fillRect(0,0,64,48);
+    for(let i=0;i<videoCount;i++){const sample=new r.VideoSample(surface,{timestamp:i/10,duration:.1});try{await videoSource.add(sample,{keyFrame:i%5===0});}finally{sample.close();}}
+    videoSource.close();await audioPump;await output.finalize();
+    const file=new File([target.buffer],mov?'stream.mov':'stream.mp4'),sessions=[];let disposed=0,workerURLs=0,revokedURLs=0,abortOnRead;
+    if(remote&&av&&file.size<=65536)throw Error('Remote streaming fixture must cross HTTP cache blocks');
+    const remoteSource=remote?await globalThis.registerStreamRemote(Array.from(new Uint8Array(target.buffer))):undefined;
+    const sourceTracks=[{id:'1',type:'video',codec:'h264'},...(av?[{id:'2',type:'audio',codec:'aac',sampleRate:48000,channels}]:[])];
+    // This extra finite-fixture drain verifies exact compressed packets and PCM.
+    // It is test-only collection, never the incremental playback implementation.
+    const signatures=async(file,bias)=>{
+      const input=new r.Input({formats:[r.MP4,r.QTFF],source:new r.BlobSource(file)}),result=[];
+      const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)));
+      try{for(const track of await input.getTracks()){
+        const packets=[],resolution=track.type==='audio'?48000:57600;
+        for await(const packet of new r.EncodedPacketSink(track).packets())packets.push({time:(Math.round(packet.timestamp*resolution)-bias*resolution)/resolution,duration:packet.duration,type:packet.type,hash:await digest(packet.data)});
+        const pcm=[];let frames=0;
+        if(track.type==='audio')for await(const sample of new r.AudioSampleSink(track).samples()){
+          try{frames+=sample.numberOfFrames;for(let c=0;c<channels;c++){const plane=new Float32Array(sample.numberOfFrames);sample.copyTo(plane,{format:'f32-planar',planeIndex:c});pcm.push(await digest(plane));}}finally{sample.close();}
+        }
+        result.push({type:track.type,packets,frames,pcm});
+      }return result;}finally{input.dispose();}
+    };
+    const reader=createBoundedReader({size:file.size,read:async(at,n)=>new Uint8Array(await file.slice(at,at+n).arrayBuffer())},{maxReads:4096,maxBytes:32*1024*1024});
+    let authored;try{authored=await inspectMp4TrackProfiles(reader);}finally{await reader.close();}
+    const proofInput=new r.Input({formats:[r.MP4,r.QTFF],source:new r.BlobSource(file)});
+    let proof;try{
+      proof=await createMP4PacketStream(r,proofInput,{trackIds:(await proofInput.getTracks()).map(track=>track.id),authoredTracks:authored});
+      const parts=[];for await(const record of proof)parts.push(record.bytes);await proof.done;
+      const before=await signatures(file,0),after=await signatures(new Blob(parts),1);
+      if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Streaming packet or decoded PCM preservation failed');
+      if(av&&after.find(track=>track.type==='audio').frames!==audioFrames)throw Error('Streaming AAC extent changed');
+    }finally{await proof?.cancel();proofInput.dispose();}
+    const producerFactory=async({source,target,signal})=>{
+      if(source.file!==file)throw Error('Producer source identity changed');
+      if(useWorker){
+        const bytes=await (await fetch('/stream-runtime.js')).arrayBuffer();
+        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(byte=>byte.toString(16).padStart(2,'0')).join('');
+        if('sha256:'+digest!==workerHash)throw Error('Streaming test worker integrity failed');
+        signal.throwIfAborted();
+        const url=URL.createObjectURL(new Blob([bytes],{type:'text/javascript'}));workerURLs++;
+        let worker,retired=false;
+        try{worker=new Worker(url,{type:'module'});}catch(error){URL.revokeObjectURL(url);revokedURLs++;throw error;}
+        const terminate=worker.terminate.bind(worker),record={stats:{}};sessions.push(record);
+        worker.terminate=()=>{if(retired)return;retired=true;signal.removeEventListener('abort',abort);terminate();URL.revokeObjectURL(url);revokedURLs++;disposed++;};
+        const abort=()=>worker.terminate();signal.addEventListener('abort',abort,{once:true});
+        worker.addEventListener('message',({data})=>{if(data.stats)record.stats=data.stats;});
+        try{
+          await new Promise((resolve,reject)=>{
+            const timer=setTimeout(()=>finish(Error('Streaming worker acquisition timed out')),10000);
+            const finish=error=>{clearTimeout(timer);signal.removeEventListener('abort',cancel);worker.removeEventListener('message',message);worker.removeEventListener('error',failure);error?reject(error):resolve();};
+            const cancel=()=>finish(signal.reason),failure=event=>finish(Error(event.message));
+            const message=({data})=>{if(data.type==='producer-ready')finish();else if(data.type==='error')finish(Object.assign(Error(data.message),{code:data.code}));};
+            signal.addEventListener('abort',cancel,{once:true});worker.addEventListener('message',message);worker.addEventListener('error',failure);
+            worker.postMessage({type:'configure',file,sourceTracks,target});
+          });
+          signal.throwIfAborted();return {worker,size:file.size};
+        }catch(error){worker.terminate();throw error;}
+      }
+      const reader=createBoundedReader({size:file.size,read:async(at,n)=>new Uint8Array(await file.slice(at,at+n).arrayBuffer())},{signal,maxReads:4096});
+      let authored;
+      try{authored=await inspectMp4TrackProfiles(reader);}finally{await reader.close();}
+      const input=new r.Input({formats:[r.MP4,r.QTFF],source:new r.BlobSource(file)});
+      const abort=()=>input.dispose();signal.addEventListener('abort',abort,{once:true});
+      try{
+        const tracks=await input.getTracks(),stream=await createMP4PacketStream(r,input,{trackIds:tracks.map(track=>track.id),authoredTracks:authored,signal,target});
+        sessions.push(stream);
+        let released=false;
+        const worker=createRemuxProducer(stream,{tracks:tracks.map(track=>({id:String(track.id),type:track.type,codec:track.type==='audio'?'aac':'h264',selected:true})),dispose:()=>{if(released)return;released=true;disposed++;signal.removeEventListener('abort',abort);input.dispose();}});
+        return {worker,size:file.size};
+      }catch(error){signal.removeEventListener('abort',abort);input.dispose();throw error;}
+    };
+    // A retired factory must not strand startup or install a late producer.
+    const retiredVideo=document.createElement('video');document.body.append(retiredVideo);
+    let finishFactory,started,lateTerminated=0,factorySignal;
+    const factoryStarted=new Promise(resolve=>{started=resolve;});
+    const retired=new RemuxPlayer(retiredVideo,{mseOwner:'window',producerFactory:({signal})=>{factorySignal=signal;started();return new Promise(resolve=>{finishFactory=()=>resolve({worker:{terminate:()=>{lateTerminated++;}},size:1});});}});
+    const opening=retired.open({file});const cancelled=opening.then(()=>{throw Error('Retired producer was accepted');},error=>{if(error.name!=='AbortError')throw error;});
+    await factoryStarted;await retired.destroy();await cancelled;finishFactory();
+    await new Promise(resolve=>setTimeout(resolve,0));retiredVideo.remove();
+    if(!factorySignal.aborted||lateTerminated!==1)throw Error('Late producer acquisition was not retired');
+    const video=document.createElement('video');video.muted=true;document.body.append(video);
+    let owner,runtime,native,publishedTracks,OriginalWorker=globalThis.Worker,originalRevoke=URL.revokeObjectURL;const nativeURLs=new Set();
+    if(nativeMode){
+      const {ProviderRuntime,NativePlayer,DemuxeRuntime}=await import('/owners.js');
+      const qualification=Object.fromEntries(deployment.providers.map(provider=>[provider.id,provider.implementationIdentity]));
+    const createReviewed=async(base,qualified,preferences)=>{const shared=new DemuxeRuntime({assetBase:base,qualifiedProviders:qualified,qualifiedCompositions:[{recipeId:'native-remux',sourceProfiles:["local:pthread:webm-matroska-vp8-video","local:pthread:mp4-mov-avc-video","local:pthread:mp4-mov-avc-aac-1ch","local:pthread:mp4-mov-avc-aac-2ch","local:pthread:mp4-mov-aac-1ch","local:pthread:mp4-mov-aac-2ch","remote:pthread:webm-matroska-vp8-video","remote:pthread:mp4-mov-avc-video","remote:pthread:mp4-mov-avc-aac-1ch","remote:pthread:mp4-mov-avc-aac-2ch","remote:pthread:mp4-mov-aac-1ch","remote:pthread:mp4-mov-aac-2ch"],bindingId:'mediabunny-mp4-stream',implementationIdentities:{'mediabunny-mp4-stream-preparation':qualified['mediabunny-mp4-stream-preparation'],'browser-prepared':qualified['browser-prepared']}}]});await shared.providers.load('demuxe-providers.json');const runtime=new ProviderRuntime(new URL(base),qualified,preferences,shared);const destroy=runtime.destroy.bind(runtime);runtime.destroy=async()=>{await destroy();await shared.destroy();};return runtime;};
+      const facts={format:'mov,mp4',duration:fixtureDuration,tracks:sourceTracks.map((track,index)=>({...track,id:'source-'+track.type,index}))};
+      const candidateSource=remote?{kind:'remote',options:remoteSource}:{kind:'local',file};
+      const canStream=runtime=>remote?runtime.canStreamRemote(remoteSource):runtime.canStreamFile(file);
+      const stream=(runtime,signal)=>remote?runtime.streamRemote(remoteSource,0,signal):runtime.streamFile(file,0,signal);
+      const beforeAdmission=await globalThis.streamAssetRequests(),beforeMedia=await globalThis.streamMediaRequests();
+      for(const qualified of [{},{'mediabunny-mp4-stream-preparation':qualification['mediabunny-mp4-stream-preparation']},{'browser-prepared':qualification['browser-prepared']},{...qualification,'mediabunny-mp4-stream-preparation':'wrong-build'}]){
+        const unavailable=new ProviderRuntime(new URL('https://stream.test/'),qualified);
+        try{await unavailable.load();if(!unavailable.rejection('native-remux',candidateSource,'unqualified','pthread',facts)||canStream(unavailable)||await stream(unavailable,new AbortController().signal)!==undefined)throw Error('Unqualified streaming was selectable');}finally{await unavailable.destroy();}
+      }
+      if(beforeAdmission!==await globalThis.streamAssetRequests())throw Error('Unqualified streaming admission fetched runtime bytes');
+      runtime=await createReviewed('https://stream.test/',qualification);
+      await runtime.load();
+      if(canStream(runtime))throw Error('Streaming admitted without complete source facts');
+      for(const tracks of [[...facts.tracks,{id:'subtitle',index:2,type:'sub',codec:'ass'}],[...facts.tracks,{...facts.tracks[0]}],facts.tracks.map(track=>({...track,attachedPicture:track.type==='video'}))]){
+        runtime.rejection('native-remux',candidateSource,'unsupported','pthread',{...facts,tracks});
+        if(canStream(runtime)||await stream(runtime,new AbortController().signal)!==undefined)throw Error('Unsupported streaming source acquired runtime');
+      }
+      if(beforeAdmission!==await globalThis.streamAssetRequests()||beforeMedia!==await globalThis.streamMediaRequests())throw Error('Unsupported streaming source acquired bytes');
+      const preferenceQualification=Object.fromEntries(preferenceDeployment.providers.map(provider=>[provider.id,provider.implementationIdentity]));
+      for(const prefer of [false,true]){
+        const preference=await createReviewed('https://stream.test/preference/',preferenceQualification,prefer?[{capability:'media.prepare.file',providers:['mediabunny-mp4-stream-preparation']}]:undefined);
+        try{await preference.load();preference.rejection('native-remux',candidateSource,'preference','pthread',facts);if(canStream(preference)!==prefer)throw Error('Streaming preference displaced FFmpeg baseline incorrectly');}finally{await preference.destroy();}
+      }
+      const directVideo=document.createElement('video');directVideo.muted=true;document.body.append(directVideo);
+      const direct=new NativePlayer(directVideo,'never',new URL('https://stream.test/'),false,undefined,undefined,false,[],'native-direct',undefined,10000,undefined,'pthread',runtime);
+      try{if(remote)await direct.openRemote({url:remoteSource.url});else await direct.open(file);}finally{await direct.destroy();directVideo.remove();}
+      if(beforeAdmission!==await globalThis.streamAssetRequests())throw Error('Direct or preference admission acquired streaming bytes');
+      const rejected=runtime.rejection('native-remux',candidateSource,'stream-fixture','pthread',facts);if(rejected||!canStream(runtime))throw Error('Qualified streaming binding was rejected: '+JSON.stringify({rejected,has:runtime.has('web/providers/mediabunny/mp4-stream.js'),offer:runtime.hasOffer('mediabunny-mp4-stream-preparation','packet-copy'),facts}));
+      globalThis.Worker=class extends OriginalWorker{
+        constructor(url,options){
+          super(url,options);
+          if(options?.name==='demuxe-stream-preparation'){
+            const record={stats:{}};sessions.push(record);workerURLs++;nativeURLs.add(String(url));
+            this.addEventListener('message',({data})=>{if(data.stats)record.stats=data.stats;if(data.type==='read'&&abortOnRead){const cancel=abortOnRead;abortOnRead=undefined;cancel();}});
+            const post=this.postMessage.bind(this);this.postMessage=(data,transfer)=>{if(remote&&data.type==='configure'&&(JSON.stringify(data).includes('fixture-secret')||JSON.stringify(data).includes('refreshed-secret')||JSON.stringify(data).includes('media-stream.test')||data.file||Object.keys(data.source??{}).some(key=>key!=='size')))throw Error('Remote transport policy leaked to worker');return post(data,transfer??[]);};
+            const terminate=this.terminate.bind(this);let retired=false;
+            this.terminate=()=>{if(retired)return;retired=true;disposed++;terminate();};
+          }
+        }
+      };
+      URL.revokeObjectURL=url=>{if(nativeURLs.delete(String(url)))revokedURLs++;return originalRevoke.call(URL,url);};
+      native=new NativePlayer(video,'always',new URL('https://stream.test/'),false,undefined,undefined,false,[],'native-remux',{preload:'auto',profile:'balanced',aheadSeconds:1,behindSeconds:1,memoryBudget:8*1024*1024},10000,undefined,'pthread',runtime);
+      native.addEventListener('source',event=>{publishedTracks=event.detail.tracks;});
+      owner={open:()=>remote?native.openRemote(remoteSource):native.open(file),seek:target=>native.seek(target),play:()=>native.play(),pause:()=>native.pause(),destroy:()=>native.destroy(),snapshot:()=>native.diagnostics.remux,timelineBias:1};
+    }else owner=new RemuxPlayer(video,{producerFactory,mseOwner:'window',buffering:{preload:'auto',forwardSeconds:1,backwardSeconds:1,forwardLimitBytes:8*1024*1024,maxForwardLimitBytes:8*1024*1024}});
+    let opened,seeked,progress;const lifecycle={};
+    try{
+      opened=await owner.open({file});
+      if(nativeMode&&(!publishedTracks||publishedTracks.some(track=>track.id!=='source-'+track.type)||publishedTracks.length!==sourceTracks.length))throw Error('Source-owner track identity was lost');
+      if(!owner.snapshot().capability.mediaAccepted)throw Error('Existing presentation owner did not append media');
+      const audioBefore=video.webkitAudioDecodedByteCount??0;await owner.seek(1.25);seeked=Math.max(0,video.currentTime-owner.timelineBias);
+      const fresh=new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Streaming owner made no fresh-frame progress')),5000);const observe=(_now,frame)=>{if(frame.mediaTime>2.25){clearTimeout(timeout);resolve(frame.mediaTime-1);}else video.requestVideoFrameCallback(observe);};video.requestVideoFrameCallback(observe);});
+      await owner.play();progress=await fresh;await owner.pause();
+      const freshAudioBytes=(video.webkitAudioDecodedByteCount??0)-audioBefore;
+      if(av&&freshAudioBytes<=0)throw Error('No fresh streamed audio after seek');
+      const presentation=owner.snapshot().capability;
+      ctx.drawImage(video,0,0);const color=Array.from(ctx.getImageData(32,24,1,1).data);
+      if(Math.abs(color[0]-224)>20||Math.abs(color[1]-32)>20||Math.abs(color[2]-64)>20)throw Error('Streaming decoded color changed');
+      let remoteChecks;
+      if(remote){
+        const {playerError}=await import('/owners.js');
+        const controller=new AbortController();abortOnRead=()=>controller.abort(new DOMException('Cancelled during worker read','AbortError'));
+        let cancelled;try{await runtime.streamRemote(remoteSource,0,controller.signal);}catch(error){cancelled=error;}
+        if(cancelled?.name!=='AbortError')throw Error('Remote streaming read cancellation did not reject');
+        await globalThis.setStreamMediaMode('denied');let denied;
+        try{await runtime.streamRemote(remoteSource,0,new AbortController().signal);}catch(error){denied=error;}
+        if(playerError(denied).code!=='SOURCE_PERMISSION')throw Error('Remote permission failure was reclassified');
+        let refreshes=0;const refreshing={...remoteSource,headers:{...remoteSource.headers},refreshAuthorization:async()=>{refreshes++;return {headers:{Authorization:'refreshed-secret'}};}};
+        const facts={format:'mp4',duration:fixtureDuration,tracks:sourceTracks.map((track,index)=>({...track,id:'source-'+track.type,index}))};
+        runtime.rejection('native-remux',{kind:'remote',options:refreshing},'refresh','pthread',facts);
+        await globalThis.setStreamMediaMode('refresh');const refreshed=await runtime.streamRemote(refreshing,0,new AbortController().signal);refreshed?.worker.terminate();
+        if(!refreshed||refreshes!==1)throw Error('Authorization refresh escaped the existing transport owner');
+        await globalThis.setStreamMediaMode('valid');
+        const mutable={...remoteSource,url:remoteSource.url+'?policy=1',headers:{...remoteSource.headers}};
+        runtime.rejection('native-remux',{kind:'remote',options:mutable},'policy','pthread',facts);
+        const originalFetch=globalThis.fetch;let mutated=false,startsAfterMutation=0;
+        // Count actual fetch invocation, not delayed interception of a request
+        // already in flight when the lease was closed.
+        globalThis.fetch=(input,init)=>{if(mutated&&String(input).includes('?policy=1'))startsAfterMutation++;return originalFetch(input,init);};
+        try{
+          const lease=await runtime.streamRemote(mutable,0,new AbortController().signal);if(!lease)throw Error('Mutable policy fixture declined');
+          let policyFailure;lease.worker.onmessage=event=>{if(event.data.type==='error')policyFailure=event.data.error;};
+          mutated=true;mutable.headers.Authorization='changed-secret';lease.worker.postMessage({type:'init'});
+          await new Promise(resolve=>setTimeout(resolve,0));
+          if(policyFailure?.code!=='SOURCE_CHANGED'||startsAfterMutation!==0)throw Error('Changed policy reached transport: '+JSON.stringify({code:policyFailure?.code,startsAfterMutation}));
+        }finally{globalThis.fetch=originalFetch;}
+        await globalThis.setStreamMediaMode('changed');let changed;
+        try{await native.seek(2.25);}catch(error){changed=error;}
+        if(playerError(changed).code!=='SOURCE_CHANGED')throw Error('Native seek reopened a changed representation');
+        remoteChecks={identityAfterSeek:'SOURCE_CHANGED',authorization:'SOURCE_PERMISSION',authorizationRefreshes:refreshes,cancelledDuringWorkerRead:true,policyMutationRejected:true,credentialsPosted:false};
+      }
+      const playback=sessions.slice(0,2);
+      return {container:mov?'mov':'mp4',lifecycle,sourceBytes:file.size,remote:remoteChecks,totalWorkers:sessions.length,admission:nativeMode?{unqualifiedAcquired:false,unsupportedAcquired:false,directAcquired:false,ffmpegBaselineRetained:true,explicitStreamingPreference:true,sourceTrackIdsPreserved:true}:undefined,preservationEvidence:'finite in-process drain of the same incremental producer',audio:av?{channels,sampleRate:48000,frames:audioFrames,packetAndPCMHashesPreserved:true,freshDecodedBytes:freshAudioBytes}:undefined,packetHashesPreserved:true,cancelledFactory:true,lateProducerRetired:true,seekTime:seeked,freshFrameTime:progress,color,generations:playback.length,fragments:playback.map(stream=>stream.stats.fragments),peakCollectorOwnedBytes:playback.map(stream=>stream.stats.peakOwnedBytes),owner:presentation};
+    }finally{await owner.destroy();await runtime?.destroy();globalThis.Worker=OriginalWorker;URL.revokeObjectURL=originalRevoke;video.remove();if(disposed!==sessions.length)throw Error('Producer inputs were not retired');if(workerURLs!==revokedURLs)throw Error('Streaming worker URL leaked');Object.assign(lifecycle,{workersRetired:disposed,remainingWorkers:sessions.length-disposed,remainingWorkerURLs:workerURLs-revokedURLs});}
+  },{useWorker:!!candidate,workerHash:identities.worker,av:process.env.DEMUXE_TEST_AV==='1',channels:Number(process.env.DEMUXE_AUDIO_CHANNELS??2),nativeMode,deployment,preferenceDeployment,remote:process.env.DEMUXE_TEST_REMOTE==='1',mov:process.env.DEMUXE_STREAM_MOV==='1'});
+  assert.ok(Math.abs(result.seekTime-1.25)<.001);assert.ok(result.freshFrameTime>1.25);assert.equal(result.generations,2);assert.ok(result.fragments.every(count=>count>0));
+  const receipt={status:process.env.DEMUXE_TEST_REMOTE==='1'?'remote-native-stream-composition-passed-not-release':nativeMode?'native-stream-composition-passed-not-release':candidate?'worker-producer-owner-integration-passed-not-deployment':'producer-owner-integration-passed-not-deployment',recordedAt:new Date().toISOString(),browser:browser.version(),identities,...(remoteBytes?{fixture:{bytes:remoteBytes.length,sha256:hash(remoteBytes),origin:'generated-in-browser'}}:{}),assetRequests,mediaRequests,checks:result,limitations:[nativeMode?'Actual ProviderRuntime/NativePlayer composition, not full public-player release qualification':candidate?'Verified worker tested with explicit owner injection; ProviderRuntime and NativePlayer admission are not connected':'In-process producer; optional worker acquisition and provider admission are not connected',process.env.DEMUXE_TEST_AV==='1'?'Generated AVC/AAC fixture retaining priming; full public-player release qualification remains open':'Video-only generated fixture; A/V and remote streaming still need qualification','Collector byte accounting excludes muxer, input, native media and process memory']};
+  if(process.env.DEMUXE_STREAM_EXPORT_FIXTURE&&remoteBytes)await writeFile(process.env.DEMUXE_STREAM_EXPORT_FIXTURE,remoteBytes);
+  if(process.env.DEMUXE_BROWSER_EVIDENCE)await writeFile(process.env.DEMUXE_BROWSER_EVIDENCE,JSON.stringify(receipt,null,2)+'\n');
+  console.log(JSON.stringify(receipt,null,2));
+}finally{clearTimeout(timer);await browser?.close();}

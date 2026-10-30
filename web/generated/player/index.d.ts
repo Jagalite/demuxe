@@ -64,6 +64,7 @@ export declare const defaultLabels: Readonly<{
     empty: "Something good to watch?";
     drop: "Open a video or audio file from your device.";
     loading: "Opening media…";
+    step: "Step";
     reading: "Reading media…";
     inspecting: "Inspecting media…";
     switching: "Updating playback…";

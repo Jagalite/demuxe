@@ -1,0 +1,150 @@
+{
+  "status": "failed-not-qualified",
+  "recordedAt": "2026-10-30T02:09:37.161Z",
+  "environment": {
+    "platform": "darwin",
+    "release": "25.5.0",
+    "arch": "arm64",
+    "cpu": "Apple M1",
+    "logicalCPUs": 8,
+    "totalMemoryBytes": 8589934592,
+    "initialLoadAverage": [
+      3.00634765625,
+      2.623046875,
+      2.60546875
+    ],
+    "node": "v23.5.0"
+  },
+  "workload": {
+    "trials": 3,
+    "cycles": 3,
+    "remote": false,
+    "contentProfile": "vp8-video-only",
+    "sourceBytes": 1477,
+    "sourceSha256": "8b2aacb0f1db5237f9734b8145adaf93de55ececcd8b126630564b2738359e47",
+    "aheadSeconds": 1,
+    "behindSeconds": 1,
+    "codedBudgetBytes": 8388608,
+    "playbackSecondsPerLeg": 0.4,
+    "seekTarget": 1.25,
+    "sampleIntervalMs": 200
+  },
+  "identities": {
+    "provider": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+    "presenter": "sha256:15e269dee0e95e465e666d6725b9cc55ebdf3151876a566444915f959ac2cf51",
+    "worker": "82854ac7b5971f7828fb0e508389939eeba0a5729f7d897d3984d830c186b1ec",
+    "harness": "ef5d5dbce848303ffdfd1aee2c82930fc4d1cefb561fd5327b153c6f02ed09ec",
+    "sampler": "1972651ebfd42d8ce98606585197cb3af19f1c022dc8a0299d850a1ecc2432a7"
+  },
+  "trials": [
+    {
+      "trial": 0,
+      "cycles": [],
+      "samples": [
+        {
+          "phase": "launch",
+          "at": 597.054833,
+          "aggregateRssBytes": 437714944,
+          "observedCpuSeconds": 0.54,
+          "processes": 4,
+          "samples": 1,
+          "peakAggregateRssBytes": 437714944
+        },
+        {
+          "phase": "launch",
+          "at": 832.277708,
+          "aggregateRssBytes": 853622784,
+          "observedCpuSeconds": 1.1800000000000002,
+          "processes": 7,
+          "samples": 2,
+          "peakAggregateRssBytes": 853622784
+        },
+        {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 991.717791,
+          "aggregateRssBytes": 980320256,
+          "observedCpuSeconds": 1.34,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 980320256
+        },
+        {
+          "phase": "catalog-loaded",
+          "at": 1037.300333,
+          "aggregateRssBytes": 982351872,
+          "observedCpuSeconds": 1.3699999999999999,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 982351872
+        },
+        {
+          "phase": "opening",
+          "at": 1088.7215,
+          "aggregateRssBytes": 989413376,
+          "observedCpuSeconds": 1.4,
+          "processes": 7,
+          "samples": 5,
+          "peakAggregateRssBytes": 989413376
+        }
+      ],
+      "sampleErrors": [],
+      "baseline": {
+        "phase": "public-entry-loaded-before-catalog",
+        "rendererJsHeapUsedBytes": 1557792,
+        "rendererJsHeapTotalBytes": 2097152,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.066719,
+        "process": {
+          "phase": "public-entry-loaded-before-catalog",
+          "at": 991.717791,
+          "aggregateRssBytes": 980320256,
+          "observedCpuSeconds": 1.34,
+          "processes": 7,
+          "samples": 3,
+          "peakAggregateRssBytes": 980320256
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      },
+      "catalog": {
+        "phase": "catalog-loaded",
+        "rendererJsHeapUsedBytes": 1722584,
+        "rendererJsHeapTotalBytes": 2359296,
+        "rendererNodes": 6,
+        "rendererDocuments": 1,
+        "rendererTaskSeconds": 0.073373,
+        "process": {
+          "phase": "catalog-loaded",
+          "at": 1037.300333,
+          "aggregateRssBytes": 982351872,
+          "observedCpuSeconds": 1.3699999999999999,
+          "processes": 7,
+          "samples": 4,
+          "peakAggregateRssBytes": 982351872
+        },
+        "handles": {
+          "workers": 0,
+          "objectURLs": 0,
+          "createdWorkers": 0
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Fresh browser per trial; operating-system disk/code caches are not cleared",
+    "Route interception measures served response-body bytes, not real network/TLS/compressed traffic",
+    "Sampled browser-tree RSS sums shared pages and includes browser/runtime overhead; it is not unique physical or decoder-retained memory",
+    "CDP renderer JS heap after forced GC excludes dedicated worker heaps, media decoders and native allocations",
+    "Observed CPU maxima miss work of processes born and exited between samples",
+    "No whole-process peak-retained-memory qualification, independent FFmpeg performance comparator, large-file throughput or release approval"
+  ],
+  "browser": "155.0.8059.85",
+  "error": {
+    "message": "page.evaluate: Error: Measured source track metadata changed: {\"metadataCoverage\":{\"chapters\":\"unknown\",\"tags\":\"unknown\"},\"videoTracks\":[{\"id\":\"1:video:native:1\",\"type\":\"video\",\"attachedPicture\":false,\"sampleRate\":null,\"channelLayout\":null,\"frameRate\":null,\"bitDepth\":null,\"profile\":null,\"roles\":[],\"label\":\"Video 1\",\"language\":null,\"codec\":null,\"selected\":true,\"external\":false,\"title\":null,\"streamIndex\":null,\"default\":false,\"forced\":false,\"channels\":null}],\"chapters\":null,\"tags\":null,\"color\":null,\"displayWidth\":64,\"displayHeight\":48,\"aspectRatio\":1.3333333333333333,\"rotation\":null,\"video\":{\"id\":\"1:video:native:1\",\"type\":\"video\",\"attachedPicture\":false,\"sampleRate\":null,\"channelLayout\":null,\"frameRate\":null,\"bitDepth\":null,\"profile\":null,\"roles\":[],\"label\":\"Video 1\",\"language\":null,\"codec\":null,\"selected\":true,\"external\":false,\"title\":null,\"streamIndex\":null,\"default\":false,\"forced\":false,\"channels\":null},\"audio\":null,\"subtitle\":null}\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:408)\n    at async <anonymous>:396:30",
+    "stack": "page.evaluate: Error: Measured source track metadata changed: {\"metadataCoverage\":{\"chapters\":\"unknown\",\"tags\":\"unknown\"},\"videoTracks\":[{\"id\":\"1:video:native:1\",\"type\":\"video\",\"attachedPicture\":false,\"sampleRate\":null,\"channelLayout\":null,\"frameRate\":null,\"bitDepth\":null,\"profile\":null,\"roles\":[],\"label\":\"Video 1\",\"language\":null,\"codec\":null,\"selected\":true,\"external\":false,\"title\":null,\"streamIndex\":null,\"default\":false,\"forced\":false,\"channels\":null}],\"chapters\":null,\"tags\":null,\"color\":null,\"displayWidth\":64,\"displayHeight\":48,\"aspectRatio\":1.3333333333333333,\"rotation\":null,\"video\":{\"id\":\"1:video:native:1\",\"type\":\"video\",\"attachedPicture\":false,\"sampleRate\":null,\"channelLayout\":null,\"frameRate\":null,\"bitDepth\":null,\"profile\":null,\"roles\":[],\"label\":\"Video 1\",\"language\":null,\"codec\":null,\"selected\":true,\"external\":false,\"title\":null,\"streamIndex\":null,\"default\":false,\"forced\":false,\"channels\":null},\"audio\":null,\"subtitle\":null}\n    at Object.open (eval at evaluate (:370:30), <anonymous>:14:408)\n    at async <anonymous>:396:30\n    at /Volumes/seed2/Projects/demuxe-mediabunny/packages/provider-mediabunny/test/browser-resources.mjs:88:102"
+  }
+}

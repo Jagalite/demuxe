@@ -20,6 +20,14 @@ export class ScrubberPreview {
     displayedURL;
     settleTimer;
     touchPointer;
+    syncTimeLabels() {
+        if (!this.targetLabel)
+            return;
+        const represented = this.label.textContent ?? '', approximate = represented.startsWith('≈ ');
+        const same = represented.replace(/^≈ /, '') === this.targetLabel.textContent;
+        this.label.toggleAttribute('data-redundant', same);
+        this.targetLabel.toggleAttribute('data-approximate', same && approximate);
+    }
     cancelSettle() { const handle = this.settleTimer; this.settleTimer = undefined; if (handle !== undefined)
         clearTimeout(handle); }
     transition(command) { const result = transitionScrubber(this.control, command); this.control = result.state; return result; }
@@ -76,10 +84,11 @@ export class ScrubberPreview {
         const rect = this.timeline.getBoundingClientRect(), parent = this.panel.parentElement.getBoundingClientRect();
         const style = getComputedStyle(this.timeline), scale = rect.width / parseFloat(style.width);
         const thumbWidth = parseFloat(style.getPropertyValue('--timeline-thumb-size')) * scale;
-        const pointer = scrubberPointer({ touch: event.pointerType === 'touch', dragging: event.pointerId === this.touchPointer, disabled: false, left: rect.left, width: rect.width, thumbWidth, step: Number(this.timeline.step), min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width });
+        const previewWidth = parseFloat(getComputedStyle(this.panel).width) * scale;
+        const pointer = scrubberPointer({ touch: event.pointerType === 'touch', dragging: event.pointerId === this.touchPointer, disabled: false, left: rect.left, width: rect.width, thumbWidth, step: Number(this.timeline.step), min: Number(this.timeline.min), max: Number(this.timeline.max), x: event.clientX, parentLeft: parent.left, parentWidth: parent.width, previewWidth });
         if (pointer.time === undefined)
             return;
-        this.panel.style.left = `${pointer.left}px`;
+        this.panel.style.left = `${pointer.left / scale}px`;
         if (this.targetLabel)
             this.targetLabel.textContent = formatTime(pointer.time);
         this.intentApi = api;
@@ -107,6 +116,7 @@ export class ScrubberPreview {
             this.label.textContent = `${formatTime(pointer.time)} · …`;
             this.panel.hidden = false;
         }
+        this.syncTimeLabels();
         void this.sample(api, pointer.time, hover.id).catch(() => { });
     };
     constructor(timeline, panel, image, label, api, targetLabel) {
@@ -291,6 +301,7 @@ export class ScrubberPreview {
             if (!current() || !this.transition({ type: 'presented', id }).accepted)
                 return;
             this.label.textContent = `${frame.temporalAccuracy === 'approximate' ? '≈ ' : ''}${formatTime(frame.actualTime ?? frame.time)}`;
+            this.syncTimeLabels();
             if (current())
                 this.panel.hidden = false;
         }

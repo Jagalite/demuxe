@@ -1,0 +1,46 @@
+{
+  "status": "finite-acquisition-passed-webm-firefox-color-failed-not-release",
+  "deploymentManifestSHA256": "c3e1dad28b6668f1c7e0d6946732a3b31d2201db5c7ae0c1ce0203f311aa6a6e",
+  "webmIdentity": "sha256:defe8da8a75e74a45e588ebf2d4a9008a6a1f830eab81394aa393ab5db038a8e",
+  "artifactsSHA256": {
+    "reader-fix-webm-chrome.json": "3dfec5cace257242492ec173916b3daec464ffa66cf0c270f1ef760aee504cb3",
+    "reader-fix-webm-firefox.json": "a2ab3b2c9146bf35c31de3f975f0e02c9e8a2ebd148b2cecf9c80d82fbfb2182",
+    "reader-fix-webm-webkit.json": "4a5693e3cd5f229fc440ff966f4782ec0423ffc85a020e2cf3cb72bc1bfe457f",
+    "reader-fix-prefetch-chrome.json": "374ddad1c315b46e78c56329393dbb4ce3f07c6bca0edb4ab5ecd9888cd8904b",
+    "reader-fix-prefetch-chrome-verified.json": "375a1b0cefd2949388988c4c5220dd8c94698737266492a1fc42dfa341ac0dba",
+    "reader-fix-prefetch-firefox.json": "cb1b30e813b2e5e910a21f1df330de4a8e02b6ebc469dcc9a4ad908ae95bd3eb",
+    "reader-fix-prefetch-firefox-verified.json": "a8e522cf3692ed7e881ed4d4b74e085574a13f5b8b7b60664f6099d669ecb43a",
+    "reader-fix-prefetch-webkit.json": "6a9ff9eaa4f5b1e0a1d0ac0cee0406f2a9f00df0050881b3f6aa14e1c69264ba",
+    "reader-fix-prefetch-webkit-verified.json": "528c8bb0c03b7a2416a996a1e367a4566fe51c0bc9059b12e083683a7568a7ca",
+    "reader-fix-remote-prefetch-chrome.json": "d0c1a44214e854dc89308760eecf1d69c98c2db501acd38b7566a2c68f03f6ac",
+    "reader-fix-remote-prefetch-chrome-verified.json": "dbe8511a312d8c36a40defcac85c228125060a060e0b05781072d540cdd771b8",
+    "reader-fix-remote-prefetch-firefox.json": "8ac51c6960d5cd189caceb6183c40b0bae10053ab507b392126007bbf87a25ce",
+    "reader-fix-remote-prefetch-firefox-verified.json": "0818a0ceb4e32766ced16865fefc7c571b8f40e34fb98c106bf8d171f6cb278a",
+    "reader-fix-remote-prefetch-webkit.json": "256debe48b6f3d884582909f8142dce0a30928cd5698093746fec0b31947b4b9",
+    "reader-fix-remote-prefetch-webkit-verified.json": "ae26ef485ba3ef592c9d4306f5b3c209351a514654d89da0debf2aa3101175c3",
+    "reader-fix-timer-chrome.json": "4ac75f23e40f4451dbf13eb283ddbadb58c65779ac369eddf7f2a90b5e7fc4f1",
+    "reader-fix-timer-chrome-verified.json": "5a9f3b6172d6912364f965fd0189acac9dc657e346ac582b092840abb94d46eb",
+    "reader-fix-timer-firefox.json": "eaec2364f6b6f27fdc0897a605383e2cc35cc42bafb9f2941731d781a07b4aa2",
+    "reader-fix-timer-firefox-verified.json": "e370187a80a8d5c9c2134a8931884657a99328d71203467f5d7d8bb0bfe47fb4"
+  },
+  "coverage": "WebM installed public lifecycle and preview passed Chrome and WebKit; Firefox failed the decoded-color assertion. Packaged injected local and remote prefetch cases passed in Chrome, Firefox and WebKit; forced direct-stall startup timer and FFmpeg fallback cases passed in Chrome and Firefox. Maintained verifiers checked acquisition receipts and mutation controls.",
+  "firefoxDirectColorControl": {
+    "browser": "Playwright Firefox 157.0",
+    "fixtureSHA256": "8b2aacb0f1db5237f9734b8145adaf93de55ececcd8b126630564b2738359e47",
+    "method": "Direct original WebM Blob, muted HTMLVideoElement seek to 1.25 seconds, fresh video frame drawn to 64x48 canvas, center pixel sampled",
+    "mediaTime": 1.25,
+    "rgba": [
+      208,
+      10,
+      66,
+      255
+    ],
+    "finding": "Same observed center pixel as the failed prepared-play assertion; this single direct control does not qualify the prepared path or establish the cause of the color difference."
+  },
+  "limits": [
+    "WebM Firefox remains a failed test, despite matching single direct control.",
+    "Prefetch tests inject facts rather than observe media playback; remote prefetch issues no media requests.",
+    "Startup timer tests deliberately stall initial direct load.",
+    "WebKit incremental audio, resource workloads and production qualification remain open."
+  ]
+}

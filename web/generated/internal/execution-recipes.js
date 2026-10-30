@@ -125,7 +125,22 @@ export const EXECUTION_RECIPES = freezeDescription({
     'native-direct-mpv': subtitles(direct, 'embedded'),
     'native-direct': direct,
     'native-remux-mpv': subtitles(copy, 'embedded'),
-    'native-remux': copy,
+    'native-remux': { ...copy, bindings: [...copy.bindings, {
+                id: 'mediabunny', owner: 'NativePlayer.startRemux / bounded prepared-file owner', providers: [
+                    { provider: 'mediabunny-file-preparation', request: { capability: 'media.prepare.file', version: 1, profile: 'packet-copy' } },
+                    { provider: 'browser-prepared', request: prepared },
+                ],
+            }, {
+                id: 'mediabunny-mp4', owner: 'NativePlayer.startRemux / bounded prepared-file owner', providers: [
+                    { provider: 'mediabunny-mp4-file-preparation', request: { capability: 'media.prepare.file', version: 1, profile: 'packet-copy' } },
+                    { provider: 'browser-prepared', request: prepared },
+                ],
+            }, {
+                id: 'mediabunny-mp4-stream', owner: 'NativePlayer.startRemux / existing RemuxPlayer producer lifecycle', providers: [
+                    { provider: 'mediabunny-mp4-stream-preparation', request: { capability: 'media.prepare.file', version: 1, profile: 'packet-copy' } },
+                    { provider: 'browser-prepared', request: prepared },
+                ],
+            }] },
     'native-direct-gain': gain(direct),
     'shaka-mse': shaka,
     'shaka-mse-gain': gain(shaka),

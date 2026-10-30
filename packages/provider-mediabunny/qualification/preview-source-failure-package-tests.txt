@@ -1,0 +1,90 @@
+
+> @demuxe/provider-mediabunny@1.1.2 test
+> node --test test/*.test.js && python3 test/test_source_archive.py
+
+✔ concurrent reads reserve budgets before transport starts (1.478583ms)
+✔ transport errors retain their original identity (0.815833ms)
+✔ abort settles even when transport ignores signal and late bytes are discarded (0.619041ms)
+✔ owned source closes once; borrowed source stays open (0.841208ms)
+✔ short reads fail and invalid ranges never reach transport (1.005666ms)
+✔ deadline bounds an unresponsive source (13.734625ms)
+✔ owned close is bounded, invoked once and shares its retained promise (3003.337584ms)
+✔ falsy source failures remain failures and retain original value (0.445ms)
+✔ abort-handler reentry cannot duplicate owned source retirement (0.246958ms)
+✔ prepared file retains source identity and exact parsed packet timeline (26.074667ms)
+✔ independently authored Matroska VP8 is prepared as WebM with identical payload and timeline (7.759417ms)
+✔ authored Matroska packet gaps are declined when the packet API normalizes them (3.069708ms)
+✔ prepared file preserves authored aspect ratio, color and track metadata (11.342833ms)
+✔ finer authored WebM timing is declined when output would quantize it (3.996292ms)
+✔ abort during output verification retires both parsers and cannot publish a late file (15.604208ms)
+✔ unsupported or incomplete track facts acquire no runtime (0.205583ms)
+✔ pre-aborted supported profile acquires no runtime (0.316708ms)
+✔ runtime acquisition failures retain original error identity (0.33725ms)
+✔ transport failure is not replaced by parser cleanup failure (0.533333ms)
+✔ cleanup failure remains terminal when unsupported preparation would otherwise decline (0.251583ms)
+✔ profile mismatch cannot conceal a parser cleanup failure (0.207667ms)
+✔ abort keeps its original reason when parser disposal throws (0.250541ms)
+✔ format-specific MP4 inspector retains bounded partial evidence through its public export (35.780041ms)
+✔ format-specific entries retain original byte-source failures (0.973333ms)
+✔ fragment framing crosses write boundaries and applies handoff backpressure (11.568917ms)
+✔ cancel releases a blocked writer and preserves the original failure (3.821ms)
+✔ oversized, truncated and nonmonotonic output never becomes a fragment (1.630667ms)
+✔ real WAVE inspection preserves partial track evidence and bounded reads (9.643958ms)
+✔ real parser cannot swallow original transport failure (0.855542ms)
+✔ read budget exhaustion stops further transport and is not parse success (0.564167ms)
+✔ pre-aborted inspection acquires no runtime and closes its owned lease (0.305042ms)
+✔ inspection deadline bounds a runtime loader that never settles (12.918875ms)
+✔ secondary cleanup failure cannot replace a primary acquisition error (0.379125ms)
+✔ inspection abort preserves its reason when parser disposal throws (2.614417ms)
+✔ inspection reports parser disposal failure after successful work (0.319958ms)
+✔ source envelope retains explicit duration and key/delta truth before packet API normalization (13.159834ms)
+✔ laced and invisible blocks cannot enter the single-packet copy profile (3.44975ms)
+✔ truncated or overlong EBML elements decline without out-of-range reads (0.894875ms)
+✔ source envelope obeys the existing read budget and cancellation (2.053708ms)
+✔ A/V table profiles retain track identity, AAC packet extent and one-packet preroll (12.152209ms)
+✔ audio-only AAC tables retain exact extent and decline unsupported recovery/reference profiles (5.621958ms)
+✔ unqualified AAC layouts and extra audio selections acquire no runtime (1.001792ms)
+✔ authored classic sample tables retain exact timing, sizes and sync identity (1.075959ms)
+✔ nonidentity edits, composition offsets, external references and fragments decline (3.661416ms)
+✔ truncated atoms, read budgets and cancellation preserve bounded failures (0.628875ms)
+✔ MP4 preflight cannot acquire runtime for unsupported or incomplete source tracks (0.262125ms)
+✔ real muxer emits incremental fragments and stops advancing under consumer backpressure (27.824667ms)
+✔ retiring a paused producer rejects consumption and settles mux ownership (5.10225ms)
+✔ seek producer starts at the source random-access point and retains the absolute clock (6.056333ms)
+✔ unrepresentable authored clocks decline before any output is created (3.256959ms)
+✔ incremental output retains authored translation and pixel aspect metadata (5.111583ms)
+✔ PCM packet copy preserves selected audio payload and timeline (5.842208ms)
+✔ unknown or duplicate selected tracks reject without partial success (0.419625ms)
+✔ bounded output failure publishes no file (1.167042ms)
+✔ pre-aborted copy acquires no track metadata (0.154791ms)
+✔ preview preserves represented PTS and retires its input and canvas (1.601834ms)
+✔ release cancels extraction, discards late results and permits reuse (4.194875ms)
+✔ release waits for an already-running owned-source cleanup (4.332917ms)
+✔ preview abort preserves its reason when parser disposal throws (2.508916ms)
+✔ preview reports parser disposal failure when no frame is available (0.463625ms)
+✔ release waits for all owned-source closures even when one fails (3.065084ms)
+✔ preview preserves the original transport failure when the parser wraps it (0.507334ms)
+✔ process accounting parses macOS CPU clocks and unordered descendant trees (1.047583ms)
+✔ sample ledger retains exited-child CPU without calling RSS physical memory (0.204042ms)
+✔ producer retains a mux failure that arrives before its presentation observer is installed (17.025834ms)
+✔ worker source uses bounded byte requests and retires late responses (0.954333ms)
+✔ worker rejects incomplete range responses instead of publishing a prepared file (0.250666ms)
+✔ stream worker hands one generation to the existing producer protocol and transfers owned output (1.135292ms)
+✔ stream worker retires a producer acquired after close without publishing readiness (0.191333ms)
+✔ stream worker retains preflight classifications and refuses invalid acquisition ordering (0.253541ms)
+✔ stream worker borrows only bounded byte reads while acquiring a remote producer (1.09325ms)
+✔ stream worker close settles an outstanding byte request without late readiness (0.559ms)
+✔ stream worker rejects incomplete remote bytes as an acquisition protocol failure (0.446875ms)
+ℹ tests 73
+ℹ suites 0
+ℹ pass 73
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3189.972042
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 2.162s
+
+OK

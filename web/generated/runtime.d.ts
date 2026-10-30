@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { ParsedProviderDeployment } from './internal/provider-catalog.js';
 import type { RuntimeProvider } from './internal/machine/provider-runtime.js';
-import type { DemuxeRuntimeHandle, DemuxeRuntimeOptions, ProviderLoadOptions, ProviderCatalogSnapshot } from './runtime-types.js';
-export type { DemuxeRuntimeOptions, ProviderLoadOptions, ProviderCatalogSnapshot } from './runtime-types.js';
+import type { DemuxeRuntimeHandle, DemuxeRuntimeOptions, ProviderLoadOptions, ProviderCatalogSnapshot, QualifiedProviderComposition } from './runtime-types.js';
+export type { DemuxeRuntimeOptions, ProviderLoadOptions, ProviderCatalogSnapshot, QualifiedProviderComposition } from './runtime-types.js';
 export type RuntimeDeploymentSnapshot = Readonly<{
     revision: number;
     deployment: ParsedProviderDeployment;
@@ -22,6 +22,8 @@ export declare function awaitRuntime<T>(pending: Promise<T>, signal?: AbortSigna
 export declare class DemuxeRuntime implements DemuxeRuntimeHandle {
     get assetBase(): string;
     get qualifiedProviders(): Readonly<Record<string, string>>;
+    get qualifiedCompositions(): readonly QualifiedProviderComposition[];
+    private readonly compositions;
     private readonly qualification;
     private control;
     private base;

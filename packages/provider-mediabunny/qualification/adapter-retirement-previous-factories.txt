@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: Apache-2.0
+import {createBoundedReader} from './bounded-reader.js';
+
+let serial = 0;
+async function cleanup(input, reader, failed, canvas) {
+  let error, rejected = false;
+  const remember = failure => { if (!rejected) { error = failure; rejected = true; } };
+  try { input?.dispose(); } catch (failure) { remember(failure); }
+  try { if (canvas) { canvas.width = 0; canvas.height = 0; } } catch (failure) { remember(failure); }
+  try { await reader.close(); } catch (failure) { remember(failure); }
+  if (!failed && rejected) throw error;
+}
+/** The format set limits parsing; the configured loader controls transfer. */
+export function createMediaBunnyInspector({formats, load} = {}) {
+  if (!Array.isArray(formats) || !formats.length || typeof load !== 'function') throw new TypeError('Explicit input formats and loader required');
+  return async function inspect(source, options = {}) {
+    const maxBytes = options.maxBytes ?? 512 * 1024;
+    const maxReads = options.maxReads ?? 32;
+    if (!Number.isInteger(maxBytes) || maxBytes < 64 || maxBytes > 512 * 1024 || !Number.isInteger(maxReads) || maxReads > 128) throw new TypeError('Invalid inspection budget');
+    const reader = createBoundedReader(source, {...options, maxBytes, maxReads});
+    let input, failed = false;
+    const dispose = () => input?.dispose();
+    reader.signal.addEventListener('abort', dispose, {once: true});
+    try {
+      reader.check();
+      const {Input, CustomSource} = await reader.run(load);
+      reader.check();
+      input = new Input({formats, source: new CustomSource({
+        getSize: () => { reader.check(); return reader.size; },
+        read: (start, end) => reader.read(start, end - start),
+        prefetchProfile: 'none', maxCacheSize: maxBytes,
+      })});
+      const format = await reader.run(() => input.getFormat());
+      reader.check();
+      const discovered = await reader.run(() => input.getTracks());
+      reader.check();
+      const duration = await reader.run(() => input.getDurationFromMetadata());
+      reader.check();
+      const id = `mediabunny-inspection:${++serial}`;
+      const tracks = await Promise.all(discovered.map(async (track, index) => {
+        const name = await reader.run(() => track.getName());
+        const language = await reader.run(() => track.getLanguageCode());
+        reader.check();
+        return Object.freeze({
+        id: `${id}:${track.id}`, type: track.type, codec: track.codec ?? null,
+        label: name ?? `${track.type} ${index + 1}`, language: language === 'und' ? null : language,
+        selected: false, external: false, title: name ?? null, streamIndex: null,
+        default: false, forced: false, channels: null, sampleRate: null, channelLayout: null,
+        frameRate: null, bitDepth: null, profile: null, roles: Object.freeze([]), attachedPicture: false,
+      }); }));
+      // A/V enumeration cannot prove subtitle absence or complete track metadata.
+      return Object.freeze({id, sourceIdentity: source.id, status: 'partial',
+        completeFor: Object.freeze(['container']), format: format.name,
+        duration: Number.isFinite(duration) && duration >= 0 ? duration : null,
+        tracks: Object.freeze(tracks), chapters: null, tags: null,
+        reason: 'MediaBunny inspection does not establish complete subtitle or track metadata',
+        bytesRead: reader.bytesRead, reads: reader.reads});
+    } catch (error) {
+      failed = true;
+      // Library parsing must never conceal a transport or cancellation error.
+      if (reader.hasFailure) throw reader.failure;
+      reader.check();
+      throw error;
+    } finally {
+      reader.signal.removeEventListener('abort', dispose);
+      await cleanup(input, reader, failed);
+    }
+  };
+}
+
+/** Register this instance through Demuxe's existing preview owner. */
+export function createMediaBunnyPreviewProvider({formats, getSource, priority = 50, load, maxBytes = 8 * 1024 * 1024, maxReads = 128, timeoutMs = 10000} = {}) {
+  if (!Array.isArray(formats) || !formats.length || typeof load !== 'function' || typeof getSource !== 'function') throw new TypeError('Explicit formats and source resolver required');
+  const active = new Set();
+  return {
+    id: 'mediabunny-preview', priority, requiresDecoder: true, allowDuringPlayback: false,
+    canHandle(request) { return !request.signal.aborted && !!getSource(request.sourceId); },
+    async getFrame(request) {
+      if (!Number.isFinite(request.time) || request.time < 0 || !Number.isInteger(request.width) || request.width < 1 || request.width > 4096 || request.height !== undefined && (!Number.isInteger(request.height) || request.height < 1 || request.height > 4096)) throw new TypeError('Invalid preview dimensions or time');
+      const source = getSource(request.sourceId);
+      if (!source) return null;
+      const reader = createBoundedReader(source, {signal: request.signal, maxBytes, maxReads, timeoutMs});
+      let input, canvas, failed = false;
+      const retire = () => { input?.dispose(); };
+      const release = () => reader.close();
+      active.add(release);
+      reader.signal.addEventListener('abort', retire, {once: true});
+      try {
+        const {Input, CustomSource, CanvasSink} = await reader.run(load);
+        input = new Input({formats, source: new CustomSource({getSize: () => reader.size, read: (start, end) => reader.read(start, end - start), prefetchProfile: 'none', maxCacheSize: maxBytes})});
+        const track = await reader.run(() => input.getPrimaryVideoTrack());
+        if (!track || !await reader.run(() => track.canDecode())) return null;
+        const sink = new CanvasSink(track, {width: request.width, height: request.height, fit: 'contain', poolSize: 1});
+        const frame = await reader.run(() => sink.getCanvas(request.time), late => {
+          if (late) { late.canvas.width = 0; late.canvas.height = 0; }
+        });
+        if (!frame) return null;
+        canvas = frame.canvas;
+        const blob = await reader.run(() => typeof canvas.convertToBlob === 'function'
+          ? canvas.convertToBlob({type: 'image/png'})
+          : new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('Preview encoding failed')), 'image/png')));
+        if (!Number.isFinite(frame.timestamp)) throw new Error('Preview has no represented timestamp');
+        return {time: frame.timestamp, actualTime: frame.timestamp, width: canvas.width, height: canvas.height,
+          image: {blob}, path: 'mediabunny', timestampKind: 'exact',
+          temporalAccuracy: frame.timestamp === request.time ? 'exact' : 'approximate', fidelity: 'reduced',
+          metrics: {bytesRead: reader.bytesRead}};
+      } catch (error) { failed = true; throw error; }
+      finally {
+        reader.signal.removeEventListener('abort', retire);
+        try { await cleanup(input, reader, failed, canvas); }
+        finally { active.delete(release); }
+      }
+    },
+    async release() { await Promise.all([...active].map(close => close())); },
+  };
+}

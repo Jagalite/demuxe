@@ -21,7 +21,7 @@ export function transitionInspection(state, change) {
 }
 /** Decisions consume normalized source/configuration facts, never File or DOM handles. */
 export function fastInspectionAllowed(facts) {
-    return facts.local && !facts.privateDemuxer && (!facts.preserve || facts.componentRepairRetry) && !facts.textTracks && facts.aid === 'auto' && facts.sid === 'auto' && !/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(facts.filename);
+    return (facts.local || facts.remote === true) && !facts.privateDemuxer && (!facts.preserve || facts.componentRepairRetry) && !facts.textTracks && facts.aid === 'auto' && facts.sid === 'auto' && !/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(facts.filename);
 }
 export function inspectionSelection(probe, facts) {
     const { settings, preserve, mode } = facts;
@@ -99,8 +99,8 @@ function transitionInspectionWork(state, change) {
             if (work.phase !== 'fast')
                 return state;
             if (change.probe)
-                return move('classify', { candidate: copyData(change.probe), fast: true, fastFacts: Object.freeze([...change.available]), notice: Object.freeze({ outcome: 'selected', reason: `Fast local metadata: ${change.bytes} bytes; routing admission pending` }) });
-            return move(work.facts?.canInspect ? 'ffmpeg' : 'unavailable', { notice: Object.freeze({ outcome: 'skipped', reason: `Fast local metadata: ${change.bytes} bytes; ${change.reason}` }) });
+                return move('classify', { candidate: copyData(change.probe), fast: true, fastFacts: Object.freeze([...change.available]), notice: Object.freeze({ outcome: 'selected', reason: `Fast metadata: ${change.bytes} bytes; routing admission pending` }) });
+            return move(work.facts?.canInspect ? 'ffmpeg' : 'unavailable', { notice: Object.freeze({ outcome: 'skipped', reason: `Fast metadata: ${change.bytes} bytes; ${change.reason}` }) });
         }
         case 'work.unavailable': return work.phase === 'unavailable' ? withoutProbe() : state;
         case 'work.ffmpeg': return work.phase === 'ffmpeg' ? (change.probe ? move('classify', { candidate: copyData(change.probe), fast: false }) : withoutProbe()) : state;
