@@ -1,0 +1,71 @@
+
+> @demuxe/provider-mediabunny@1.1.2 test:core
+> node --test test/core-inspection.mjs test/preview-controller-regression.mjs test/core-remote-source.mjs test/core-stream-runtime.mjs test/core-stream-bridge.mjs test/core-remote-inspection.mjs
+
+✔ core inspector bridge retains source budgets and close ownership (5.441625ms)
+✔ core preserves original byte-source failure (1.976625ms)
+✔ remote metadata reuses the complete inspector and publishes its pinned identity (39.111167ms)
+✔ weak or missing representation identity cannot grant complete remote inspection (4.462375ms)
+✔ explicit immutable transport permits a pinned size without an ETag (0.965083ms)
+✔ changed ETag during metadata is a terminal source failure, not incomplete evidence (1.307917ms)
+✔ authorization failure remains terminal and refresh belongs to RangeReader (2.072833ms)
+✔ policy changes during metadata cannot publish a complete probe (2.007084ms)
+✔ cancellation closes an uncooperative metadata request and discards late success (0.841708ms)
+✔ unrecognized bytes remain incomplete and do not assert subtitle absence (0.716292ms)
+✔ known QuickTime AAC v1 metadata preserves type-scoped IDs while unsupported layouts remain incomplete (5.65075ms)
+✔ remote envelope excludes unknown identity, unbounded files and adaptive sources (15.155083ms)
+✔ admission snapshots detect URL, identity and authorization policy changes (4.323792ms)
+✔ remote preparation serializes concurrent A/V reads, crosses blocks and owns result buffers (42.524ms)
+✔ remote identity change is terminal instead of a successful short read (3.168875ms)
+✔ authorization refresh stays with the existing range transport (1.957125ms)
+✔ cancellation retires an ignored transport operation and prevents late byte publication (5.271834ms)
+✔ stream policy mutation interrupts a multi-block read before subsequent transport (3.0785ms)
+✔ remote streaming RPC stays private and returns exact owned buffers (20.578042ms)
+✔ original source failure is retained and late reads cannot publish after retirement (16.45975ms)
+✔ policy checks guard both requests and cached producer output (0.583833ms)
+✔ malformed, duplicate and excessive worker reads fail before additional transport (2.6375ms)
+✔ per-read deadline closes transport without imposing a whole playback deadline (19.046125ms)
+✔ generation retirement discards an uncooperative in-flight source read (0.546584ms)
+✔ source failure between acquisition and presentation handlers is retained and delivered asynchronously once (0.451125ms)
+✔ secondary retirement failure cannot replace the original transport error (0.34775ms)
+✔ a queued source failure follows a handler replaced during handoff (0.55875ms)
+✔ a queued source failure waits while the handoff has no handler (0.489417ms)
+✔ explicit worker termination suppresses queued source failure delivery (0.366833ms)
+✔ stream acquisition keeps a verified worker lease until generation cancellation (69.563792ms)
+✔ runtime destruction retires an already handed-off stream worker (2.4405ms)
+✔ cancellation during stream acquisition rejects and retires late readiness (2.843542ms)
+▶ only explicit profile rejection declines; malformed worker readiness is terminal
+  ✔ profile (3.320834ms)
+  ✔ malformed (4.607333ms)
+✔ only explicit profile rejection declines; malformed worker readiness is terminal (8.228875ms)
+✔ corrupt verified-stream assets never construct a worker (1.771334ms)
+✔ complete A/V source facts retain type-scoped duplicate IDs (2.03125ms)
+✔ audio-only facts cannot acquire the video random-access streaming producer (3.55275ms)
+✔ invalid source-profile lists are rejected when constructing the runtime (0.909208ms)
+▶ MediaBunny requires one exact, independently reviewed composition
+  ✔ rejects variant 0 (14.35575ms)
+  ✔ rejects variant 1 (1.248542ms)
+  ✔ rejects variant 2 (1.84725ms)
+  ✔ rejects variant 3 (2.297917ms)
+  ✔ rejects variant 4 (0.960125ms)
+  ✔ rejects variant 5 (0.717333ms)
+  ✔ rejects variant 6 (0.608917ms)
+  ✔ rejects variant 7 (0.741916ms)
+  ✔ rejects variant 8 (1.994125ms)
+  ✔ rejects variant 9 (2.427167ms)
+  ✔ video-only grant cannot authorize stereo A/V (2.765459ms)
+  ✔ pthread grant cannot authorize a different remux runtime (1.254333ms)
+  ✔ local grant cannot authorize remote acquisition (3.035792ms)
+  ✔ remote grant admits only matching controlled remote source (3.9705ms)
+  ✔ rejects generic presenter identity even when the binding matches (2.7275ms)
+  ✔ snapshots the exact record (2.641833ms)
+✔ MediaBunny requires one exact, independently reviewed composition (46.392458ms)
+✔ same-key request after foreground deferral starts a new generation (4.919916ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 379.833084

@@ -1,0 +1,61 @@
+{
+  "status": "selected-format-delivery-fixtures-passed-not-release",
+  "sourceSHA256": {
+    "scripts/deploy-providers.py": "8affdc223a8a3d17f5609ec8f67c1dd62c49c9530e82ff65ca09815c20144bf5",
+    "tests/provider-deployment.py": "4db1e69ab6776143477e116a5543ce51ff527c4da3cac46c102949984cb374fd",
+    "tests/mediabunny-format-deployment.mjs": "159a2a904b23a266eeabf08fcf38a8744750253a33d6dbfb037488d68186840b",
+    "packages/provider-mediabunny/build-delivery.mjs": "cb7539d2b57e529215fd585d2a25beffc3180273a0ef2a7108101212d3c318b5"
+  },
+  "receipts": [
+    {
+      "kind": "mp4",
+      "browser": "chrome",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-mp4-chrome.json",
+      "sha256": "4d46047535d67902c7233b0a87618145023f9ba9702029169b8734d491925882"
+    },
+    {
+      "kind": "mp4",
+      "browser": "firefox",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-mp4-firefox.json",
+      "sha256": "a5f9703604eede7b5d9c142b8dceaa1f8cf840ca7497462077e9a4e9465ea5ce"
+    },
+    {
+      "kind": "mp4",
+      "browser": "webkit",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-mp4-webkit.json",
+      "sha256": "a1c049ecbc816baf91921915ca487a5c00a1b4470988a91319bc0d3632680ca8"
+    },
+    {
+      "kind": "webm",
+      "browser": "chrome",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-webm-chrome.json",
+      "sha256": "f894a1839e285b3811222f4595f73cb9131334da8bf71b7e5205b7d01aa7a3b2"
+    },
+    {
+      "kind": "webm",
+      "browser": "firefox",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-webm-firefox.json",
+      "sha256": "01e13b3ff3c8d95c49c869da1e4d6fb6187fac0b77aa006d7f07fcdb56e71743"
+    },
+    {
+      "kind": "webm",
+      "browser": "webkit",
+      "receipt": "packages/provider-mediabunny/qualification/selected-format-webm-webkit.json",
+      "sha256": "eb6e9cec9812ccc64c7b33668218088ebba6f0a228e44fcaaf97dff2f1c17aad"
+    }
+  ],
+  "sourceRebuild": "packages/provider-mediabunny/qualification/source-profile-rebuild-mp4.json",
+  "checks": [
+    "selected entries only, absent before demand",
+    "each selected module fetched on demand",
+    "actual core inspection and preview controller",
+    "retained Apache and MPL notices",
+    "exact bundles match preferred-source rebuild",
+    "corruption, duplicate entry, forged notice and missing selection rejected"
+  ],
+  "limitations": [
+    "Two finite media fixtures in three browser engines; not broad format qualification",
+    "Manifest hashes are compose-time integrity metadata; dynamic import does not enforce them at runtime",
+    "Source companion remains a separate distribution obligation; no release qualification"
+  ]
+}

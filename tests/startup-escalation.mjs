@@ -5,6 +5,7 @@ import {startupEscalationPolicy,StartupModules} from '../web/generated/internal/
 import {NativePlayer} from '../web/generated/internal/native-player.js';
 import {initialNativeBackend} from '../web/generated/internal/machine/native-backend.js';
 import {NativeLoadTimeout} from '../web/generated/internal/runtime-capability.js';
+import {unitPlayer} from './helpers/unit-player.mjs';
 const wasm=Uint8Array.of(0,97,115,109,1,0,0,0);
 test('public thresholds validate defaults, overrides and disabling',()=>{
  assert.deepEqual(startupEscalationPolicy(),{prefetchAfterMs:400,switchAfterMs:500});
@@ -45,4 +46,28 @@ test('failed speculation is observed and does not poison subsequent acquisition'
 test('destroy aborts in-flight downloads and prevents late publication',async t=>{
  let signal;t.mock.method(globalThis,'fetch',async(_url,options)=>{signal=options.signal;return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError'))));});
  const assets=new StartupModules(new URL('https://example.test/')),work=assets.warm('x.wasm');await Promise.resolve();assets.destroy();assert.equal(signal.aborted,true);await assert.rejects(work);assert.equal(await assets.bytes('x.wasm'),undefined);
+});
+test('startup prefetch respects an explicit MediaBunny preparation preference',async()=>{
+ const cases=[
+  {providers:['mediabunny-mp4-file-preparation','ffmpeg-file-preparation'],eligible:true,expected:[]},
+  {providers:['mediabunny-mp4-stream-preparation'],eligible:true,expected:[]},
+  {providers:['mediabunny-mp4-file-preparation','ffmpeg-file-preparation'],eligible:false,expected:['web/engine-remux/remux.wasm']},
+  {providers:['ffmpeg-file-preparation','mediabunny-mp4-file-preparation'],eligible:true,expected:['web/engine-remux/remux.wasm']},
+  {providers:undefined,eligible:true,expected:['web/engine-remux/remux.wasm']},
+ ];
+ for(const {providers,eligible,expected} of cases){
+  const player=unitPlayer({remuxRuntime:'off',providerPreferences:providers?[{capability:'media.prepare.file',providers}]:undefined});
+  const requested=[];player.providerRuntime={module:async path=>{requested.push(path);},canPrepareFile:()=>eligible,canStreamFile:()=>eligible,destroy:async()=>{}};
+  try{await player.prefetchStartup('native-remux',{kind:'local',file:new File([],'input.mp4')},{aid:'auto'});assert.deepEqual(requested,expected);}
+  finally{await player.destroy();}
+ }
+});
+test('remote prefetch defers only for an admitted MediaBunny source',async()=>{
+ for(const eligible of [false,true]){
+  const player=unitPlayer({remuxRuntime:'off',providerPreferences:[{capability:'media.prepare.file',providers:['mediabunny-mp4-file-preparation','ffmpeg-file-preparation']}]});
+  const requested=[],source={kind:'remote',options:{url:'https://media.test/a.mp4',format:'file',identity:{size:'1024',etag:'"v1"'}}};
+  player.providerRuntime={module:async path=>{requested.push(path);},canPrepareRemote:options=>{assert.equal(options,source.options);return eligible;},canStreamRemote:()=>false,destroy:async()=>{}};
+  try{await player.prefetchStartup('native-remux',source,{aid:'auto'});assert.deepEqual(requested,eligible?[]:['web/engine-remux/remux.wasm']);}
+  finally{await player.destroy();}
+ }
 });

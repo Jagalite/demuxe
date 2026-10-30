@@ -1,0 +1,80 @@
+{
+  "status": "independent-mov-profile-boundary-fallback-passed-not-release",
+  "sourceSHA256": {
+    "packages/provider-mediabunny/mp4-profile.js": "300fbd6e8a8daff1b6fc9bf130d8f8e239b7c23eb7b0d557ed54562905cc9034",
+    "packages/provider-mediabunny/test/mp4-profile.test.js": "b7ad321776b6f236ea83060002dfc91b7bcaeaf180f77da5ff62ffb5589b359b",
+    "packages/provider-mediabunny/test/browser-backup.mjs": "8a43a306da8935b2f862f1a410a580a370e93b75c005db8c40332ed763496e56",
+    "tests/mediabunny-independent-mov-profile.mjs": "a443e11c14426ed2fcd045ae9e5c98fdd89a7d7e1fb2449753a1110d4da0a169",
+    "tests/verify-mediabunny-natural-mov-decline.mjs": "a4aacf4895397fe8d88d14685721e0ba4f8ca300417cfc69e5303e3dec33c35f",
+    "packages/provider-mediabunny/qualification/fixtures/ffmpeg-aac-mono-48000.mov": "7fd78297d04ad3d7030fa8a25578fff62fb426ed2bed56fc4d6a193de90009da",
+    "packages/provider-mediabunny/qualification/fixtures/ffmpeg-aac-mono-48000-noedit.mov": "ae3c751fe8f5a5178a1c9596ecc2f4b9da67da3127695969761435df954ea3d4"
+  },
+  "artifactsSHA256": {
+    "mov-profile-boundary-chrome-edited-local.json": "4f2ed3e5a3e42b56612a6c6676425dd6f25ee01a2aa0b336e85dfdcdda1bc4ee",
+    "mov-profile-boundary-chrome-edited-local-verified.json": "4c856f7c8b16d251d93b74964bbfa2f3a995925143ab9a2966bbc92838010136",
+    "mov-profile-boundary-chrome-noedit-remote.json": "e55da497b1ac9f7c5cc1f823db8c0e426eb1e722ede5c327769ca076b7041fd7",
+    "mov-profile-boundary-chrome-noedit-remote-verified.json": "8992b6d7c2fcb50fb7f7d7dc07890f13207393de874bc5e24860c0dade60af78",
+    "mov-profile-boundary-firefox-edited-local.json": "f06420ed9dd5576d4572d5e43b37fed3236d90ed76ba264faf2cf8523aaae266",
+    "mov-profile-boundary-firefox-edited-local-verified.json": "8632e2770b4e44128ead6a939e5ac5ff1733918f9e1fd316174959663abaf39e",
+    "mov-profile-boundary-firefox-noedit-remote.json": "cdbe5bde9fc8c6efc3e764c36438a21675ab25907f0235bcd596d9fb7a3108fb",
+    "mov-profile-boundary-firefox-noedit-remote-verified.json": "49b4be688b37e75e29ca99f132463bfe50fc5c86ca4386748e6cac94078175d7",
+    "mov-profile-boundary-rebuild-webm.json": "dc948e81c6a51dfea88e94c768b226ea2c45f539aae3f3276926087dae409a26",
+    "mov-profile-boundary-rebuild-mp4.json": "8553dd87c30ba6ace02614e86916bb7a59cf834eb5633ce8be7eb56502108f2d",
+    "mov-profile-boundary-rebuild-stream.json": "b0e29345e1387f45c66587444c46dd6b042b75c8bafd7a193a46a292862b705c",
+    "mov-profile-boundary-observation.json": "d6856a1a8158f0d3dfe882bd7d45ebab1f6bacf3e822bafba4c220fd5bd8a53b",
+    "mov-profile-boundary-package-tests.txt": "a2faa8d5d002205a90880424c2e71d75dfd6d63ae2b2a91d433c7849a569d659",
+    "mov-profile-boundary-licenses.txt": "29c023f03b0ccf8c58088ed36ed842d881dda69d2908cab41ca15f9ff715364e"
+  },
+  "fallbackVerification": {
+    "chrome-edited-local": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "155.0.8059.85",
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 142,
+      "negativeControls": 7
+    },
+    "chrome-noedit-remote": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "155.0.8059.85",
+      "remote": true,
+      "sourceProfile": "remote:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 7
+    },
+    "firefox-edited-local": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "157.0",
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 141,
+      "negativeControls": 7
+    },
+    "firefox-noedit-remote": {
+      "status": "finite-independent-mov-decline-verified-not-release",
+      "browser": "157.0",
+      "remote": true,
+      "sourceProfile": "remote:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 142,
+      "negativeControls": 7
+    }
+  },
+  "packageTests": {
+    "javascript": 73,
+    "sourceArchive": 5
+  },
+  "workerIdentitiesUnchanged": {
+    "webm": "sha256:b7366263f63cbc588737e13df50cb9ab7ce135bb083e16e3601863207926e468",
+    "mp4": "sha256:ae6b4191df585674bfdad59cf03aa2ed2e9c4388983e04302f33e573758cd823",
+    "stream": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45"
+  },
+  "limits": [
+    "The no-edit MOV differs in both sample-description form and first-packet roll assignment; the diagnostic does not isolate the first rejection.",
+    "The first-packet roll guard is tested with authored sample tables; no source profile was broadened.",
+    "Fallback results are finite synthetic mono MOVs and a test-only FFmpeg distribution; WebKit MSE audio output and release qualification remain open."
+  ]
+}

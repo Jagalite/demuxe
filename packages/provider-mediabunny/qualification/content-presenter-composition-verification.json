@@ -1,0 +1,93 @@
+{
+  "status": "finite-content-presenter-composition-evidence-not-release",
+  "coreAssembly": {
+    "archive": "/private/tmp/demuxe-content-presenter-core-20261029/demuxe-1.1.2.tgz",
+    "archiveSHA256": "1bda9e71da5343e02a92722c1cade4b18889d95622202e941574dfc0ec314ab8",
+    "files": 277,
+    "qualification": "local-core-package-only; optional providers and release remain separate",
+    "record": "/private/tmp/demuxe-content-presenter-core-20261029/build-inventory.json",
+    "recordSHA256": "99d87b9e3c0a1726967c0ed39b1b3a06e95b436c50832ba7ecb8cbd60b443ec9"
+  },
+  "deployment": {
+    "output": "/private/tmp/demuxe-content-presenter-deployment-20261029",
+    "providers": [
+      "browser-original",
+      "browser-prepared",
+      "web-audio-gain",
+      "mediabunny-file-preparation",
+      "mediabunny-mp4-file-preparation",
+      "mediabunny-mp4-stream-preparation",
+      "ffmpeg-file-preparation"
+    ],
+    "files": 290,
+    "deploymentSHA256": "83a578638127459c8eabf9667943d7519be07040d55e7c31ef50da6927234f9f"
+  },
+  "sourceSHA256": {
+    "packages/provider-mediabunny/test/browser-backup.mjs": "b961d70686e77c10a0a5dac5e6845d442d62768a821e39bfce1a01edfe451687",
+    "packages/provider-mediabunny/test/verify-composition-evidence.mjs": "e51e480c41a44470f86e69b15644ff9d826c30d3a21e2238aa03fff31fa3a3c8",
+    "packages/provider-mediabunny/test/verify-composition-controls.mjs": "5bb7a5762242041c35e80159f3de8a4f3a1e89fd88f16d54e7f0a8592be96d65",
+    "scripts/deploy-providers.py": "af2d2426aea9f98e2915e9baef653fd9962641ef21fe672cdb46cfd528a0cb58",
+    "src/internal/provider-runtime.ts": "80dbc335041798bcdfda2d4a778ef621e3b86ca0e1fb63b203bdf4ad826b1dad"
+  },
+  "results": [
+    {
+      "receipt": "packages/provider-mediabunny/qualification/content-presenter-packaged-file.json",
+      "receiptSHA256": "b65df747ad3157afe4fe85096eeb06473f4a70eaf1549896865039c9b13bcd5e",
+      "verification": {
+        "status": "finite-composition-evidence-verified-not-release",
+        "provider": "mediabunny-mp4-file-preparation",
+        "implementationIdentity": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+        "presenter": "sha256:9cc25091f1749b759f18d3e3468912c68c24a3d9718db2e584ab83dc9d906fd3",
+        "backup": "sha256:a2d520f3f71e1abb632c9fd3f9be7ab844632966ffdb4bd61c5848abe33c0264",
+        "fixture": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de",
+        "browser": "155.0.8059.85",
+        "reviewedComposition": {
+          "recipeId": "native-remux",
+          "bindingId": "mediabunny-mp4",
+          "implementationIdentities": {
+            "mediabunny-mp4-file-preparation": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+            "browser-prepared": "sha256:a1eaa7edd3650e6b090ebe54ff21ad2f69b18141570f9f8eab6996d444809bde"
+          }
+        },
+        "checkedCoreFiles": 277,
+        "checkedPackagedInputs": 144
+      },
+      "negativeControls": {
+        "status": "finite-evidence-negative-controls-passed",
+        "controls": 14
+      }
+    },
+    {
+      "receipt": "packages/provider-mediabunny/qualification/content-presenter-packaged-stream.json",
+      "receiptSHA256": "cd8cffb760b2f85c973a56db1a94a826130ae9de7a4d248e574164a1a1e83cdc",
+      "verification": {
+        "status": "finite-composition-evidence-verified-not-release",
+        "provider": "mediabunny-mp4-stream-preparation",
+        "implementationIdentity": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45",
+        "presenter": "sha256:9cc25091f1749b759f18d3e3468912c68c24a3d9718db2e584ab83dc9d906fd3",
+        "backup": "sha256:a2d520f3f71e1abb632c9fd3f9be7ab844632966ffdb4bd61c5848abe33c0264",
+        "fixture": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de",
+        "browser": "155.0.8059.85",
+        "reviewedComposition": {
+          "recipeId": "native-remux",
+          "bindingId": "mediabunny-mp4-stream",
+          "implementationIdentities": {
+            "mediabunny-mp4-stream-preparation": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45",
+            "browser-prepared": "sha256:a1eaa7edd3650e6b090ebe54ff21ad2f69b18141570f9f8eab6996d444809bde"
+          }
+        },
+        "checkedCoreFiles": 277,
+        "checkedPackagedInputs": 144
+      },
+      "negativeControls": {
+        "status": "finite-evidence-negative-controls-passed",
+        "controls": 14
+      }
+    }
+  ],
+  "limitations": [
+    "Test-owned qualification records; no production grant",
+    "Archived FFmpeg binary has NOASSERTION metadata",
+    "Finite Chrome fixtures only; no full browser or profile qualification"
+  ]
+}

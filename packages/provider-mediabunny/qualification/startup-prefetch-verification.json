@@ -1,0 +1,121 @@
+{
+  "status": "startup-prefetch-regression-fixed-finite-tests-not-release",
+  "sourceSHA256": {
+    "src/unified-player.ts": "c0c480e1f2742d3ac675f823fd55eb7355a58c4fc2234c88025ec02bd1a5fb60",
+    "web/generated/unified-player.js": "1b1a05d0c89868e3aa6cd92b250a48daf38115ebef9118854bfc76ca5f49e3e7",
+    "tests/startup-escalation.mjs": "fcce862adc24fcbbdbc976b58e4ad69f6b7a68d93d5f2a4b4d3b846883461a57",
+    "tests/browser-mediabunny-prefetch.mjs": "426aa988e10661b61b5056c3f6e54c321b0a8c7295d10480565e88e867060f27",
+    "tests/verify-mediabunny-prefetch.mjs": "f387066f2ee388b5613a4c5d7b0aeddea3b2398ac00ea91b7f5ec0d7d56bf0bd"
+  },
+  "evidenceSHA256": {
+    "startup-prefetch-before-failed.txt": "77b181bb9d3de5b6fa623d7f4d00cc4d4b9bd47e0582b1417d4c0803358da5f5",
+    "startup-prefetch-targeted-tests.txt": "344acfd6604a737d7802e9669f115c5232c26fab6e906d0a732311128b24f82c",
+    "startup-prefetch-file-matrix.json": "a615f81d7a228a47a1568f3d5573b073548a96cd13e059c977e2e6ffcba5f1fb",
+    "startup-prefetch-stream-matrix.json": "27cf74c816fbcbca1227827f27d076dc519a522eef1e8ec34a9242a5bfbd5c68",
+    "startup-prefetch-release-build-failed.txt": "865488042e10b4f0f68892328c77cad1b99a3b8e732dfa08db826dfb1d9421f2",
+    "startup-prefetch-license-before-stamp-failed.txt": "714a1c89d6c860700f22eed3d5bece0035249929cea89e0573436f643e6ce6c7",
+    "startup-prefetch-browser-before.json": "d505a4d4ed4933fc5b21e127bd4210391a2b0b59b973685d04c51bd118eb2cff",
+    "startup-prefetch-browser-chrome.json": "a02203bad322f950750a39e8544b47670c696e81d4e9c5bd1147702bfd827c2c",
+    "startup-prefetch-browser-firefox.json": "b6de3dce7d84ff6f104fa1337001061541eeca4c244a6ee4842483ae5fa264de",
+    "startup-prefetch-browser-webkit.json": "ddf4187175ee6787a963d64111d856d9e52886dc4004a89d8bdccd0c6963904f"
+  },
+  "before": "Controlled prefetch regression failed because the MediaBunny-first rule requested FFmpeg remux.wasm.",
+  "after": "Controlled prefetch regression passed for MediaBunny-first and single MediaBunny preferences, and retained FFmpeg-first and default prefetch behavior.",
+  "targetedTests": "25 passed, including existing discovery and startup policy tests.",
+  "coreCandidate": {
+    "archive": "/private/tmp/demuxe-prefetch-core/demuxe-1.1.2.tgz",
+    "archiveSHA256": "b0e769a2e483c79a041f3ad5999020e941dc748ed02ca6946e4c13a82f9234fe",
+    "files": 277,
+    "qualification": "local-core-package-only; optional providers and release remain separate",
+    "record": "/private/tmp/demuxe-prefetch-core/build-inventory.json",
+    "recordSHA256": "aea65a1c0793d8534ce35ae560d5e5f12592b34c2676905acd99be46de6faa82"
+  },
+  "browserVerification": {
+    "file": {
+      "status": "finite-composition-evidence-verified-not-release",
+      "provider": "mediabunny-mp4-file-preparation",
+      "implementationIdentity": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+      "presenter": "sha256:9cc25091f1749b759f18d3e3468912c68c24a3d9718db2e584ab83dc9d906fd3",
+      "backup": "sha256:a2d520f3f71e1abb632c9fd3f9be7ab844632966ffdb4bd61c5848abe33c0264",
+      "fixture": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de",
+      "browser": "155.0.8059.85",
+      "reviewedComposition": {
+        "recipeId": "native-remux",
+        "bindingId": "mediabunny-mp4",
+        "sourceProfile": "local:pthread:mp4-mov-avc-aac-2ch",
+        "implementationIdentities": {
+          "mediabunny-mp4-file-preparation": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+          "browser-prepared": "sha256:fbeef1b5fe196e0c0c59cfc78ee5589997dad7dd0a5d9830cf67bc65172b1cca"
+        }
+      },
+      "checkedCoreFiles": 277,
+      "checkedPackagedInputs": 144
+    },
+    "stream": {
+      "status": "finite-composition-evidence-verified-not-release",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "implementationIdentity": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45",
+      "presenter": "sha256:9cc25091f1749b759f18d3e3468912c68c24a3d9718db2e584ab83dc9d906fd3",
+      "backup": "sha256:a2d520f3f71e1abb632c9fd3f9be7ab844632966ffdb4bd61c5848abe33c0264",
+      "fixture": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de",
+      "browser": "155.0.8059.85",
+      "reviewedComposition": {
+        "recipeId": "native-remux",
+        "bindingId": "mediabunny-mp4-stream",
+        "sourceProfile": "local:pthread:mp4-mov-avc-aac-2ch",
+        "implementationIdentities": {
+          "mediabunny-mp4-stream-preparation": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45",
+          "browser-prepared": "sha256:fbeef1b5fe196e0c0c59cfc78ee5589997dad7dd0a5d9830cf67bc65172b1cca"
+        }
+      },
+      "checkedCoreFiles": 277,
+      "checkedPackagedInputs": 144
+    }
+  },
+  "limitations": [
+    "The unit and packaged-browser prefetch checks directly invoke the player method; they do not force the timer deadline. Separate browser matrices exercise provider selection and real FFmpeg fallback.",
+    "Finite candidate compositions use test-owned qualification and the archived test-only FFmpeg backup; no release qualification is implied.",
+    "When MediaBunny is preferred, FFmpeg prefetch is deferred even if that provider later proves ineligible; it remains acquired on demand.",
+    "Existing default startup policy and its intermittent timing observations remain unchanged."
+  ],
+  "releaseBuild": "Failed before assembly: sparse checkout lacks tracked results/media-components/extension-completion/qualified-component-installed-chrome.json. The blob exists at HEAD. Independently, the current src/unified-player.ts hash differs from the reviewed qualification record, so restoring this receipt alone cannot qualify the modified core. Candidate mode passed.",
+  "reviewedCoreSourceSHA256": "8cecc2fd8b7e1fcd2bd147de2d11f26b16c3ecd7c061d9a8509ba3af3e073196",
+  "licenseCheck": "Initial check failed after bare tsc omitted generated SPDX headers; repository --stamp-generated check then passed.",
+  "packagedPrefetchBrowserVerification": {
+    "chrome": {
+      "status": "finite-packaged-prefetch-verified-not-release",
+      "browser": "155.0.8059.85",
+      "coreFiles": 277,
+      "requests": 700,
+      "negativeControls": 6
+    },
+    "firefox": {
+      "status": "finite-packaged-prefetch-verified-not-release",
+      "browser": "157.0",
+      "coreFiles": 277,
+      "requests": 700,
+      "negativeControls": 6
+    },
+    "webkit": {
+      "status": "finite-packaged-prefetch-verified-not-release",
+      "browser": "27.2",
+      "coreFiles": 277,
+      "requests": 700,
+      "negativeControls": 6
+    }
+  },
+  "browserNegativeControl": "The pre-fix packaged core fetched the 3,013,312-byte FFmpeg Wasm during the first MediaBunny-first case; the browser assertion failed as expected.",
+  "browserNegativeControlVerification": {
+    "status": "pre-fix-packaged-prefetch-regression-confirmed",
+    "checkedCoreFiles": 277,
+    "checkedRequests": 117,
+    "unwantedBytes": 3013312
+  },
+  "historicalSources": {
+    "src/unified-player.ts": "startup-prefetch-source-previous.txt",
+    "web/generated/unified-player.js": "startup-prefetch-generated-previous.txt",
+    "tests/startup-escalation.mjs": "startup-prefetch-test-previous.txt",
+    "tests/browser-mediabunny-prefetch.mjs": "startup-prefetch-browser-harness-previous.txt",
+    "tests/verify-mediabunny-prefetch.mjs": "startup-prefetch-browser-verifier-previous.txt"
+  }
+}

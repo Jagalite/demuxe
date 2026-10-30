@@ -1,0 +1,56 @@
+{
+  "status": "webkit-worker-pcm-passed-mse-audibility-unresolved",
+  "checkedAtUTC": "2026-10-30",
+  "sourceSHA256": {
+    "tests/browser-mediabunny-webkit-pcm.mjs": "ee861485b90f4cd7f58ea1b8488976dcd0b8fb342a8fd476b60a0136a76dbd9c",
+    "tests/verify-mediabunny-worker-pcm.mjs": "e712b1d03091ed3fcd19d2396eae9d88e889152cc7940108c7056d7b17f02d3c",
+    "packages/provider-mediabunny/qualification/fixtures/avc-aac-320x240.mp4": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de"
+  },
+  "evidenceSHA256": {
+    "worker-pcm-webkit.json": "2919024390e5b9e83150539aa81eea14caddaeecfa0a99b1b9708f0d7691c88a",
+    "worker-pcm-chrome.json": "2d7c28c5f13e41e79e5289adc8bcadaeb81ff0100e82242a442591cc4ede0576",
+    "webkit-activated-audio-controls.json": "b1d16c78958b43ddb34cd56754caa6952092460ce453524bc328f7b011b8bc98",
+    "current-webkit-selected-verification.json": "990884dafd42e6fe2885c14da7f41612c99e635062a9eab448cb478929534a28",
+    "current-core-av-backup-verification.json": "a6b1bea8f0904280bd5638d1f43bfdb1f7ab033a79ce279d107aa35f205294be"
+  },
+  "verification": {
+    "webkit": {
+      "status": "finite-worker-packet-pcm-evidence-verified-not-mse",
+      "browser": "27.2",
+      "audioPackets": 150,
+      "decodedFrames": 153600,
+      "videoPackets": 30,
+      "negativeControls": 6
+    },
+    "chrome": {
+      "status": "finite-worker-packet-pcm-evidence-verified-not-mse",
+      "browser": "155.0.8059.85",
+      "audioPackets": 150,
+      "decodedFrames": 153600,
+      "videoPackets": 30,
+      "negativeControls": 6
+    }
+  },
+  "primarySources": [
+    {
+      "url": "https://bugs.webkit.org/show_bug.cgi?id=266922",
+      "statusAtCheck": "NEW",
+      "reported": "2023-12-28",
+      "summary": "Reports zero Web Audio samples for a MediaSource-backed media element while the same bytes supplied as a Blob yield samples; affects multiple Web Audio node types."
+    },
+    {
+      "url": "https://bugs.webkit.org/show_bug.cgi?id=306493",
+      "statusAtCheck": "NEW",
+      "reported": "2026-01-28",
+      "summary": "Reports zero Web Audio analyser values for HLS sources while the reporter observed audible playback; progressive MP4 provided nonzero analyser values."
+    }
+  ],
+  "inference": "The reported MediaSource observation is consistent with the local independent SDK MSE/Blob controls, but does not establish that this WebKit build has the same root cause or that local MSE output is audible.",
+  "scope": "The exact deployed MP4 streaming worker was run with a finite local synthetic fixture at target zero; all source and output packet signatures and WebCodecs-decoded PCM hashes matched in each browser.",
+  "limitations": [
+    "Collected full worker output is a test-only observation, not an incremental memory measurement.",
+    "WebCodecs decoding is independent of MSE presentation and cannot prove audible MSE output.",
+    "The issue reports describe their own Safari environments, not a verified binary match to Playwright WebKit 27.2.",
+    "No production qualification or release claim."
+  ]
+}

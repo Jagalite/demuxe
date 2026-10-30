@@ -291,7 +291,14 @@ export class PreviewController {
           advance('accept');return;
         }catch(error){job.context.signal.throwIfAborted();this.dispatch({kind:'failure',provider:provider.id,errorKind:error instanceof Error?error.name:'Error'});advance('retry');}
       }
-      if(this.caller?.job===job)this.settle(previewAttemptExhausted(this.metadata(job).background,attempts.deferred)==='deferred'?new PreviewDeferred():undefined);
+      if(this.caller?.job===job){
+        const deferred=previewAttemptExhausted(this.metadata(job).background,attempts.deferred)==='deferred';
+        // A caller may synchronously request the same key after this empty
+        // result. Do not let it attach to a job that has already exhausted its
+        // providers but whose Promise.finally retirement has not run yet.
+        this.dispatch({kind:'finish-job',id:job.id});
+        this.settle(deferred?new PreviewDeferred():undefined);
+      }
     }catch{if(this.caller?.job===job)this.settle(aborted());}
   }
   private validate(result:PreviewResult|null):PreviewResult|null{

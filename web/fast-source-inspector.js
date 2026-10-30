@@ -347,11 +347,16 @@ async function iso(src) {
       const frameTiming=isoFrameTiming(moov,[a,z],[mda,mdz],[sta,stz],()=>src.check());
       if(frameTiming)record.frameTiming=frameTiming;
     } else if (kind === 'audio') {
-      if (moov[data + 8] || moov[data + 9]) unknown('Complex ISO audio sample entry');
+      if(end-data<28)unknown('Short ISO audio sample entry');
+      const version=u16(moov,data+8);
+      if(version>1)unknown('Complex ISO audio sample entry');
+      // Known QuickTime compressed AAC v1 layout. Its extra packet fields are
+      // fixed sentinels; arbitrary v1/v2 extensions remain outside this probe.
+      if(version===1&&(entryType!=='mp4a'||end-data<44||new DataView(moov.buffer,moov.byteOffset,moov.byteLength).getInt16(data+20)!==-2||u32(moov,data+28)!==0||u32(moov,data+32)!==0||u32(moov,data+36)!==0||u32(moov,data+40)!==2))unknown('Complex QuickTime AAC sample entry');
       const channels = u16(moov, data + 16), sampleRate = u32(moov, data + 24) >>> 16;
       if (!channels || !sampleRate) unknown('Audio layout absent');
       record = {id, index, type: kind, default: true, forced: false, lang, title: '', channels, sampleRate,
-        ...audioEntry(entryType, moov, data + 28, end)};
+        ...audioEntry(entryType, moov, data + (version===1?44:28), end)};
     } else {
       // Sample descriptions identify the track; subtitle samples are never read.
       if (!['tx3g', 'text'].includes(entryType)) unknown('Unknown ISO subtitle sample ' + entryType);

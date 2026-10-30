@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "status": "test-composition-passed-not-release",
+  "recordedAt": "2026-10-29T20:41:15.630Z",
+  "preparationIdentity": "sha256:30993b8090bdc7344e8cc226a16912df3a95870a4911e2b17c01a759b6e1bca4",
+  "presenterIdentity": "sha256:2f3fafefc02203ae3073375604ef0a90368b8481e9079515851dc6f282aab3c8",
+  "browser": "155.0.8059.85",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "sourceProfile": "webm-vp8-video-only-v1",
+  "sourceProfiles": [
+    "webm-vp8-video-only-v1",
+    "matroska-vp8-video-only-v1"
+  ],
+  "independentContainerFixture": {
+    "writer": "Demuxe test/matroska-fixture.js",
+    "format": "Matroska",
+    "bitstream": "WebCodecs VP8",
+    "layout": "one track, explicit BlockDuration, no lacing"
+  },
+  "fixture": {
+    "generator": "WebCodecs + MediaBunny writer",
+    "width": 64,
+    "height": 48,
+    "frames": 10,
+    "fps": 10,
+    "audio": false
+  },
+  "assetRequests": 2,
+  "checks": {
+    "time": 0.2,
+    "accuracy": "approximate",
+    "fidelity": "reduced",
+    "size": [
+      32,
+      24
+    ],
+    "color": [
+      224,
+      33,
+      65,
+      255
+    ],
+    "bytesRead": 634,
+    "blobBytes": 135,
+    "copiedPackets": 10,
+    "copiedBytes": 626,
+    "playback": {
+      "duration": 1,
+      "seekTime": 0.5,
+      "freshFrameTime": 0.6
+    },
+    "ownerResult": {
+      "plan": "remux",
+      "seekTime": 0.5,
+      "freshFrameTime": 0.6,
+      "profile": "webm-vp8-video-only-v1",
+      "matroska": {
+        "profile": "matroska-vp8-video-only-v1",
+        "containerWriter": "Demuxe independent fixture",
+        "seekTime": 0.5,
+        "freshFrameTime": 0.6,
+        "color": [
+          224,
+          33,
+          65,
+          255
+        ],
+        "packetHashesPreserved": true
+      },
+      "remote": [
+        {
+          "profile": "webm-vp8-video-only-v1",
+          "packetHashesPreserved": true,
+          "seekTime": 0.5,
+          "freshFrameTime": 0.6
+        },
+        {
+          "profile": "matroska-vp8-video-only-v1",
+          "packetHashesPreserved": true,
+          "seekTime": 0.5,
+          "freshFrameTime": 0.6
+        }
+      ],
+      "workerCount": 9,
+      "objectURLsCreated": 23,
+      "policy": {
+        "rejectedProfiles": 6,
+        "integrityCode": "ASSET_LOAD_FAILED",
+        "cancelledWorker": true,
+        "directPreparationAcquired": false,
+        "staleSourceCleared": true,
+        "baselinePreference": "ffmpeg",
+        "explicitPreference": "mediabunny",
+        "sourceReplacement": true,
+        "parallelPlayers": true
+      }
+    },
+    "previewLifecycle": {
+      "concurrentRequests": 2,
+      "deferredDuringPlayback": true,
+      "sourceReplacement": true,
+      "lateReadDiscarded": true,
+      "nativeDecodersCreated": 4,
+      "nativeDecodersRemaining": 0
+    }
+  },
+  "limitations": [
+    "Two VP8 container fixtures in one browser; limited independent Matroska layout, not arbitrary-container qualification",
+    "Inert FFmpeg declaration tests preference only; no FFmpeg playback claim",
+    "Not a production application release qualification"
+  ]
+}

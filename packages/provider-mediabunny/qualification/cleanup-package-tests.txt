@@ -1,0 +1,84 @@
+
+> @demuxe/provider-mediabunny@1.1.2 test
+> node --test test/*.test.js && python3 test/test_source_archive.py
+
+✔ concurrent reads reserve budgets before transport starts (1.359458ms)
+✔ transport errors retain their original identity (0.591667ms)
+✔ abort settles even when transport ignores signal and late bytes are discarded (0.20275ms)
+✔ owned source closes once; borrowed source stays open (0.465709ms)
+✔ short reads fail and invalid ranges never reach transport (0.406916ms)
+✔ deadline bounds an unresponsive source (12.165625ms)
+✔ owned close is bounded, invoked once and shares its retained promise (3002.103792ms)
+✔ falsy source failures remain failures and retain original value (0.39175ms)
+✔ abort-handler reentry cannot duplicate owned source retirement (0.230208ms)
+✔ prepared file retains source identity and exact parsed packet timeline (17.89675ms)
+✔ independently authored Matroska VP8 is prepared as WebM with identical payload and timeline (5.214709ms)
+✔ authored Matroska packet gaps are declined when the packet API normalizes them (2.320625ms)
+✔ prepared file preserves authored aspect ratio, color and track metadata (7.471625ms)
+✔ finer authored WebM timing is declined when output would quantize it (4.347625ms)
+✔ abort during output verification retires both parsers and cannot publish a late file (11.349ms)
+✔ unsupported or incomplete track facts acquire no runtime (0.23275ms)
+✔ pre-aborted supported profile acquires no runtime (0.276916ms)
+✔ runtime acquisition failures retain original error identity (0.290625ms)
+✔ transport failure is not replaced by parser cleanup failure (0.448959ms)
+✔ cleanup failure remains terminal when unsupported preparation would otherwise decline (0.186083ms)
+✔ profile mismatch cannot conceal a parser cleanup failure (0.164209ms)
+✔ abort keeps its original reason when parser disposal throws (0.212625ms)
+✔ format-specific MP4 inspector retains bounded partial evidence through its public export (103.04775ms)
+✔ format-specific entries retain original byte-source failures (1.066167ms)
+✔ fragment framing crosses write boundaries and applies handoff backpressure (5.730709ms)
+✔ cancel releases a blocked writer and preserves the original failure (1.028666ms)
+✔ oversized, truncated and nonmonotonic output never becomes a fragment (0.585166ms)
+✔ real WAVE inspection preserves partial track evidence and bounded reads (4.3095ms)
+✔ real parser cannot swallow original transport failure (0.866917ms)
+✔ read budget exhaustion stops further transport and is not parse success (0.726333ms)
+✔ pre-aborted inspection acquires no runtime and closes its owned lease (0.393333ms)
+✔ inspection deadline bounds a runtime loader that never settles (10.571042ms)
+✔ secondary cleanup failure cannot replace a primary acquisition error (0.342667ms)
+✔ source envelope retains explicit duration and key/delta truth before packet API normalization (3.90575ms)
+✔ laced and invisible blocks cannot enter the single-packet copy profile (2.89375ms)
+✔ truncated or overlong EBML elements decline without out-of-range reads (0.379584ms)
+✔ source envelope obeys the existing read budget and cancellation (0.748459ms)
+✔ A/V table profiles retain track identity, AAC packet extent and one-packet preroll (9.800833ms)
+✔ audio-only AAC tables retain exact extent and decline unsupported recovery/reference profiles (8.5965ms)
+✔ unqualified AAC layouts and extra audio selections acquire no runtime (2.117542ms)
+✔ authored classic sample tables retain exact timing, sizes and sync identity (1.894334ms)
+✔ nonidentity edits, composition offsets, external references and fragments decline (4.500958ms)
+✔ truncated atoms, read budgets and cancellation preserve bounded failures (0.729375ms)
+✔ MP4 preflight cannot acquire runtime for unsupported or incomplete source tracks (0.298916ms)
+✔ real muxer emits incremental fragments and stops advancing under consumer backpressure (34.915583ms)
+✔ retiring a paused producer rejects consumption and settles mux ownership (5.865542ms)
+✔ seek producer starts at the source random-access point and retains the absolute clock (6.929625ms)
+✔ unrepresentable authored clocks decline before any output is created (2.773417ms)
+✔ incremental output retains authored translation and pixel aspect metadata (5.898916ms)
+✔ PCM packet copy preserves selected audio payload and timeline (6.5165ms)
+✔ unknown or duplicate selected tracks reject without partial success (0.499ms)
+✔ bounded output failure publishes no file (1.740875ms)
+✔ pre-aborted copy acquires no track metadata (0.174292ms)
+✔ preview preserves represented PTS and retires its input and canvas (1.616ms)
+✔ release cancels extraction, discards late results and permits reuse (3.153959ms)
+✔ release waits for an already-running owned-source cleanup (0.959083ms)
+✔ process accounting parses macOS CPU clocks and unordered descendant trees (0.926583ms)
+✔ sample ledger retains exited-child CPU without calling RSS physical memory (0.172ms)
+✔ producer retains a mux failure that arrives before its presentation observer is installed (13.586875ms)
+✔ worker source uses bounded byte requests and retires late responses (0.906083ms)
+✔ worker rejects incomplete range responses instead of publishing a prepared file (0.232458ms)
+✔ stream worker hands one generation to the existing producer protocol and transfers owned output (1.096583ms)
+✔ stream worker retires a producer acquired after close without publishing readiness (0.166042ms)
+✔ stream worker retains preflight classifications and refuses invalid acquisition ordering (0.238666ms)
+✔ stream worker borrows only bounded byte reads while acquiring a remote producer (0.87725ms)
+✔ stream worker close settles an outstanding byte request without late readiness (0.325292ms)
+✔ stream worker rejects incomplete remote bytes as an acquisition protocol failure (0.344542ms)
+ℹ tests 67
+ℹ suites 0
+ℹ pass 67
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3728.203791
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 4.132s
+
+OK

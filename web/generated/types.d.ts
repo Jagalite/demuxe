@@ -728,7 +728,10 @@ export type InspectionOptions = Readonly<{
     maxBytes?: number;
     maxReads?: number;
     timeoutMs?: number;
+    inspector?: MediaInspector;
 }>;
+/** Optional inspector behind the bounded source owner; no transport or fallback ownership. */
+export type MediaInspector = (source: CustomSource, options?: Omit<InspectionOptions, 'inspector' | 'assetBase'>) => Promise<MediaInspection>;
 export type MediaInspection = Readonly<{
     id: string;
     sourceIdentity: string | null;

@@ -1,0 +1,21 @@
+{
+  "status": "six-current-preview-source-failure-cases-passed-not-release",
+  "artifactsSHA256": {
+    "reader-current-preview-failure-mp4-chrome.json": "3ec5731f9a7006acfe8d2382b0d06187992275d0f768ebc259fe8dde4b1a5616",
+    "reader-current-preview-failure-mp4-firefox.json": "9841c0497f4369441e8cccf1e7b07aaec9963f14bc283df23c82feb4f5c8f102",
+    "reader-current-preview-failure-mp4-webkit.json": "5dcd1150a403c018646643c78edfe7d5906e42620329719a5b38e6b3ae06dde0",
+    "reader-current-preview-failure-webm-chrome.json": "b34d43bcf779f9faa3d4405ec6a7c72842bfa8e8f4cf4942da1bba49a383c3ae",
+    "reader-current-preview-failure-webm-firefox.json": "be039cc89f69a3c71cd93f8449bc1637f7c70721ea551798554a203bc8d87a10",
+    "reader-current-preview-failure-webm-webkit.json": "cdaa17868756f033f0ae68297ec5db2d4007155d41dd61ed9a048ed06fe772fd",
+    "reader-current-preview-failure-verified.json": "afeab29211d00f92be18fd4940bd00e8b2eb883effa3c1e19bc2a977f1a04a1c"
+  },
+  "harnessSHA256": "6de28cc0cb3785c48426c3ce0b6a03d02016ac0d239e56f417370aa662fd091d",
+  "verifierSHA256": "879c0b5850d7917ab532fb0d737dbdddb2763125eb4137af0bf00eadf332d86b",
+  "preferredSourceRebuildSHA256": "6c08a0348737544db10030531dc7009b9a3e256539c08d26a8db59a2236eb42d",
+  "coverage": "Actual rebuilt MP4 and WebM preview parsers in Chrome, Firefox and WebKit preserve the original initial transport rejection and cancellation reason, closing owned sources once. The verifier checks bundle and preferred-source rebuild hashes, six observations and six mutation controls.",
+  "limits": [
+    "Fixture sizes start parsing but fixture media bytes are not consumed; this tests failure paths rather than decoded preview.",
+    "A previously retained controlled-parser test covers wrapped transport errors; these runs do not prove that scenario.",
+    "Playwright WebKit is not Safari release qualification; production release and WebKit MSE audio remain open."
+  ]
+}

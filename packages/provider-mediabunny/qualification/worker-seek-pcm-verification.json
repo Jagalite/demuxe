@@ -1,0 +1,51 @@
+{
+  "status": "finite-seek-worker-pcm-verified-not-mse",
+  "targetSeconds": 1.25,
+  "sourceSHA256": {
+    "tests/browser-mediabunny-seek-pcm.mjs": "f3432ee1419fe690bdddee9e4a1e41add35756ca40214cc3637ae13edbaf71c2",
+    "tests/verify-mediabunny-seek-pcm.mjs": "588becfe62fca09e2a701c3de70ed29f7759f868df642112b5d95d3da3245d43",
+    "packages/provider-mediabunny/qualification/fixtures/avc-aac-320x240.mp4": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de"
+  },
+  "evidenceSHA256": {
+    "worker-seek-pcm-webkit.json": "7a960117e9a85dea72736698067f1600b819f078afc637539d2229977c5d50f1",
+    "worker-seek-pcm-chrome.json": "5f96484e6fd9ec20a64a876d7213c75ef9f0daeb944acc1a8c0f80731756610e"
+  },
+  "verification": {
+    "webkit": {
+      "status": "finite-seek-worker-packet-pcm-verified-not-mse",
+      "browser": "27.2",
+      "target": 1.25,
+      "audioPackets": 105,
+      "decodedFrames": 107520,
+      "pcmFramesComparedAfterPreroll": 106496,
+      "videoPackets": 20,
+      "negativeControls": 7
+    },
+    "chrome": {
+      "status": "finite-seek-worker-packet-pcm-verified-not-mse",
+      "browser": "155.0.8059.85",
+      "target": 1.25,
+      "audioPackets": 105,
+      "decodedFrames": 107520,
+      "pcmFramesComparedAfterPreroll": 106496,
+      "videoPackets": 20,
+      "negativeControls": 7
+    }
+  },
+  "firstPrerollPCMMatchesSource": {
+    "webkit": [
+      false,
+      false
+    ],
+    "chrome": [
+      false,
+      false
+    ]
+  },
+  "scope": "Exact deployed MP4 streaming worker, synthetic local AVC/AAC fixture, seek target 1.25; compare packet/configuration suffix and WebCodecs-decoded PCM after the first preroll packet.",
+  "limits": [
+    "The first preroll packet PCM differs from decoding the complete source; matching begins with the following packet, before the target.",
+    "Test collects the full finite worker output and does not exercise the MSE playback clock or establish audible output.",
+    "Single target and fixture; no broad seek, device or release qualification."
+  ]
+}

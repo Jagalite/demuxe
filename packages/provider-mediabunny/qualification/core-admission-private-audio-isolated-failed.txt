@@ -1,0 +1,35 @@
+✔ audio worker initialization is single-owner and cannot finish after retirement (0.568375ms)
+✔ context suspension preserves native pause before stopped-device header ordering (0.535333ms)
+✔ pause commits stop intent before native I/O; obsolete completions cannot change controls (0.0885ms)
+✔ load phases require source opening and native readiness before chain publication (0.2295ms)
+✔ replacement flush waits at most 200 intervals and checks retained native handles (4.103459ms)
+✔ load polling allows 1000 native samples and retains the final delay before deadline (4.043041ms)
+✔ source retirement prevents every late load phase from starting another effect (0.172959ms)
+✔ refresh request admission, deadline and replacement preserve scope and exactly one outcome (0.204708ms)
+✔ worker teardown admission is stable after repeated close and preserves closed terminal state (0.321958ms)
+✔ actual audio initialization and load preserve native call order and reply only after chain readiness (3.036334ms)
+✔ actual close while engine acquisition is pending disposes the late owner without native calls (1.126416ms)
+✔ actual reentrant close revokes a source once and shares native teardown among RPC callers (0.757042ms)
+✔ actual late load response after close cannot query or publish output ownership (0.863875ms)
+✔ actual old source refresh cannot escape replacement and late replies cannot settle the new request (0.893875ms)
+✔ actual context suspension applies native pause while the consumption device is still running (0.895875ms)
+✔ audio RPC capacity retains native obligations until physical settlement and reserves close (3.553667ms)
+✔ audio RPC byte and traversal limits reject before native execution (0.922ms)
+✔ audio RPC budget rejects aggregate bytes and exhausted identity without mutating input (0.079875ms)
+✖ tests/api-stability/private-audio-worker-state.mjs (120002.783459ms)
+  'test timed out after 120000ms'
+
+ℹ tests 19
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 1
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120007.457917
+
+✖ failing tests:
+
+test at tests/api-stability/private-audio-worker-state.mjs:1:1
+✖ tests/api-stability/private-audio-worker-state.mjs (120002.783459ms)
+  'test timed out after 120000ms'

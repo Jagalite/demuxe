@@ -162,6 +162,9 @@ def verify_corresponding_source(companion, engine, record, profile, files):
 
 
 def audit(target, files, record):
+    if target == 'mediabunny-candidate':
+        from mediabunny_package_audit import audit as audit_mediabunny
+        return audit_mediabunny(files, record)
     policy = Policy()
     config = json.loads((ROOT / 'licensing/provider-packages.json').read_text())
     spec = config['targets'][target]
@@ -306,7 +309,10 @@ def main():
         audit(args.target, archive_files(args.archive), json.loads(raw))
     except (ValueError, KeyError, TypeError, OSError, tarfile.TarError) as error:
         raise SystemExit(str(error)) from error
-    print('Exact package ownership, license map, provenance and metadata verified')
+    if args.target == 'mediabunny-candidate':
+        print('MediaBunny candidate package and source audit passed; not release-qualified')
+    else:
+        print('Exact package ownership, license map, provenance and metadata verified')
 
 
 if __name__ == '__main__':

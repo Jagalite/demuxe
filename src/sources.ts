@@ -11,12 +11,12 @@ export function isCustomSource(value:unknown):value is CustomSource{return !!val
 function validate(source:CustomSource){if(source.transport!=='application-managed'||typeof source.id!=='string'||!source.id||source.id.length>256||!Number.isSafeInteger(source.size)||source.size<=0||typeof source.read!=='function'||source.close!==undefined&&typeof source.close!=='function'||source.ownership!==undefined&&!['owned','borrowed'].includes(source.ownership))throw new PlayerError('INVALID_ARGUMENT','Invalid immutable random-access source');}
 function deadline<T>(work:Promise<T>,signal:AbortSignal,ms:number):Promise<T>{
   return new Promise((resolve,reject)=>{
-    const abort=()=>finish(new PlayerError('ABORTED','Source read cancelled'));
-    const timer=setTimeout(()=>finish(new PlayerError('NETWORK_TIMEOUT','Source read deadline exceeded')),ms);
+    const abort=()=>finish(false,new PlayerError('ABORTED','Source read cancelled'));
+    const timer=setTimeout(()=>finish(false,new PlayerError('NETWORK_TIMEOUT','Source read deadline exceeded')),ms);
     let done=false;
-    const finish=(error?:unknown,value?:T)=>{if(done)return;done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);error?reject(error):resolve(value!);};
+    const finish=(ok:boolean,value:unknown)=>{if(done)return;done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);ok?resolve(value as T):reject(value);};
     signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
-    work.then(value=>finish(undefined,value),error=>finish(error));
+    work.then(value=>finish(true,value),error=>finish(false,error));
   });
 }
 /** Serialize provider calls, reject late results, and never retain provider buffers. */
@@ -74,9 +74,10 @@ class ByteReader {
 
 export async function materializeSource(source:CustomSource,signal?:AbortSignal):Promise<File>{
   validate(source);if(source.size>CUSTOM_SOURCE_PLAYBACK_LIMIT)throw new PlayerError('UNSUPPORTED_FEATURE','Custom playback staging is limited to 32 MiB; use a File for larger sources');
-  const reader=new ByteReader(source,signal,4096,CUSTOM_SOURCE_PLAYBACK_LIMIT);
+  const reader=new ByteReader(source,signal,4096,CUSTOM_SOURCE_PLAYBACK_LIMIT);let failed=false;
   try{const parts:ArrayBuffer[]=[];for(let at=0;at<source.size;at+=262144)parts.push(await reader.read(at,Math.min(262144,source.size-at)));return new File(parts,source.name??'custom-media',{type:source.type??''});}
-  finally{await reader.close();}
+  catch(error){failed=true;throw error;}
+  finally{try{await reader.close();}catch(error){if(!failed)throw error;}}
 }
 
 let serial=0;
@@ -86,7 +87,7 @@ export async function inspectMedia(input:MediaSourceInput,options:InspectionOpti
   if(!Number.isInteger(maxBytes)||maxBytes<64||maxBytes>512*1024||!Number.isInteger(maxReads)||maxReads<1||maxReads>128||!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>30000)throw new PlayerError('INVALID_ARGUMENT','Invalid inspection budget');
   const base=runtimeBase(options.assetBase),controller=new AbortController();
   const abort=()=>controller.abort();options.signal?.addEventListener('abort',abort,{once:true});if(options.signal?.aborted)abort();
-  const timer=setTimeout(abort,timeoutMs);let reader:ByteReader|undefined,remote:any;
+  const timer=setTimeout(abort,timeoutMs);let reader:ByteReader|undefined,remote:any,failed=false;
   try{
     if(controller.signal.aborted)throw new PlayerError('ABORTED','Inspection cancelled');
     let source:CustomSource;
@@ -103,6 +104,11 @@ export async function inspectMedia(input:MediaSourceInput,options:InspectionOpti
       source={kind:'bytes',transport:'application-managed',id:'remote',size,read:(at,n)=>remote.read(BigInt(at),n)};
     }
     reader=new ByteReader(source,controller.signal,maxReads,maxBytes);
+    if(options.inspector){
+      const result=await deadline(options.inspector({kind:'bytes',transport:'application-managed',id:source.id,size:source.size,ownership:'borrowed',read:async(at,n)=>new Uint8Array(await reader!.read(at,n))},{signal:controller.signal,maxBytes,maxReads,timeoutMs}),controller.signal,timeoutMs);
+      if(reader.failure)throw reader.failure;
+      return freeze({...result,sourceIdentity:isCustomSource(input)?input.id:null,bytesRead:reader.bytes,reads:reader.reads});
+    }
     const file={size:source.size,slice:(at:number,end:number)=>({arrayBuffer:()=>reader!.read(at,end-at)})};
     const {inspectFastSource}=await import(new URL('web/fast-source-inspector.js',base).href);
     const result=await deadline(inspectFastSource(file,{signal:controller.signal,requirements:['container','tracks','duration']}),controller.signal,timeoutMs) as any;
@@ -112,5 +118,12 @@ export async function inspectMedia(input:MediaSourceInput,options:InspectionOpti
     const evidence=result.evidence,run=++serial;
     const list=evidence?.tracks?tracks(evidence.tracks.map((t:any)=>({...t,'ff-index':t.index,selected:false})),run,'software').map(t=>({...t,id:`inspection:${t.id}`})):[];
     return freeze({id:`inspection:${run}`,sourceIdentity:isCustomSource(input)?input.id:null,status:result.status==='satisfied'?'complete':evidence?'partial':'unknown',completeFor:result.available??[],format:evidence?.format??null,duration:Number.isFinite(evidence?.duration)&&evidence.duration>0?evidence.duration:null,tracks:evidence?.tracks?list:null,chapters:null,tags:null,reason:result.reason?String(redact(result.reason)):null,bytesRead:reader.bytes,reads:reader.reads});
-  }finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);remote?.close();await reader?.close();}
+  }catch(error){failed=true;throw error;}
+  finally{
+    clearTimeout(timer);options.signal?.removeEventListener('abort',abort);
+    let cleanupFailed=false,cleanupError:unknown;
+    try{remote?.close();}catch(error){cleanupFailed=true;cleanupError=error;}
+    try{await reader?.close();}catch(error){if(!cleanupFailed){cleanupFailed=true;cleanupError=error;}}
+    if(!failed&&cleanupFailed)throw cleanupError;
+  }
 }

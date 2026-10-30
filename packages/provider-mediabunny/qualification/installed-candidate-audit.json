@@ -1,0 +1,61 @@
+{
+  "status": "installed-candidate-audit-passed-not-release",
+  "files": {
+    "packages/provider-mediabunny/audit-candidate.mjs": "e891a2f65a640f4a04d829edd9b4756539a9d7323c68ced6fa730266c60076d3",
+    "packages/provider-mediabunny/assemble-candidate.mjs": "d73b2119dbcf43408c25c8eb5da91b87f993f4044c3cefe780ec1ca65b82f470",
+    "packages/provider-mediabunny/test/candidate-assembly.mjs": "aea4891bf4315806a5a762b53aad271f169002cea258ae1a68e73b98e3a1ea87",
+    "packages/provider-mediabunny/build.mjs": "f78c7ccd226592ad320b3446280ff76a275da0572536936e772691ff35bedef7",
+    "packages/provider-mediabunny/package.json": "0f2af66228663a7abb321f111d88eddca7e606e5af7f6223d672bdb8ca33142d"
+  },
+  "results": [
+    {
+      "status": "candidate-assembly-and-composer-contracts-passed-not-release",
+      "provider": "mediabunny-file-preparation",
+      "identity": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+      "checks": [
+        "candidate composition",
+        "corrupt worker rejected before output",
+        "rehashed altered source rejected before output",
+        "existing output preserved"
+      ]
+    },
+    {
+      "status": "candidate-assembly-and-composer-contracts-passed-not-release",
+      "provider": "mediabunny-mp4-file-preparation",
+      "identity": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+      "checks": [
+        "candidate composition and installed audit",
+        "extra file and incomplete license map rejected",
+        "installed and build worker corruption rejected",
+        "rehashed altered source rejected before output",
+        "existing output preserved"
+      ]
+    },
+    {
+      "status": "candidate-assembly-and-composer-contracts-passed-not-release",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "identity": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45",
+      "checks": [
+        "candidate composition",
+        "corrupt worker rejected before output",
+        "rehashed altered source rejected before output",
+        "existing output preserved"
+      ]
+    }
+  ],
+  "negativeControls": [
+    "extra file",
+    "license map omission",
+    "installed worker mutation",
+    "build worker mutation",
+    "rehashed source mutation",
+    "existing output"
+  ],
+  "packageUnitTestsPassed": 63,
+  "licenseOutput": "Core dependency boundary verified (90 source/output files)\nLicense boundaries, SPDX headers and preserved notices verified\n",
+  "limits": [
+    "Private candidate audit; not the existing production package auditor",
+    "No reviewed MediaBunny production target/template, qualified registry identity, or publication approval",
+    "WebM and stream checks used the earlier audit version; final additional metadata/installed-byte checks ran on MP4"
+  ]
+}

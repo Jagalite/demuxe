@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { compareProviderPreferences, normalizeProviderPreferences } from './provider-cost.js';
+import { openPreparationSource, remotePreparationSize, snapshotPreparationSource, samePreparationSource } from './preparation-source.js';
+import { bridgeStreamWorker } from './stream-worker.js';
 import { PlayerError } from './errors.js';
 import { identifyDeployment } from './provider-deployment.js';
 import { awaitRuntime, runtimeAccess } from '../runtime.js';
@@ -27,6 +29,8 @@ export class ProviderRuntime {
     sources = new WeakMap();
     nextSource = 0;
     codecSources = new WeakMap();
+    fileSources = new WeakMap();
+    remoteSources = new WeakMap();
     sharedSnapshot;
     get revision() { return this.sharedSnapshot?.revision ?? 0; }
     /** Adopt additive provider publications only at a player operation boundary.
@@ -44,6 +48,8 @@ export class ProviderRuntime {
         this.deployment = snapshot.deployment;
         this.sharedSnapshot = snapshot;
         this.codecSources = new WeakMap();
+        this.fileSources = new WeakMap();
+        this.remoteSources = new WeakMap();
         return true;
     }
     profileAvailability(runtime, offer) {
@@ -261,8 +267,311 @@ export class ProviderRuntime {
             await acquisition.dispose();
         }
     }
-    evidence(recipe, scopeKey) {
-        return runtimeCompositionEvidence(this.state, { id: recipe.id, bindings: recipe.bindings.map(binding => ({ id: binding.id, providerIds: binding.assignments.map(assignment => assignment.providerId) })) }, scopeKey);
+    evidence(recipe, scopeKey, sourceProfile) {
+        const records = runtimeCompositionEvidence(this.state, { id: recipe.id, bindings: recipe.bindings.map(binding => ({ id: binding.id, providerIds: binding.assignments.map(assignment => assignment.providerId) })) }, scopeKey);
+        return records.filter(record => {
+            if (!['mediabunny', 'mediabunny-mp4', 'mediabunny-mp4-stream'].includes(record.bindingId))
+                return true;
+            // A generic browser ABI label does not identify the presenter build.
+            if (!sourceProfile || !/^sha256:[0-9a-f]{64}$/.test(record.implementationIdentities['browser-prepared'] ?? ''))
+                return false;
+            return this.shared?.qualifiedCompositions.some(reviewed => reviewed.recipeId === record.recipeId && reviewed.bindingId === record.bindingId && reviewed.sourceProfiles.includes(sourceProfile) && Object.keys(reviewed.implementationIdentities).length === Object.keys(record.implementationIdentities).length && Object.entries(record.implementationIdentities).every(([id, identity]) => reviewed.implementationIdentities[id] === identity)) ?? false;
+        });
+    }
+    /** Eligibility is source-scoped and requires the complete prepared binding,
+     * not just an installed parser or an asserted capability offer. */
+    preparationCandidate(probe, size) {
+        if (size > 32 * 1024 * 1024 || !probe)
+            return;
+        const video = probe.tracks.filter(track => track.type === 'video'), audio = probe.tracks.filter(track => track.type === 'audio');
+        if (video.length > 1 || (!video.length && audio.length !== 1) || video.some(track => track.attachedPicture) || audio.length > 1 || probe.tracks.length !== video.length + audio.length || new Set(probe.tracks.map(track => JSON.stringify([track.type, track.id]))).size !== probe.tracks.length)
+            return;
+        const formats = probe.format?.split(',') ?? [], codec = video[0]?.codec;
+        if (codec === 'vp8' && !audio.length && formats.some(format => format === 'webm' || format === 'matroska'))
+            return { providerId: 'mediabunny-file-preparation', binding: 'mediabunny', path: 'web/providers/mediabunny/webm.js', profile: 'webm-matroska-vp8-video' };
+        if ((codec === 'h264' || !video.length) && audio.every(track => track.codec === 'aac' && track.sampleRate === 48000 && [1, 2].includes(track.channels ?? 0)) && formats.some(format => format === 'mov' || format === 'mp4'))
+            return { providerId: 'mediabunny-mp4-file-preparation', binding: 'mediabunny-mp4', path: 'web/providers/mediabunny/mp4.js', profile: video.length ? (audio.length ? 'mp4-mov-avc-aac-' + audio[0].channels + 'ch' : 'mp4-mov-avc-video') : 'mp4-mov-aac-' + audio[0].channels + 'ch' };
+        return;
+    }
+    filePreparationCandidate(file) { return this.preparationCandidate(this.fileSources.get(file), file.size); }
+    canStreamFile(file, runtime = 'pthread') {
+        return this.canUseStream(this.fileSources.get(file), file.size, runtime, this.canPrepareFile(file, runtime), 'local');
+    }
+    canUseStream(probe, size, runtime, completeAvailable, transport) {
+        const candidate = this.preparationCandidate(probe, size);
+        const providerId = 'mediabunny-mp4-stream-preparation', path = 'web/providers/mediabunny/mp4-stream.js';
+        if (!this.deployment || !probe || probe.tracks.filter(track => track.type === 'video').length !== 1 || size < 1 || candidate?.binding !== 'mediabunny-mp4' || !this.hasOffer(providerId, 'packet-copy') || !this.has(path))
+            return false;
+        const base = resolvableExecutionRecipe('native-remux', runtime), recipe = { ...base, bindings: base.bindings.filter(binding => binding.id === 'mediabunny-mp4-stream') };
+        const scope = JSON.stringify([providerId, probe.format, size, probe.tracks]);
+        const resolution = resolveProviderRecipe(recipe, this.deployment.catalog, this.evidence(recipe, scope, transport + ':' + runtime + ':' + candidate.profile), scope);
+        if (resolution.state !== 'pending' && resolution.state !== 'available')
+            return false;
+        const stream = [{ providerId, requirements: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }] }];
+        const alternatives = [...(completeAvailable ? [candidate.providerId] : []), ...(['ffmpeg-file-preparation' + (runtime === 'pthread' ? '' : '-' + runtime)].filter(id => this.hasOffer(id, 'packet-copy') && this.has(`web/engine-remux${runtime === 'pthread' ? '' : '-' + runtime}/remux.wasm`)))];
+        return alternatives.every(providerId => compareProviderPreferences(stream, [{ providerId, requirements: [{ capability: 'media.prepare.file' }] }], this.providerPreferences) < 0);
+    }
+    /** One verified local producer per presentation generation. The caller owns
+     * termination; its abort signal and runtime destruction also retire the lease. */
+    async streamFile(file, target, signal, runtime = 'pthread') {
+        await this.load();
+        signal = AbortSignal.any([signal, this.controller.signal]);
+        signal.throwIfAborted();
+        if (!Number.isFinite(target) || target < 0)
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid streaming target');
+        if (!this.canStreamFile(file, runtime))
+            return;
+        const sourceTracks = this.fileSources.get(file).tracks.map(track => ({ ...track }));
+        return this.executeStream({ file, sourceTracks, target }, signal);
+    }
+    canStreamRemote(source, runtime = 'pthread') {
+        const admission = this.remoteSources.get(source), size = admission ? remotePreparationSize(admission.source) : undefined;
+        return !!admission && size !== undefined && this.canUseStream(admission.probe, size, runtime, this.canPrepareRemote(source, runtime), 'remote');
+    }
+    async streamRemote(source, target, signal, runtime = 'pthread') {
+        await this.load();
+        signal = AbortSignal.any([signal, this.controller.signal]);
+        signal.throwIfAborted();
+        if (!Number.isFinite(target) || target < 0)
+            throw new PlayerError('INVALID_ARGUMENT', 'Invalid streaming target');
+        if (!this.canStreamRemote(source, runtime))
+            return;
+        const admission = this.remoteSources.get(source), size = remotePreparationSize(admission.source);
+        const check = () => { signal.throwIfAborted(); if (!samePreparationSource(source, admission.source))
+            throw new PlayerError('SOURCE_CHANGED', 'Remote streaming source changed after admission'); };
+        check();
+        const reader = await openPreparationSource(admission.source, this.base, signal, { maxBytes: 64 * 1024 * 1024, validate: check });
+        let handedOff = false;
+        try {
+            check();
+            const acquired = await this.executeStream({ source: { size }, sourceTracks: admission.probe.tracks.map(track => ({ ...track })), target }, signal, { read: (at, length) => reader.read(at, length), check, close: () => reader.close() });
+            handedOff = !!acquired;
+            return acquired;
+        }
+        finally {
+            if (!handedOff)
+                reader.close();
+        }
+    }
+    async executeStream(request, signal, remote) {
+        const size = request.file?.size ?? request.source.size;
+        const bytes = await awaitRuntime(this.bytes('web/providers/mediabunny/mp4-stream.js'), signal);
+        signal.throwIfAborted();
+        remote?.check();
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'text/javascript' }));
+        let raw;
+        try {
+            raw = new Worker(url, { type: 'module', name: 'demuxe-stream-preparation' });
+        }
+        catch (error) {
+            URL.revokeObjectURL(url);
+            throw new PlayerError('ASSET_LOAD_FAILED', 'Streaming worker could not initialize');
+        }
+        const terminate = raw.terminate.bind(raw);
+        let retired = false;
+        const retire = () => { if (retired)
+            return; retired = true; signal.removeEventListener('abort', abort); try {
+            remote?.close();
+        }
+        finally {
+            try {
+                terminate();
+            }
+            finally {
+                URL.revokeObjectURL(url);
+            }
+        } };
+        raw.terminate = retire;
+        const worker = remote ? bridgeStreamWorker(raw, { size, read: remote.read, check: remote.check, close: () => { } }) : raw;
+        const abort = () => worker.terminate();
+        signal.addEventListener('abort', abort, { once: true });
+        try {
+            await new Promise((resolve, reject) => {
+                let settled = false;
+                const finish = (error, failed = error !== undefined) => { if (settled)
+                    return; settled = true; clearTimeout(timer); signal.removeEventListener('abort', cancel); worker.onmessage = worker.onerror = null; failed ? reject(error) : resolve(); };
+                const cancel = () => finish(signal.reason ?? new DOMException('Streaming acquisition retired', 'AbortError'));
+                const timer = setTimeout(() => finish(new PlayerError('ASSET_LOAD_FAILED', 'Streaming worker acquisition deadline exceeded')), 10000);
+                worker.onerror = () => finish(new PlayerError('ASSET_LOAD_FAILED', 'Streaming worker could not initialize'));
+                worker.onmessage = ({ data }) => {
+                    if (data?.type === 'producer-ready' && data.size === size) {
+                        finish();
+                        return;
+                    }
+                    if (data?.type === 'error' && Object.hasOwn(data, 'error')) {
+                        finish(data.error, true);
+                        return;
+                    }
+                    if (data?.type === 'error' && data.code === 'PROVIDER_PROFILE_MISMATCH') {
+                        finish(Object.assign(new Error(data.message), { code: data.code }));
+                        return;
+                    }
+                    finish(new PlayerError('ASSET_LOAD_FAILED', typeof data?.message === 'string' ? data.message : 'Invalid streaming worker acquisition response'));
+                };
+                signal.addEventListener('abort', cancel, { once: true });
+                if (signal.aborted) {
+                    cancel();
+                    return;
+                }
+                try {
+                    worker.postMessage({ type: 'configure', ...request });
+                }
+                catch (error) {
+                    finish(new PlayerError('ASSET_LOAD_FAILED', 'Streaming worker request failed'));
+                }
+            });
+            signal.throwIfAborted();
+            remote?.check();
+            return { worker, size };
+        }
+        catch (error) {
+            worker.terminate();
+            if (signal.aborted)
+                throw signal.reason;
+            if (error?.code === 'PROVIDER_PROFILE_MISMATCH')
+                return;
+            throw error;
+        }
+    }
+    canPrepareFile(file, runtime = 'pthread') {
+        const probe = this.fileSources.get(file), candidate = this.filePreparationCandidate(file);
+        return this.canUsePreparation(candidate, probe, file.size, runtime, 'local');
+    }
+    canUsePreparation(candidate, probe, size, runtime, transport) {
+        if (!this.deployment || !candidate || !probe || !this.hasOffer(candidate.providerId, 'packet-copy') || !this.has(candidate.path))
+            return false;
+        const base = resolvableExecutionRecipe('native-remux', runtime), recipe = { ...base, bindings: base.bindings.filter(binding => binding.id === candidate.binding) };
+        const scope = JSON.stringify([candidate.providerId, probe.format, size, probe.tracks]);
+        const resolution = resolveProviderRecipe(recipe, this.deployment.catalog, this.evidence(recipe, scope, transport + ':' + runtime + ':' + candidate.profile), scope);
+        if (resolution.state !== 'pending' && resolution.state !== 'available')
+            return false;
+        const broad = 'ffmpeg-file-preparation' + (runtime === 'pthread' ? '' : '-' + runtime);
+        const broadAvailable = this.hasOffer(broad, 'packet-copy') && this.has(`web/engine-remux${runtime === 'pthread' ? '' : '-' + runtime}/remux.wasm`);
+        const assignment = (providerId) => [{ providerId, requirements: [{ capability: 'media.prepare.file', version: 1, profile: 'packet-copy' }] }];
+        return !broadAvailable || compareProviderPreferences(assignment(candidate.providerId), assignment(broad), this.providerPreferences) < 0;
+    }
+    async prepareFile(file, signal, runtime = 'pthread') {
+        await this.load();
+        signal = AbortSignal.any([signal, this.controller.signal]);
+        signal.throwIfAborted();
+        if (!this.canPrepareFile(file, runtime))
+            return;
+        const sourceTracks = this.fileSources.get(file).tracks.map(track => ({ ...track }));
+        const path = this.filePreparationCandidate(file).path;
+        return this.executePreparation(path, { file, sourceTracks }, signal);
+    }
+    canPrepareRemote(source, runtime = 'pthread') {
+        const admission = this.remoteSources.get(source), size = admission ? remotePreparationSize(admission.source) : undefined;
+        return !!admission && size !== undefined && this.canUsePreparation(this.preparationCandidate(admission.probe, size), admission.probe, size, runtime, 'remote');
+    }
+    async prepareRemote(source, signal, runtime = 'pthread') {
+        await this.load();
+        signal = AbortSignal.any([signal, this.controller.signal, AbortSignal.timeout(30000)]);
+        signal.throwIfAborted();
+        if (!this.canPrepareRemote(source, runtime))
+            return;
+        const admission = this.remoteSources.get(source), size = remotePreparationSize(admission.source);
+        if (!samePreparationSource(source, admission.source))
+            throw new PlayerError('SOURCE_CHANGED', 'Remote preparation source changed after inspection');
+        const candidate = this.preparationCandidate(admission.probe, size);
+        const reader = await openPreparationSource(admission.source, this.base, signal);
+        try {
+            const prepared = await this.executePreparation(candidate.path, { source: { size }, sourceTracks: admission.probe.tracks.map(track => ({ ...track })) }, signal, (at, length) => reader.read(at, length));
+            if (!samePreparationSource(source, admission.source))
+                throw new PlayerError('SOURCE_CHANGED', 'Remote preparation source changed during preparation');
+            if (prepared)
+                prepared.diagnostics = { ...prepared.diagnostics, transport: 'validated-remote-range' };
+            return prepared;
+        }
+        catch (error) {
+            if (signal.aborted)
+                throw signal.reason;
+            throw error;
+        }
+        finally {
+            reader.close();
+        }
+    }
+    async executePreparation(path, request, signal, read) {
+        const bytes = await this.bytes(path);
+        signal.throwIfAborted();
+        // The self-contained module consumes verified bytes, rather than fetching
+        // the URL a second time after its integrity check.
+        const url = URL.createObjectURL(new Blob([bytes], { type: 'text/javascript' }));
+        let worker;
+        try {
+            worker = new Worker(url, { type: 'module', name: 'demuxe-media-preparation' });
+            return await new Promise((resolve, reject) => {
+                let settled = false, pending = 0, readCount = 0, readBytes = 0;
+                const ids = new Set();
+                const finish = (outcome) => {
+                    if (settled)
+                        return;
+                    settled = true;
+                    clearTimeout(timer);
+                    signal.removeEventListener('abort', abort);
+                    if (outcome.ok)
+                        resolve(outcome.value);
+                    else
+                        reject(outcome.error);
+                };
+                const fail = (error) => finish({ ok: false, error });
+                const abort = () => fail(signal.reason ?? new DOMException('Preparation cancelled', 'AbortError'));
+                const timer = setTimeout(() => fail(new PlayerError('DECODE_FAILED', 'Prepared-file worker deadline exceeded')), 30000);
+                worker.onerror = () => fail(new PlayerError('ASSET_LOAD_FAILED', 'Prepared-file worker could not initialize'));
+                worker.onmessage = event => {
+                    if (settled)
+                        return;
+                    const data = event.data;
+                    if (data?.type === 'read') {
+                        if (!read || !request.source || !Number.isSafeInteger(data.id) || data.id < 1 || ids.has(data.id) || !Number.isSafeInteger(data.offset) || !Number.isSafeInteger(data.length) || data.offset < 0 || data.length < 0 || data.length > request.source.size - data.offset || pending >= 8 || readCount >= 4096 || data.length > 32 * 1024 * 1024 - readBytes) {
+                            fail(new PlayerError('ASSET_LOAD_FAILED', 'Invalid prepared-file worker read request'));
+                            return;
+                        }
+                        ids.add(data.id);
+                        pending++;
+                        readCount++;
+                        readBytes += data.length;
+                        void read(data.offset, data.length).then(bytes => {
+                            if (settled)
+                                return;
+                            const owned = bytes.slice();
+                            worker.postMessage({ type: 'read-result', id: data.id, bytes: owned }, [owned.buffer]);
+                        }).catch(fail).finally(() => { pending--; });
+                        return;
+                    }
+                    if (data?.ok === true) {
+                        if (pending)
+                            fail(new PlayerError('ASSET_LOAD_FAILED', 'Preparation completed with pending source reads'));
+                        else
+                            finish({ ok: true, value: data.value });
+                    }
+                    else {
+                        const failure = data?.error;
+                        if (failure?.code === 'ASSET_LOAD_FAILED') {
+                            fail(new PlayerError('ASSET_LOAD_FAILED', typeof failure.message === 'string' ? failure.message : 'Prepared-file worker protocol failed'));
+                            return;
+                        }
+                        fail(Object.assign(new Error(typeof failure?.message === 'string' ? failure.message : 'Prepared-file worker failed'), { name: failure?.name ?? 'Error', code: failure?.code }));
+                    }
+                };
+                signal.addEventListener('abort', abort, { once: true });
+                if (signal.aborted) {
+                    abort();
+                    return;
+                }
+                try {
+                    worker.postMessage(request);
+                }
+                catch (error) {
+                    fail(error);
+                }
+            });
+        }
+        finally {
+            worker?.terminate();
+            URL.revokeObjectURL(url);
+        }
     }
     /** The caller invokes this only after existing semantic/source admission.
      * Evidence is scoped to source identity, selected settings and runtime. It
@@ -277,6 +586,25 @@ export class ProviderRuntime {
         }
         const scope = JSON.stringify([id, configuration]);
         const description = executionRecipe(planId);
+        if (planId === 'native-remux') {
+            const local = source;
+            if (local.kind === 'remote' && local.options) {
+                if (probe && remotePreparationSize(local.options) !== undefined)
+                    this.remoteSources.set(local.options, { source: snapshotPreparationSource(local.options), probe: { ...probe, tracks: probe.tracks.map(track => ({ ...track })) } });
+                else
+                    this.remoteSources.delete(local.options);
+                if (this.canPrepareRemote(local.options, runtime) || this.canStreamRemote(local.options, runtime))
+                    return;
+            }
+            if (local.kind === 'local' && local.file instanceof File) {
+                if (probe)
+                    this.fileSources.set(local.file, { ...probe, tracks: probe.tracks.map(track => ({ ...track })) });
+                else
+                    this.fileSources.delete(local.file);
+                if (probe && (this.canPrepareFile(local.file, runtime) || this.canStreamFile(local.file, runtime)))
+                    return;
+            }
+        }
         if (planId === 'native-transcode') {
             const engine = this.codecPreparation(source, probe, runtime, aid);
             if (engine) {
@@ -296,7 +624,8 @@ export class ProviderRuntime {
         const absent = required.filter(path => !this.has(path));
         if (absent.length)
             return 'Required provider runtime assets are not deployed: ' + absent.join(', ');
-        const recipe = resolvableExecutionRecipe(planId, runtime);
+        const baseRecipe = resolvableExecutionRecipe(planId, runtime);
+        const recipe = planId === 'native-remux' ? { ...baseRecipe, bindings: baseRecipe.bindings.filter(binding => !['mediabunny', 'mediabunny-mp4', 'mediabunny-mp4-stream'].includes(binding.id)) } : baseRecipe;
         const resolution = resolveProviderRecipe(recipe, this.deployment.catalog, this.evidence(recipe, scope), scope);
         return resolution.state === 'pending' || resolution.state === 'available' ? undefined
             : providerResolutionError([resolution])?.message ?? 'No qualified deployed composition';

@@ -276,6 +276,7 @@ export declare class NativePlayer extends EventTarget implements Backend {
     private installObjectURL;
     private releaseObjectURL;
     private startRemux;
+    private tryStreamRemux;
     private loadPlan;
     private openServices;
     open(file: File | ArrayBuffer): Promise<void>;

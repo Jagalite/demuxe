@@ -94,3 +94,17 @@ test('pure queued read receipts reject stale release and remain charged through 
  let state=fresh();const initial=state;for(let i=0;i<128;i++){const admission=bytePolicy.admitByteReadLease(state);assert.notEqual(admission.id,null);state=admission.state;}
  assert.equal(initial.leases.length,0);assert.equal(bytePolicy.admitByteReadLease(state).id,null);state=retireByteReader(state);assert.equal(state.leases.length,128);assert.equal(bytePolicy.finishByteReadLease(state,900),state);assert.equal(bytePolicy.finishByteReadLease(state,1).leases.length,127);
 });
+
+test('custom-source staging keeps source failure when owned cleanup also fails',async()=>{
+ let closes=0;const source={kind:'bytes',transport:'application-managed',id:'staging',size:8,ownership:'owned',read:async()=>{throw new Error('source permission denied');},close(){closes++;throw new Error('close failed');}};
+ await assert.rejects(materializeSource(source),error=>error.code==='SOURCE_PERMISSION'&&error.message.includes('source permission denied'));assert.equal(closes,1);
+});
+test('custom-source staging keeps cancellation when owned cleanup also fails',async()=>{
+ const controller=new AbortController();let entered;const started=new Promise(resolve=>{entered=resolve;});let closes=0;
+ const source={kind:'bytes',transport:'application-managed',id:'staging',size:8,ownership:'owned',read:async()=>{entered();return new Promise(()=>{});},close(){closes++;throw new Error('close failed');}};
+ const pending=materializeSource(source,controller.signal);await started;controller.abort();await assert.rejects(pending,error=>error.code==='ABORTED');assert.equal(closes,1);
+});
+test('successful custom-source staging surfaces owned cleanup failure',async()=>{
+ const failure=new Error('close failed');let closes=0;const source={kind:'bytes',transport:'application-managed',id:'staging',size:8,ownership:'owned',read:async(_at,n)=>new Uint8Array(n),close(){closes++;throw failure;}};
+ await assert.rejects(materializeSource(source),error=>error===failure);assert.equal(closes,1);
+});

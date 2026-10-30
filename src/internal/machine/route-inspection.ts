@@ -41,8 +41,8 @@ export function transitionInspection(state:InspectionState,change:InspectionChan
   }
 }
 /** Decisions consume normalized source/configuration facts, never File or DOM handles. */
-export function fastInspectionAllowed(facts:Readonly<{local:boolean;privateDemuxer:boolean;preserve:boolean;componentRepairRetry:boolean;textTracks:number;aid:string;sid:string;filename:string}>):boolean{
-  return facts.local&&!facts.privateDemuxer&&(!facts.preserve||facts.componentRepairRetry)&&!facts.textTracks&&facts.aid==='auto'&&facts.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(facts.filename);
+export function fastInspectionAllowed(facts:Readonly<{local:boolean;remote?:boolean;privateDemuxer:boolean;preserve:boolean;componentRepairRetry:boolean;textTracks:number;aid:string;sid:string;filename:string}>):boolean{
+  return (facts.local||facts.remote===true)&&!facts.privateDemuxer&&(!facts.preserve||facts.componentRepairRetry)&&!facts.textTracks&&facts.aid==='auto'&&facts.sid==='auto'&&!/\.(?:ogg|oga|opus|ts|m2ts)$/i.test(facts.filename);
 }
 export function inspectionSelection(probe:Probe,facts:Readonly<{settings:InspectionSettings;preserve:boolean;mode:string;hasSource:boolean;textTracks:number;remuxTracks:boolean;publicAudio?:string;publicSubtitle?:string}>):InspectionSettings{
   const {settings,preserve,mode}=facts;
@@ -130,8 +130,8 @@ function transitionInspectionWork(state:InspectionState,change:InspectionWorkCha
   case 'work.normal-start':return work.phase==='normal-start'?(change.fastAllowed?move('fast'):work.facts?.canInspect?move('ffmpeg'):withoutProbe()):state;
   case 'work.fast':{
    if(work.phase!=='fast')return state;
-   if(change.probe)return move('classify',{candidate:copyData(change.probe),fast:true,fastFacts:Object.freeze([...change.available]),notice:Object.freeze({outcome:'selected',reason:`Fast local metadata: ${change.bytes} bytes; routing admission pending`})});
-   return move(work.facts?.canInspect?'ffmpeg':'unavailable',{notice:Object.freeze({outcome:'skipped',reason:`Fast local metadata: ${change.bytes} bytes; ${change.reason}`})});
+   if(change.probe)return move('classify',{candidate:copyData(change.probe),fast:true,fastFacts:Object.freeze([...change.available]),notice:Object.freeze({outcome:'selected',reason:`Fast metadata: ${change.bytes} bytes; routing admission pending`})});
+   return move(work.facts?.canInspect?'ffmpeg':'unavailable',{notice:Object.freeze({outcome:'skipped',reason:`Fast metadata: ${change.bytes} bytes; ${change.reason}`})});
   }
   case 'work.unavailable':return work.phase==='unavailable'?withoutProbe():state;
   case 'work.ffmpeg':return work.phase==='ffmpeg'?(change.probe?move('classify',{candidate:copyData(change.probe),fast:false}):withoutProbe()):state;

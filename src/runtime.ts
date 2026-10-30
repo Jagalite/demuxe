@@ -8,8 +8,8 @@ import type {RuntimeProvider} from './internal/machine/provider-runtime.js';
 import {initialSharedRuntime,admitSharedRuntimeLoad,failSharedRuntimeLoad,publishSharedRuntime,unqualifiedRuntimeProvider,retireSharedRuntime,type SharedRuntimeState} from './internal/machine/shared-runtime.js';
 import {SharedProviderAssets} from './internal/shared-provider-assets.js';
 import {PlayerError} from './internal/errors.js';
-import type {DemuxeRuntimeHandle,DemuxeRuntimeOptions,ProviderLoadOptions,ProviderCatalogSnapshot} from './runtime-types.js';
-export type {DemuxeRuntimeOptions,ProviderLoadOptions,ProviderCatalogSnapshot} from './runtime-types.js';
+import type {DemuxeRuntimeHandle,DemuxeRuntimeOptions,ProviderLoadOptions,ProviderCatalogSnapshot,QualifiedProviderComposition} from './runtime-types.js';
+export type {DemuxeRuntimeOptions,ProviderLoadOptions,ProviderCatalogSnapshot,QualifiedProviderComposition} from './runtime-types.js';
 export type RuntimeDeploymentSnapshot=Readonly<{revision:number;deployment:ParsedProviderDeployment;providers:readonly RuntimeProvider[]}>;
 type RuntimeAccess={
   snapshot():RuntimeDeploymentSnapshot;
@@ -36,6 +36,8 @@ export function awaitRuntime<T>(pending:Promise<T>,signal?:AbortSignal):Promise<
 export class DemuxeRuntime implements DemuxeRuntimeHandle {
   get assetBase():string{return this.base.href;}
   get qualifiedProviders():Readonly<Record<string,string>>{return this.qualification;}
+  get qualifiedCompositions():readonly QualifiedProviderComposition[]{return this.compositions;}
+  private readonly compositions:readonly QualifiedProviderComposition[];
   private readonly qualification:Readonly<Record<string,string>>;
   private control:SharedRuntimeState;
   private base:URL;
@@ -55,6 +57,13 @@ export class DemuxeRuntime implements DemuxeRuntimeHandle {
     this.base=runtimeBase(options.assetBase);
     this.qualification=Object.freeze({...options.qualifiedProviders??qualifiedProviderIdentities});
     for(const [id,identity] of Object.entries(this.qualifiedProviders))if(!id||typeof identity!=='string'||!identity)throw new PlayerError('INVALID_ARGUMENT','Invalid provider qualification identity');
+    if(options.qualifiedCompositions!==undefined&&!Array.isArray(options.qualifiedCompositions))throw new PlayerError('INVALID_ARGUMENT','Invalid provider compositions');
+    this.compositions=Object.freeze((options.qualifiedCompositions??[]).map(record=>{
+      if(!record||typeof record.recipeId!=='string'||!record.recipeId||typeof record.bindingId!=='string'||!record.bindingId||!record.implementationIdentities||typeof record.implementationIdentities!=='object'||Array.isArray(record.implementationIdentities))throw new PlayerError('INVALID_ARGUMENT','Invalid provider composition');
+      const identities=Object.entries(record.implementationIdentities) as [string,string][];if(!identities.length||identities.some(([id,identity])=>!id||typeof identity!=='string'||!identity))throw new PlayerError('INVALID_ARGUMENT','Invalid composition identities');
+      if(!Array.isArray(record.sourceProfiles)||!record.sourceProfiles.length||record.sourceProfiles.some((profile:unknown)=>typeof profile!=='string'||!profile)||new Set(record.sourceProfiles).size!==record.sourceProfiles.length)throw new PlayerError('INVALID_ARGUMENT','Invalid composition source profiles');
+      return Object.freeze({recipeId:record.recipeId,bindingId:record.bindingId,implementationIdentities:Object.freeze(Object.fromEntries(identities)),sourceProfiles:Object.freeze([...record.sourceProfiles])});
+    }));
     this.control=initialSharedRuntime(this.qualification);
     this.assets=new SharedProviderAssets(options.maxCacheBytes);
     this.current=Object.freeze({revision:0,providers:Object.freeze([]),deployment:parseProviderDeployment({schema:1,providerContractVersion:1,revision:'runtime-0',assets:[],providers:[]},this.base)});

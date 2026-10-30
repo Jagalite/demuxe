@@ -285,7 +285,9 @@ export type StreamingState = Readonly<{recovery:NetworkRecoveryState;qualities:r
 
 /** Immutable random-access bytes. Playback stages at most 32 MiB before acceptance. */
 export type CustomSource = Readonly<{kind:'bytes';transport:'application-managed';id:string;size:number;read:(offset:number,length:number,signal:AbortSignal)=>Promise<Uint8Array>;close?:()=>void|Promise<void>;ownership?:'borrowed'|'owned';name?:string;type?:string}>;
-export type InspectionOptions = Readonly<{signal?:AbortSignal;assetBase?:string;maxBytes?:number;maxReads?:number;timeoutMs?:number}>;
+export type InspectionOptions = Readonly<{signal?:AbortSignal;assetBase?:string;maxBytes?:number;maxReads?:number;timeoutMs?:number;inspector?:MediaInspector}>;
+/** Optional inspector behind the bounded source owner; no transport or fallback ownership. */
+export type MediaInspector = (source:CustomSource, options?:Omit<InspectionOptions,'inspector'|'assetBase'>)=>Promise<MediaInspection>;
 export type MediaInspection = Readonly<{id:string;sourceIdentity:string|null;status:'complete'|'partial'|'unknown';completeFor:readonly ('container'|'tracks'|'duration')[];format:string|null;duration:number|null;tracks:readonly MediaTrack[]|null;chapters:readonly Chapter[]|null;tags:Readonly<Record<string,string>>|null;reason:string|null;bytesRead:number;reads:number}>;
 
 export type SeekOptions = Readonly<{signal?:AbortSignal;policy?:'queue'|'latest'}>;

@@ -1,0 +1,81 @@
+{
+  "status": "custom-byte-source-public-playback-finite-checks-passed-not-release",
+  "core": {
+    "archive": "/private/tmp/demuxe-custom-staging-core/demuxe-1.1.2.tgz",
+    "archiveSHA256": "29a602aa607fad040bfd226f5d4b77aa23d86f52a4dcf086d2c439d153bd16b7",
+    "files": 277,
+    "qualification": "local-core-package-only; optional providers and release remain separate",
+    "record": "/private/tmp/demuxe-custom-staging-core/build-inventory.json",
+    "recordSHA256": "747ce352860435ee9ce8b18ea667f28c3f84838427e42a61e7e18bf041efd137"
+  },
+  "coreSourceInputsVerified": 240,
+  "deployedCoreFilesVerified": 277,
+  "manifestSHA256": "b11d8a4cf77609d2034edfd7d707cca84688d1beaf477e993600f2717981924a",
+  "sourceSHA256": {
+    "src/sources.ts": "01e5c24e34e5abb0fb50926aa3e67c804319fdd5c8772ccb377ec5c7268a4496",
+    "src/unified-player.ts": "e46237455c4c606684e89d261eb2de216286bbea59fbfd4d6cfc44cc1388766d",
+    "tests/browser-mediabunny-custom-playback.mjs": "6fcd2a4efea5d22d1059cbd6243725b0a39371241be1bbbc9864e76d58648b66",
+    "tests/verify-mediabunny-custom-playback.mjs": "a21c37b99e7b32a234145d02910eaa4caad2365d51587db3574bd9ba40448c5a",
+    "packages/provider-mediabunny/qualification/fixtures/avc-aac-320x240.mp4": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de"
+  },
+  "artifactsSHA256": {
+    "custom-byte-playback-chrome-mp4.json": "d6f39a8b3bc0ffcabddf279042e358b57a3fe7665b3255da7850e803f94871b0",
+    "custom-byte-playback-chrome-mp4-verified.json": "f1951c45a8e0aa9704196adb357d829bccee4ccfdd8e2734d41e155d4d4d6ac4",
+    "custom-byte-playback-chrome-stream.json": "ac134526ac9331dde23c67f17a3b081d325d582c3028587d90bf3288f489e7aa",
+    "custom-byte-playback-chrome-stream-verified.json": "07bc5bf7a7bf8344a5a242dfd8034da19c0424ea5722d588c6f4aa6d7334f5c9",
+    "custom-byte-playback-firefox-mp4.json": "47d7a2e2ad6635cafa252d97f94fec9fbc021c686d7f8ebe4a66299fc22c9caa",
+    "custom-byte-playback-firefox-mp4-verified.json": "3eee568dc51baa1e649738068f345db166c5ff873ba6fa6c1f45ecceeaa553e3",
+    "custom-byte-playback-firefox-stream.json": "cb8fbe27c3fb5d5d03c26266d4282a3b540eca532bbfc11b1754be87baee0b75",
+    "custom-byte-playback-firefox-stream-verified.json": "41f8db316f50455aab10a70c2a8046c34a94239e81b26f2840ef735fef57ed2d",
+    "custom-byte-playback-webkit-mp4.json": "ad4236527f83ed24f8046bb070e97c04bca299765950383207a89a9fac48e45f",
+    "custom-byte-playback-webkit-mp4-verified.json": "259a0526a442cf9a23553cfe2df83dc45b74c09bcc9feaae42c0024452736fcd"
+  },
+  "verification": {
+    "chrome-mp4": {
+      "status": "custom-byte-source-public-playback-verified-not-release",
+      "browser": "155.0.8059.85",
+      "provider": "mediabunny-mp4-file-preparation",
+      "coreFiles": 277,
+      "requests": 128,
+      "negativeControls": 8
+    },
+    "chrome-stream": {
+      "status": "custom-byte-source-public-playback-verified-not-release",
+      "browser": "155.0.8059.85",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "coreFiles": 277,
+      "requests": 137,
+      "negativeControls": 8
+    },
+    "firefox-mp4": {
+      "status": "custom-byte-source-public-playback-verified-not-release",
+      "browser": "157.0",
+      "provider": "mediabunny-mp4-file-preparation",
+      "coreFiles": 277,
+      "requests": 128,
+      "negativeControls": 8
+    },
+    "firefox-stream": {
+      "status": "custom-byte-source-public-playback-verified-not-release",
+      "browser": "157.0",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "coreFiles": 277,
+      "requests": 137,
+      "negativeControls": 8
+    },
+    "webkit-mp4": {
+      "status": "custom-byte-source-public-playback-verified-not-release",
+      "browser": "27.2",
+      "provider": "mediabunny-mp4-file-preparation",
+      "coreFiles": 277,
+      "requests": 128,
+      "negativeControls": 8
+    }
+  },
+  "initialSetup": "The initial Chrome attempt omitted cross-origin-isolation headers and stopped before playback; the test harness was corrected.",
+  "limits": [
+    "One local synthetic AVC/AAC fixture is staged as a bounded File; no remote custom transport or broad codec coverage.",
+    "Chrome and Firefox exercise complete-file and incremental workers; Playwright WebKit exercises complete-file only.",
+    "Application-owned test qualifications and test-only archived FFmpeg assets do not grant production qualification."
+  ]
+}

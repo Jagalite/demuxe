@@ -965,6 +965,38 @@ export class NativePlayer extends EventTarget {
     }
     async startRemux(source, target, request) {
         this.assertLoad(request);
+        if (await this.tryStreamRemux(source, target, request))
+            return;
+        const remote = source.admission ?? source.options;
+        const prepare = source.file && this.providerRuntime?.canPrepareFile?.(source.file, this.remuxRuntime) && this.providerRuntime.prepareFile ? () => this.providerRuntime.prepareFile(source.file, this.loadSignal(request), this.remuxRuntime) : remote && this.providerRuntime?.canPrepareRemote?.(remote, this.remuxRuntime) && this.providerRuntime.prepareRemote ? () => this.providerRuntime.prepareRemote(remote, this.loadSignal(request), this.remuxRuntime) : undefined;
+        if (this.requestedPlan === 'native-remux' && prepare && !this.audioAdaptation && !this.selectiveAudio && !this.mpvSubtitlePlan && this.execution?.subtitles !== 'external') {
+            const prepared = await this.awaitLoad(request, prepare());
+            if (prepared) {
+                await this.retireRemux(request);
+                const url = this.acquireObjectURL(prepared.file, request);
+                let installed = false;
+                try {
+                    await this.load(url, request);
+                    await this.awaitLoad(request, this.verifyStartup({ video: prepared.tracks.some(track => track.type === 'video'), audio: prepared.tracks.some(track => track.type === 'audio') }));
+                    if (target > 0)
+                        await this.awaitLoad(request, this.wait('seeked', () => { this.assertLoad(request); this.video.currentTime = target; }, this.loadSignal(request)));
+                    this.installObjectURL(url, request);
+                    installed = true;
+                    this.projection = prepared;
+                    this.remuxSource = source;
+                    this.refresh(request);
+                    this.assertLoad(request);
+                    this.emit('source', { plan: 'remux', tracks: prepared.tracks });
+                    this.assertLoad(request);
+                    return;
+                }
+                catch (error) {
+                    if (!installed)
+                        this.releaseObjectURL(url, request.id);
+                    throw error;
+                }
+            }
+        }
         const codecEngine = source.file && this.audioAdaptation === 'flac24' && this.requestedPlan === 'native-transcode' ? this.providerRuntime?.preparation?.(source.file, this.remuxRuntime, source.audioTrack) : undefined;
         this.assertLoad(request);
         const preparation = selectNativePreparation({ providerPreferences: this.startup?.providerPreferences, runtime: this.remuxRuntime, broadAvailable: !!this.startup?.providerPreferences?.length && (!this.providerRuntime || !!this.providerRuntime.has?.(`web/engine-remux${this.remuxRuntime === 'pthread' ? '' : '-' + this.remuxRuntime}/remux.wasm`)), codecEngine: !!codecEngine, file: !!source.file, adaptation: this.audioAdaptation, selectiveAudio: this.selectiveAudio, embeddedSubtitles: this.mpvSubtitlePlan, externalSubtitles: this.execution?.subtitles === 'external', prepareAudio: !!this.providerRuntime?.prepareAudio });
@@ -1094,6 +1126,56 @@ export class NativePlayer extends EventTarget {
         this.emit('mpv', { event: 'file-loaded' });
         this.assertLoad(request);
     }
+    async tryStreamRemux(source, target, request) {
+        const file = source.file, remote = source.admission ?? source.options, providers = this.providerRuntime, runtime = this.remuxRuntime;
+        const supported = file ? providers?.canStreamFile?.(file, runtime) && providers.streamFile : remote && providers?.canStreamRemote?.(remote, runtime) && providers.streamRemote;
+        if (this.requestedPlan !== 'native-remux' || !supported || !providers || this.audioAdaptation || this.selectiveAudio || this.mpvSubtitlePlan || this.execution?.subtitles === 'external')
+            return false;
+        const { RemuxPlayer } = await this.awaitLoad(request, import(new URL('web/native-remux-player.js', this.assetBase).href));
+        await this.retireRemux(request);
+        this.assertLoad(request);
+        const producerFactory = async ({ source: descriptor, target, signal }) => {
+            if (file ? descriptor.file !== file : descriptor.options !== remote)
+                throw new PlayerError('SOURCE_CHANGED', 'Streaming source changed after admission');
+            const acquired = file ? await providers.streamFile(file, target, signal, runtime) : await providers.streamRemote(remote, target, signal, runtime);
+            if (!acquired)
+                throw Object.assign(new Error('Streaming packet profile declined'), { code: 'PROVIDER_PROFILE_MISMATCH' });
+            return acquired;
+        };
+        const owner = new RemuxPlayer(this.video, { producerFactory, mseOwner: 'window', bufferedSeeks: this.bufferedSeeks, buffering: { ...resolveBuffering(this.buffering, 'remux'), preload: this.buffering.preload } });
+        if (!nativeRequestCurrent(this.native, request)) {
+            await this.queueSourceCleanup(() => this.cleanupSourceHandles(owner, undefined, undefined, []));
+            this.assertLoad(request);
+        }
+        this.remux = owner;
+        this.remuxEnginePath = 'web/providers/mediabunny/mp4-stream.js';
+        const classified = (error) => error?.code === 'ASSET_LOAD_FAILED' ? new PlayerError('ASSET_LOAD_FAILED', String(error)) : error;
+        owner.onBufferingChange = () => { if (!this.stopped && this.native.epoch === request.epoch && this.remux === owner)
+            this.refresh(); };
+        owner.onError = (message, error) => { if (!this.opening && !this.stopped && this.native.epoch === request.epoch && this.remux === owner)
+            this.emit('error', classified(error ?? message)); };
+        try {
+            this.changeLoad(request, { type: 'attempt', adapted: false });
+            await this.awaitLoad(request, owner.open(file ? { file } : { options: remote }, target));
+            this.assertLoad(request);
+            await this.awaitLoad(request, this.verifyStartup({ video: true, audio: !!owner.tracks?.some(track => track.type === 'audio') }));
+            this.remuxSource = source;
+            this.refresh(request);
+            this.assertLoad(request);
+            this.emit('source', { plan: 'remux', tracks: owner.tracks });
+            this.assertLoad(request);
+            this.emit('mpv', { event: 'file-loaded' });
+            this.assertLoad(request);
+            return true;
+        }
+        catch (error) {
+            this.assertLoad(request);
+            await this.retireRemux(request);
+            if (error?.code === 'PROVIDER_PROFILE_MISMATCH')
+                return false;
+            throw classified(error);
+        }
+    }
     async loadPlan(source, direct, requiresRemux = false, request) {
         this.assertLoad(request);
         const policy = this.native.load.work.policy, decision = selectNativeLoadRoute({ ...policy, requiresRemux });
@@ -1200,7 +1282,7 @@ export class NativePlayer extends EventTarget {
             this.assertLoad(request);
             this.video.crossOrigin = source.credentials === 'include' ? 'use-credentials' : 'anonymous';
             this.assertLoad(request);
-            await this.loadPlan({ options: { ...source, url: url.href }, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, async () => {
+            await this.loadPlan({ options: { ...source, url: url.href }, admission: source, audioTrack: this.initialAudioTrack, videoOnly: this.selectiveAudio }, async () => {
                 this.assertLoad(request);
                 if (source.format && source.format !== 'file') {
                     const mime = source.format === 'hls' ? 'application/vnd.apple.mpegurl' : 'application/dash+xml', value = `canPlayType(${mime})=${this.video.canPlayType(mime) || 'unknown'}`;

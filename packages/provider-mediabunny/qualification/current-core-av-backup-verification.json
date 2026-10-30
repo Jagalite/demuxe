@@ -1,0 +1,86 @@
+{
+  "status": "finite-current-core-av-backup-matrices-verified-not-release",
+  "coreCandidate": {
+    "archive": "/private/tmp/demuxe-prefetch-admission-core/demuxe-1.1.2.tgz",
+    "archiveSHA256": "1b91a2f2ca3a21d22388df0cdf50acc14a33e7a81f4d372b913ab9f0d9275ef4",
+    "files": 277,
+    "qualification": "local-core-package-only; optional providers and release remain separate",
+    "record": "/private/tmp/demuxe-prefetch-admission-core/build-inventory.json",
+    "recordSHA256": "90d7390eaa15ee9c411232d0bc0588b29be6f5c67c3fa20501b11e45e342d35d"
+  },
+  "sourceSHA256": {
+    "src/unified-player.ts": "e46237455c4c606684e89d261eb2de216286bbea59fbfd4d6cfc44cc1388766d",
+    "packages/provider-mediabunny/test/browser-backup.mjs": "8a43a306da8935b2f862f1a410a580a370e93b75c005db8c40332ed763496e56",
+    "tests/verify-mediabunny-av-backup.mjs": "8eb07cc31b6a4593f4b7aa8f41ab8662388d8710e36872b56605cca12bba37ba",
+    "packages/provider-mediabunny/qualification/fixtures/avc-aac-320x240.mp4": "67de666685707ef91021d0caa0729592ffe71d1e572a4646da148e7c0cc205de"
+  },
+  "evidenceSHA256": {
+    "current-core-av-backup-chrome-file.json": "9eedeeccb2fa2ad902119420c35a006641183ac63d7e5b7e6d7a1841e64c6a5d",
+    "current-core-av-backup-chrome-stream.json": "677d9e2f1a6f406a1d045eb08dfb82bea906b8d52394f17bee80b1de4ad61f6a",
+    "current-core-av-backup-firefox-file.json": "94dce22f037013d4843cfba80c01ff917ed01d831de9ccb907a84b621b411559",
+    "current-core-av-backup-firefox-stream.json": "2abba6bf8e209117a2e51ec0b95b903707009b130634a337679a59c7dc08d29a",
+    "current-core-av-backup-webkit-file-failed.json": "911fbfe2cd1ac6ecad913f92faf789c6fbab49d2c5b89cc85a1b74cce2bea09d",
+    "current-core-av-backup-webkit-stream-failed.json": "365cb5bc4bfbc376e3c56d75574a0231734e6483086f7f62ffcf38e16ee39b7c"
+  },
+  "verification": {
+    "chrome-file": {
+      "status": "finite-current-av-backup-verified-not-release",
+      "browser": "155.0.8059.85",
+      "provider": "mediabunny-mp4-file-preparation",
+      "coreFiles": 277,
+      "staticInputs": 144,
+      "negativeControls": 8
+    },
+    "chrome-stream": {
+      "status": "finite-current-av-backup-verified-not-release",
+      "browser": "155.0.8059.85",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "coreFiles": 277,
+      "staticInputs": 144,
+      "negativeControls": 8
+    },
+    "firefox-file": {
+      "status": "finite-current-av-backup-verified-not-release",
+      "browser": "157.0",
+      "provider": "mediabunny-mp4-file-preparation",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    },
+    "firefox-stream": {
+      "status": "finite-current-av-backup-verified-not-release",
+      "browser": "157.0",
+      "provider": "mediabunny-mp4-stream-preparation",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    }
+  },
+  "scope": "Seven-case complete-file and incremental MP4 AVC/AAC local public Player matrices, Chrome and Firefox, exact current packaged core, test-owned qualified compositions and archived test-only FFmpeg backup.",
+  "limitations": [
+    "Synthetic fixture and local transport only; no general media, remote, native-memory or release qualification.",
+    "Archived FFmpeg artifacts are test candidates, not a production backup distribution.",
+    "WebKit MSE audio observation remains unresolved.",
+    "No reviewed production qualification is granted by these test-owned records."
+  ],
+  "webkitAttempts": {
+    "webkit-file": {
+      "status": "failed-not-qualified",
+      "browser": "27.2",
+      "completedCases": [
+        "direct"
+      ],
+      "failure": "default FFmpeg case: stereo Web Audio tap RMS zero; video clock progressed",
+      "laterCasesExecuted": false
+    },
+    "webkit-stream": {
+      "status": "failed-not-qualified",
+      "browser": "27.2",
+      "completedCases": [
+        "direct"
+      ],
+      "failure": "default FFmpeg case: stereo Web Audio tap RMS zero; video clock progressed",
+      "laterCasesExecuted": false
+    }
+  }
+}

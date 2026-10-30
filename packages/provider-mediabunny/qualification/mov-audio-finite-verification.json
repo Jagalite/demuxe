@@ -1,0 +1,105 @@
+{
+  "status": "finite-mov-audio-verification-passed-not-release",
+  "scope": "Synthetic MediaBunny-authored QuickTime AAC-LC audio-only, 48 kHz mono and stereo; retained FFmpeg backup",
+  "inputSHA256": {
+    "packages/provider-mediabunny/test/browser-audio-preservation.mjs": "3d2426fc5d18c7fab9b1cc29ed189a072db2d3244c977ddbfb0d32e7c9e7a2c7",
+    "packages/provider-mediabunny/test/browser-backup.mjs": "deb00e1064aec7378b0dc4b08d0e6199a3bc49b8c4c8d1f0d5ee22ab97870af7",
+    "tests/verify-mediabunny-mov-audio.mjs": "88a1fce343811ca8bc70e21b7f2c722a4ba64802a8de76859b6c547c1d92b1e0",
+    "packages/provider-mediabunny/qualification/fixtures/aac-stereo-48000.mov": "d43c6449e21727a450237ba8bcb0769d55e7c356f832eaea252d08d28fee219b",
+    "packages/provider-mediabunny/qualification/fixtures/aac-mono-48000.mov": "463da2ab11683c4f405bf3aa7f7726cc4174c40d30a71a21bf86f992748b9467"
+  },
+  "providerImplementationIdentities": {
+    "webm": "sha256:081c32ca29f651b6bb32051eeaee435e9f566c2af4a3ca9d54b20bef52c8c465",
+    "mp4": "sha256:f405672337d719e6d3486252fd7e4b384ea4b966b68b1edca3e6934214c5d62a",
+    "stream": "sha256:6b6b95266cd8356265c0e0025a49e2149c3bf1959b939a8988fab236fa4e9a45"
+  },
+  "evidenceSHA256": {
+    "mov-audio-stereo-preservation.json": "88d59da62848156edaecec80b4567bf0656652a10a0d35f220cd66d73810e6e2",
+    "mov-audio-mono-preservation.json": "2b5b457367585e869d84d1e0edbb4a101bd217694751f9e0c3230305f2fe85bc",
+    "mov-audio-chrome-stereo-local.json": "5134f581ed5c2bd474ca72264033260cabefd278737a50506a2ac777304c1763",
+    "mov-audio-chrome-mono-remote.json": "8ad74832b10ade1311ceb02840178b7a2e6bfd40e3437032f329147d27221389",
+    "mov-audio-firefox-stereo-local.json": "bcb4fd762b7abcf2066521f8cdfa0d5d7e8ffe8bc53fa26a36270e9699e0e890",
+    "mov-audio-webkit-preferred-only.json": "87395a87a0cbacc1493c7c02b4e09156bf87acf15214efab2aba211d01d6d232",
+    "mov-audio-mp4-regression.json": "1689590b97c6cfd18903554fe9a167c896de1aa0b831451915c9fca739149578",
+    "mov-audio-source-rebuild-webm.json": "11d7eddef62cfe8f51a26007034638ac9c4b5d8423b63736de6b1a811d2ffa38",
+    "mov-audio-source-rebuild-mp4.json": "7b14599cc811dcab583b7f98a105a934794ce31722f560bea515e578d3873284",
+    "mov-audio-source-rebuild-stream.json": "d66d7d068aec15d7d6bf229be2a83607514bffed75810d16dc6b82ac30259e70"
+  },
+  "publicMatrixVerification": {
+    "stereo": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "155.0.8059.85",
+      "channels": 2,
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-2ch",
+      "coreFiles": 277,
+      "staticInputs": 144,
+      "negativeControls": 8
+    },
+    "mono": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "155.0.8059.85",
+      "channels": 1,
+      "remote": true,
+      "sourceProfile": "remote:pthread:mp4-mov-aac-1ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    },
+    "firefox": {
+      "status": "finite-mov-audio-evidence-verified-not-release",
+      "browser": "157.0",
+      "channels": 2,
+      "remote": false,
+      "sourceProfile": "local:pthread:mp4-mov-aac-2ch",
+      "coreFiles": 277,
+      "staticInputs": 143,
+      "negativeControls": 8
+    }
+  },
+  "privateCandidateAudit": {
+    "status": "main-auditor-private-candidates-passed-not-release",
+    "results": [
+      {
+        "kind": "webm",
+        "archiveSHA256": "607ba846fe2057d5b9351beaa0304d2efbd478be9486d831415088dbff56b5cd",
+        "recordSHA256": "ec151f59688e24eb9ce19fe4c1d9b358e3f1b07517b1171d9786ac59527009fe",
+        "files": 12,
+        "sources": 108
+      },
+      {
+        "kind": "mp4",
+        "archiveSHA256": "ed16fc2cc4945254f3c5a8d85fcfaf5c2e392c41554f69ce9af2f66f8ff9d5d8",
+        "recordSHA256": "c99805e705a2696870a1ecdd1b63e8cda42bf29523e4b5df3ff01f789553f292",
+        "files": 12,
+        "sources": 108
+      },
+      {
+        "kind": "stream",
+        "archiveSHA256": "6e519abe6e893538380a4dcc1a2292955fd1503af8be9297cb66888f9124cfd2",
+        "recordSHA256": "28f22e40e9bc09992d9c664137be503212dbd1841beb1a9d56da9e02af75c110",
+        "files": 12,
+        "sources": 108
+      }
+    ],
+    "negativeControls": [
+      "missing source inventory",
+      "publishable metadata",
+      "changed local adapter",
+      "wrong reviewed hash",
+      "existing output preserved"
+    ]
+  },
+  "checks": {
+    "packageTests": "63 passed and 5 source archive tests passed",
+    "coreTests": "54 passed",
+    "mp4PreservationRegression": "passed",
+    "webkit": "preferred MediaBunny only; incomplete matrix",
+    "sourceRebuild": "webm, mp4 and mp4-stream passed; worker identities match tested candidates"
+  },
+  "limitations": [
+    "Fixtures use MediaBunny MOV writer; independent MOV authoring is not covered.",
+    "Finite test-owned compositions do not constitute release or production qualification.",
+    "Broader AAC/edit/gapless profiles and WebKit MSE FFmpeg audio output remain unqualified."
+  ]
+}

@@ -22,7 +22,7 @@ export function publicSurface() {
         if(ts.isTypeAliasDeclaration(declaration)){
           const type=checker.getDeclaredTypeOfSymbol(symbol);
           if(type.flags & (ts.TypeFlags.Object|ts.TypeFlags.Intersection))
-            for(const property of checker.getPropertiesOfType(type))members.add(property.name);
+            for(const property of checker.getPropertiesOfType(type))members.add(property.name.replace(/^__@(.+?)@\d+$/, '[Symbol.$1]'));
         }
         if(!ts.isClassDeclaration(declaration)&&!ts.isInterfaceDeclaration(declaration))continue;
         for(const member of declaration.members) {
